@@ -7,7 +7,10 @@
       "name": "Sub-workflow input",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [-720, 320]
+      "position": [
+        -720,
+        320
+      ]
     },
     {
       "parameters": {
@@ -17,14 +20,27 @@
       "name": "Validate mutation",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-480, 320]
+      "position": [
+        -480,
+        320
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "conditions": [
-            { "leftValue": "={{ $json.op.name }}", "rightValue": "publish_approved_plan", "operator": { "type": "string", "operation": "equals" } }
+            {
+              "leftValue": "={{ $json.op.name }}",
+              "rightValue": "publish_approved_plan",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
           ],
           "combinator": "or"
         },
@@ -34,7 +50,10 @@
       "name": "Needs approval check?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [-220, 320]
+      "position": [
+        -220,
+        320
+      ]
     },
     {
       "parameters": {
@@ -43,20 +62,39 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "authorization", "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}" },
-            { "name": "x-on-behalf-of", "value": "={{ $json.request.principal.userId }}" },
-            { "name": "x-correlation-id", "value": "={{ $json.request.principal.correlationId }}" }
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-on-behalf-of",
+              "value": "={{ $json.request.principal.userId }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $json.request.principal.correlationId }}"
+            }
           ]
         },
         "sendBody": true,
         "jsonBody": "={\n  \"tool\": \"get_approval_status\",\n  \"arguments\": { \"planVersionId\": \"{{ $json.op.arguments.planVersionId }}\" }\n}",
-        "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
       },
       "id": "fetch-approval",
       "name": "Fetch approval status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [40, 200]
+      "position": [
+        40,
+        200
+      ]
     },
     {
       "parameters": {
@@ -66,7 +104,10 @@
       "name": "Enforce human approval",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [280, 200]
+      "position": [
+        280,
+        200
+      ]
     },
     {
       "parameters": {
@@ -75,20 +116,42 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "authorization", "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}" },
-            { "name": "x-on-behalf-of", "value": "={{ $json.request.principal.userId }}" },
-            { "name": "x-correlation-id", "value": "={{ $json.request.principal.correlationId }}" }
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-on-behalf-of",
+              "value": "={{ $json.request.principal.userId }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $json.request.principal.correlationId }}"
+            }
           ]
         },
         "sendBody": true,
         "jsonBody": "={\n  \"tool\": \"{{ $json.op.name }}\",\n  \"arguments\": {{ JSON.stringify($json.op.arguments) }}\n}",
-        "options": { "timeout": 15000, "retry": { "maxTries": 2 }, "response": { "response": { "neverError": true } } }
+        "options": {
+          "timeout": 15000,
+          "retry": {
+            "maxTries": 2
+          },
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
       },
       "id": "exec-mutation",
       "name": "Execute mutation",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [540, 320]
+      "position": [
+        540,
+        320
+      ]
     },
     {
       "parameters": {
@@ -98,26 +161,93 @@
       "name": "Shape execution result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [800, 320]
+      "position": [
+        800,
+        320
+      ]
     }
   ],
   "connections": {
-    "Sub-workflow input": { "main": [[{ "node": "Validate mutation", "type": "main", "index": 0 }]] },
-    "Validate mutation": { "main": [[{ "node": "Needs approval check?", "type": "main", "index": 0 }]] },
-    "Needs approval check?": {
+    "Sub-workflow input": {
       "main": [
-        [{ "node": "Fetch approval status", "type": "main", "index": 0 }],
-        [{ "node": "Execute mutation", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Validate mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Fetch approval status": { "main": [[{ "node": "Enforce human approval", "type": "main", "index": 0 }]] },
-    "Enforce human approval": { "main": [[{ "node": "Execute mutation", "type": "main", "index": 0 }]] },
-    "Execute mutation": { "main": [[{ "node": "Shape execution result", "type": "main", "index": 0 }]] }
+    "Validate mutation": {
+      "main": [
+        [
+          {
+            "node": "Needs approval check?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs approval check?": {
+      "main": [
+        [
+          {
+            "node": "Fetch approval status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch approval status": {
+      "main": [
+        [
+          {
+            "node": "Enforce human approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enforce human approval": {
+      "main": [
+        [
+          {
+            "node": "Execute mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute mutation": {
+      "main": [
+        [
+          {
+            "node": "Shape execution result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "pinData": {},
   "versionId": "wf-05-approved-mutation-executor-v1",
   "triggerCount": 0,
-  "tags": [{ "name": "uapm" }, { "name": "mutation" }]
+  "active": false
 }

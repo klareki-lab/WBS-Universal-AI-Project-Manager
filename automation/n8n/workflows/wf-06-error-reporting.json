@@ -7,7 +7,10 @@
       "name": "Sub-workflow input",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [-620, 300]
+      "position": [
+        -620,
+        300
+      ]
     },
     {
       "parameters": {
@@ -17,14 +20,26 @@
       "name": "Normalize error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-380, 300]
+      "position": [
+        -380,
+        300
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true },
+          "options": {
+            "caseSensitive": true
+          },
           "conditions": [
-            { "leftValue": "={{ $json.operationIds.length }}", "rightValue": 0, "operator": { "type": "number", "operation": "notEquals" } }
+            {
+              "leftValue": "={{ $json.operationIds.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
           ],
           "combinator": "or"
         },
@@ -34,7 +49,10 @@
       "name": "Has operation IDs?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [-140, 300]
+      "position": [
+        -140,
+        300
+      ]
     },
     {
       "parameters": {
@@ -43,19 +61,35 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "authorization", "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}" },
-            { "name": "x-correlation-id", "value": "={{ $json.correlationId }}" }
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $json.correlationId }}"
+            }
           ]
         },
         "sendBody": true,
         "jsonBody": "={\n  \"tool\": \"get_operation_status\",\n  \"arguments\": { \"operationId\": \"{{ $json.operationIds[0] }}\" }\n}",
-        "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
       },
       "id": "fetch-op-status",
       "name": "Fetch operation status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [120, 180]
+      "position": [
+        120,
+        180
+      ]
     },
     {
       "parameters": {
@@ -65,24 +99,71 @@
       "name": "Shape error report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [360, 300]
+      "position": [
+        360,
+        300
+      ]
     }
   ],
   "connections": {
-    "Sub-workflow input": { "main": [[{ "node": "Normalize error", "type": "main", "index": 0 }]] },
-    "Normalize error": { "main": [[{ "node": "Has operation IDs?", "type": "main", "index": 0 }]] },
-    "Has operation IDs?": {
+    "Sub-workflow input": {
       "main": [
-        [{ "node": "Fetch operation status", "type": "main", "index": 0 }],
-        [{ "node": "Shape error report", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Normalize error",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Fetch operation status": { "main": [[{ "node": "Shape error report", "type": "main", "index": 0 }]] }
+    "Normalize error": {
+      "main": [
+        [
+          {
+            "node": "Has operation IDs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has operation IDs?": {
+      "main": [
+        [
+          {
+            "node": "Fetch operation status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Shape error report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch operation status": {
+      "main": [
+        [
+          {
+            "node": "Shape error report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "pinData": {},
   "versionId": "wf-06-error-reporting-v1",
   "triggerCount": 0,
-  "tags": [{ "name": "uapm" }, { "name": "errors" }]
+  "active": false
 }

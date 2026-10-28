@@ -10,7 +10,10 @@
       "name": "Chat Trigger",
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.1,
-      "position": [-460, 240]
+      "position": [
+        -460,
+        240
+      ]
     },
     {
       "parameters": {
@@ -20,7 +23,10 @@
       "name": "Normalize session",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-220, 240]
+      "position": [
+        -220,
+        240
+      ]
     },
     {
       "parameters": {
@@ -37,7 +43,10 @@
       "name": "Invoke WF-02 Multi-Agent Core",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [40, 240]
+      "position": [
+        40,
+        240
+      ]
     },
     {
       "parameters": {
@@ -47,18 +56,45 @@
       "name": "Shape chat response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [280, 240]
+      "position": [
+        280,
+        240
+      ]
     }
   ],
   "connections": {
     "Chat Trigger": {
-      "main": [[{ "node": "Normalize session", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Normalize session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Normalize session": {
-      "main": [[{ "node": "Invoke WF-02 Multi-Agent Core", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Invoke WF-02 Multi-Agent Core",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Invoke WF-02 Multi-Agent Core": {
-      "main": [[{ "node": "Shape chat response", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Shape chat response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -68,5 +104,5 @@
   "pinData": {},
   "versionId": "wf-01-chat-dev-adapter-v1",
   "triggerCount": 1,
-  "tags": [{ "name": "uapm" }, { "name": "chat-dev" }]
+  "active": false
 }

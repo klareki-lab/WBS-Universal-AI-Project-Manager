@@ -10,7 +10,8 @@ export type BackendErrorCode =
   | "rate_limited"
   | "backend_unavailable"
   | "timeout"
-  | "internal_error";
+  | "internal_error"
+  | "human_only";
 
 export class BackendError extends Error {
   readonly code: BackendErrorCode;

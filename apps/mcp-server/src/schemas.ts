@@ -179,6 +179,8 @@ export const PrincipalSchema = z.object({
 });
 
 export type Principal = z.infer<typeof PrincipalSchema>;
+export type TaskStatus = z.infer<typeof TaskStatusSchema>;
+export type Priority = z.infer<typeof PrioritySchema>;
 export type ProjectSummary = z.infer<typeof ProjectSummarySchema>;
 export type ProjectDetail = z.infer<typeof ProjectDetailSchema>;
 export type TaskSummary = z.infer<typeof TaskSummarySchema>;

@@ -13,7 +13,10 @@
       "name": "Service webhook (service-to-service)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-640, 300],
+      "position": [
+        -640,
+        300
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "uapm-service-auth",
@@ -27,7 +30,10 @@
       "name": "Sub-workflow input",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [-640, 480]
+      "position": [
+        -640,
+        480
+      ]
     },
     {
       "parameters": {
@@ -38,7 +44,10 @@
       "name": "Merge entry",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [-420, 390]
+      "position": [
+        -420,
+        390
+      ]
     },
     {
       "parameters": {
@@ -48,7 +57,10 @@
       "name": "Prepare request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-200, 390]
+      "position": [
+        -200,
+        390
+      ]
     },
     {
       "parameters": {
@@ -63,7 +75,10 @@
       "name": "Coordinator agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
-      "position": [20, 390]
+      "position": [
+        20,
+        390
+      ]
     },
     {
       "parameters": {
@@ -76,7 +91,10 @@
       "name": "Coordinator model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
-      "position": [20, 580],
+      "position": [
+        20,
+        580
+      ],
       "credentials": {
         "openAiApi": {
           "id": "uapm-openai",
@@ -92,17 +110,26 @@
       "name": "Parse decision",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [260, 390]
+      "position": [
+        260,
+        390
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "conditions": [
             {
               "leftValue": "={{ $json.decision.intent }}",
               "rightValue": "plan",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ],
           "combinator": "or"
@@ -113,7 +140,10 @@
       "name": "Route intent",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [500, 390],
+      "position": [
+        500,
+        390
+      ],
       "parameters.rules.values": []
     },
     {
@@ -121,42 +151,60 @@
         "workflowId": "={{ $env.UAPM_WF_PLANNING_REVIEW_ID }}",
         "workflowInputs": {
           "mappingMode": "defineBelow",
-          "value": { "request": "={{ $json.request }}", "decision": "={{ $json.decision }}" }
+          "value": {
+            "request": "={{ $json.request }}",
+            "decision": "={{ $json.decision }}"
+          }
         }
       },
       "id": "invoke-planning",
       "name": "Invoke WF-03 Planning & Review",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [740, 260]
+      "position": [
+        740,
+        260
+      ]
     },
     {
       "parameters": {
         "workflowId": "={{ $env.UAPM_WF_READ_OPS_ID }}",
         "workflowInputs": {
           "mappingMode": "defineBelow",
-          "value": { "request": "={{ $json.request }}", "decision": "={{ $json.decision }}" }
+          "value": {
+            "request": "={{ $json.request }}",
+            "decision": "={{ $json.decision }}"
+          }
         }
       },
       "id": "invoke-read",
       "name": "Invoke WF-04 Read Ops",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [740, 400]
+      "position": [
+        740,
+        400
+      ]
     },
     {
       "parameters": {
         "workflowId": "={{ $env.UAPM_WF_MUTATION_ID }}",
         "workflowInputs": {
           "mappingMode": "defineBelow",
-          "value": { "request": "={{ $json.request }}", "decision": "={{ $json.decision }}" }
+          "value": {
+            "request": "={{ $json.request }}",
+            "decision": "={{ $json.decision }}"
+          }
         }
       },
       "id": "invoke-mutation",
       "name": "Invoke WF-05 Mutation Executor",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [740, 540]
+      "position": [
+        740,
+        540
+      ]
     },
     {
       "parameters": {
@@ -166,7 +214,10 @@
       "name": "Clarify",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [740, 680]
+      "position": [
+        740,
+        680
+      ]
     },
     {
       "parameters": {
@@ -176,56 +227,173 @@
       "name": "Shape core output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1020, 400]
+      "position": [
+        1020,
+        400
+      ]
     }
   ],
   "connections": {
     "Service webhook (service-to-service)": {
-      "main": [[{ "node": "Merge entry", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Merge entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Sub-workflow input": {
-      "main": [[{ "node": "Merge entry", "type": "main", "index": 1 }]]
+      "main": [
+        [
+          {
+            "node": "Merge entry",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
     },
     "Merge entry": {
-      "main": [[{ "node": "Prepare request", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Prepare request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Prepare request": {
-      "main": [[{ "node": "Coordinator agent", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Coordinator agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Coordinator model": {
-      "ai_languageModel": [[{ "node": "Coordinator agent", "type": "ai_languageModel", "index": 0 }]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coordinator agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Coordinator agent": {
-      "main": [[{ "node": "Parse decision", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Parse decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Parse decision": {
-      "main": [[{ "node": "Route intent", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Route intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Route intent": {
       "main": [
-        [{ "node": "Invoke WF-03 Planning & Review", "type": "main", "index": 0 }],
-        [{ "node": "Invoke WF-04 Read Ops", "type": "main", "index": 0 }],
-        [{ "node": "Invoke WF-05 Mutation Executor", "type": "main", "index": 0 }],
-        [{ "node": "Clarify", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Invoke WF-03 Planning & Review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invoke WF-04 Read Ops",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invoke WF-05 Mutation Executor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clarify",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Invoke WF-03 Planning & Review": {
-      "main": [[{ "node": "Shape core output", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Invoke WF-04 Read Ops": {
-      "main": [[{ "node": "Shape core output", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Invoke WF-05 Mutation Executor": {
-      "main": [[{ "node": "Shape core output", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Clarify": {
-      "main": [[{ "node": "Shape core output", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "pinData": {},
   "versionId": "wf-02-multi-agent-core-v1",
   "triggerCount": 1,
-  "tags": [{ "name": "uapm" }, { "name": "core" }]
+  "active": false
 }
