@@ -1,0 +1,1 @@
+{"name":"@uapm/contracts","version":"1.0.0","private":true,"type":"module","types":"./types.ts","exports":{".":{"types":"./types.ts"},"./openapi.yaml":"./openapi.yaml","./schemas/*":"./schemas/*"}}

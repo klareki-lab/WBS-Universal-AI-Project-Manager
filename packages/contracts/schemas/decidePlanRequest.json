@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected"
+      ]
+    },
+    "comment": {
+      "default": "",
+      "type": "string",
+      "maxLength": 20000
+    }
+  },
+  "required": [
+    "content_hash",
+    "decision"
+  ],
+  "additionalProperties": false
+}
