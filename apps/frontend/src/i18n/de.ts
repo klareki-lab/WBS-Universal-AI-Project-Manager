@@ -1,6 +1,6 @@
 /** All reusable UI copy is centralized here for a future locale switch. */
 export const de = {
-  brand: 'kompass', brandTagline: 'PROJEKTMANAGEMENT',
+  brand: 'Klare KI', brandTagline: 'KI PROJECT STUDIO',
   nav: { overview: 'Übersicht', planning: 'Planung', dashboard: 'Dashboard', newProject: 'Neues Projekt', workspace: 'AI Planungsstudio', review: 'Plan prüfen', approval: 'Freigaben', board: 'Projektboard', system: 'System', integrations: 'Einstellungen', activity: 'Aktivität & Betrieb', assistant: 'AI Assistent' },
   demo: { title: 'Interaktiver Demo-Modus', short: 'DEMO · NICHT VERBUNDEN', detail: 'Alle Daten und Aktionen sind lokale Beispiele. Keine echte KI, keine Backend-Speicherung und keine externe Ausführung. Änderungen gelten nur für diese Browsersitzung.', data: 'Beispieldaten', rule: 'Regelbasiert · keine echte KI', previewOnly: 'Nur lokale Vorschau' },
   common: { loading: 'Daten werden geladen …', retry: 'Erneut laden', cancel: 'Abbrechen', save: 'Speichern', close: 'Schließen', edit: 'Bearbeiten', open: 'Öffnen', view: 'Ansehen', details: 'Details', status: 'Status', due: 'Fällig', progress: 'Fortschritt', tasks: 'Aufgaben', version: 'Version', all: 'Alle', noData: 'Keine Einträge vorhanden.', selectProject: 'Projekt auswählen', from: 'von', days: 'Tage', unknown: 'Offen', notConnected: 'Nicht verbunden', warning: 'Hinweis', reload: 'Aktualisieren' },

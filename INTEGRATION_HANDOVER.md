@@ -7,7 +7,7 @@ Target directory: `apps/frontend`
 
 ## Publication status
 
-Not published: GitHub connector reports `pull: true`, `push: false` for authenticated user `Herman879`. No commit or pull request was created, and no repository branch was modified.
+published in feat/frontend (initial version at 868fca635b9ffb453d9b2c17b773162ef837444b): GitHub connector reports `pull: true`, `push: false` for authenticated user `Herman879`. No commit or pull request was created, and no repository branch was modified.
 
 Existing `feat/frontend` head when checked: `668dea8eaea0a0122e669c76a360cb1a67e4d4b0`.
 

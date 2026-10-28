@@ -1,4 +1,4 @@
-# Kompass — Universal AI Project Manager Frontend v2
+# Klare KI — Universal AI Project Manager Frontend v2
 
 Standalone native project-management frontend with optional AI-style planning and proposals. Built with React 18, TypeScript, Vite, Tailwind CSS and React Router. Default language: German.
 
