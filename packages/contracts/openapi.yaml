@@ -1,14 +1,14 @@
 openapi: 3.1.0
 info:
   title: Universal AI Project Manager Backend
-  version: 1.0.0
+  version: 1.1.0
   description: Canonical v1 contract. Mutations require Idempotency-Key. Cookie
     writes also require X-CSRF-Token. Human approval binds immutable content
     hash; services cannot approve. Task metadata PATCH returns a draft plan
     requiring approval and publication. Lists use limit/offset. HTTP errors
     contain stable request_id.
 servers:
-  - url: http://127.0.0.1:13081
+  - url: http://localhost:13081
 paths:
   /api/v1/projects:
     post:
@@ -532,6 +532,7 @@ paths:
           schema:
             type: string
             maxLength: 200
+            pattern: ^[^\u0000\uD800-\uDFFF]*$
         - name: limit
           in: query
           required: false
@@ -1764,6 +1765,210 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/decidePlanRequest"
+    get:
+      operationId: approvalHistory
+      summary: Read immutable approval and revocation history
+      tags:
+        - Core
+      security:
+        - cookieAuth: []
+        - serviceBearer: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: planId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-service-scope: read
+      x-required-service-scopes:
+        - read
+      x-human-only: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/approvalHistoryResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden or CSRF failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: State/version/idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/projects/{projectId}/plans/{planId}/revoke-approval:
+    post:
+      operationId: revokeApproval
+      summary: Human owner or original approver revokes a pending approval
+      tags:
+        - Planning
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: planId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 200
+            pattern: ^[A-Za-z0-9_.:-]+$
+        - name: X-CSRF-Token
+          in: header
+          required: false
+          description: Mandatory with cookie authentication on mutations; obtain from login.
+          schema:
+            type: string
+      x-service-scope: approvals:write
+      x-required-service-scopes:
+        - approvals:write
+      x-human-only: true
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/revokeApprovalResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden or CSRF failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: State/version/idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/revokeApprovalRequest"
   /api/v1/projects/{projectId}/plans/{planId}/publish:
     post:
       operationId: publishPlan
@@ -2716,6 +2921,79 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /api/v1/auth/csrf:
+    get:
+      operationId: csrfBootstrap
+      summary: Get stable CSRF token for current human HttpOnly session after reload
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsrfResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden or CSRF failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: State/version/idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /api/v1/auth/logout:
     post:
       operationId: logout
@@ -2801,10 +3079,13 @@ components:
           properties:
             code:
               type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
             message:
               type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
             request_id:
               type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
           required:
             - code
             - message
@@ -2822,8 +3103,10 @@ components:
           pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
         email:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         display_name:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         kind:
           type: string
           enum:
@@ -2833,6 +3116,7 @@ components:
           type: array
           items:
             type: string
+            pattern: ^[^\u0000\uD800-\uDFFF]*$
       required:
         - id
         - email
@@ -2852,6 +3136,7 @@ components:
           type: string
           minLength: 1
           maxLength: 1024
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
       required:
         - email
         - password
@@ -2869,8 +3154,10 @@ components:
           pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
         name:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         description:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         status:
           type: string
           enum:
@@ -2915,10 +3202,12 @@ components:
           type: string
           minLength: 1
           maxLength: 200
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         description:
           default: ""
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
       required:
         - name
       additionalProperties: false
@@ -2940,8 +3229,10 @@ components:
                 pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
               name:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               description:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               status:
                 type: string
                 enum:
@@ -3005,8 +3296,10 @@ components:
           pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
         name:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         description:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         status:
           type: string
           enum:
@@ -3057,8 +3350,10 @@ components:
           pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
         name:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         description:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         status:
           type: string
           enum:
@@ -3107,9 +3402,11 @@ components:
           type: string
           minLength: 1
           maxLength: 200
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         description:
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         status:
           type: string
           enum:
@@ -3137,8 +3434,10 @@ components:
               pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
             name:
               type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
             description:
               type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
             status:
               type: string
               enum:
@@ -3191,10 +3490,13 @@ components:
                 pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
               key:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               name:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               description:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               position:
                 type: integer
                 minimum: -9007199254740991
@@ -3252,10 +3554,12 @@ components:
                 type: string
                 minLength: 1
                 maxLength: 200
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               description:
                 default: ""
                 type: string
                 maxLength: 20000
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               priority:
                 default: medium
                 type: string
@@ -3296,6 +3600,7 @@ components:
                 default: ""
                 type: string
                 maxLength: 20000
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               status:
                 type: string
                 enum:
@@ -3314,6 +3619,7 @@ components:
                 pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
               source_key:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               created_at:
                 type: string
                 format: date-time
@@ -3373,10 +3679,12 @@ components:
           type: string
           minLength: 1
           maxLength: 200
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         description:
           default: ""
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         priority:
           default: medium
           type: string
@@ -3417,6 +3725,7 @@ components:
           default: ""
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         status:
           type: string
           enum:
@@ -3435,6 +3744,7 @@ components:
           pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
         source_key:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_at:
           type: string
           format: date-time
@@ -3481,10 +3791,12 @@ components:
           type: string
           minLength: 1
           maxLength: 200
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         description:
           default: ""
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         priority:
           default: medium
           type: string
@@ -3525,6 +3837,7 @@ components:
           default: ""
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         status:
           type: string
           enum:
@@ -3543,6 +3856,7 @@ components:
           pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
         source_key:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_at:
           type: string
           format: date-time
@@ -3592,6 +3906,12 @@ components:
     taskMetadataResponse:
       type: object
       properties:
+        origin_operation_id:
+          anyOf:
+            - type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -3631,14 +3951,17 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   name:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - name
@@ -3653,11 +3976,14 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: ^[a-zA-Z0-9_-]{1,80}$
+                    allOf:
+                      - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                      - pattern: ^[a-zA-Z0-9_-]{1,80}$
                   phase_key:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   task_id:
                     type: string
                     format: uuid
@@ -3670,10 +3996,12 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   priority:
                     default: medium
                     type: string
@@ -3714,6 +4042,7 @@ components:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   depends_on:
                     default: []
                     maxItems: 500
@@ -3722,6 +4051,7 @@ components:
                       type: string
                       minLength: 1
                       maxLength: 80
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - phase_key
@@ -3741,6 +4071,7 @@ components:
           additionalProperties: false
         content_hash:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_by:
           type: string
           format: uuid
@@ -3756,6 +4087,7 @@ components:
               pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
             - type: "null"
       required:
+        - origin_operation_id
         - id
         - project_id
         - number
@@ -3778,10 +4110,12 @@ components:
           type: string
           minLength: 1
           maxLength: 200
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         description:
           default: ""
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         priority:
           default: medium
           type: string
@@ -3822,6 +4156,7 @@ components:
           default: ""
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
       required:
         - version
       additionalProperties: false
@@ -3856,6 +4191,12 @@ components:
     createPlanResponse:
       type: object
       properties:
+        origin_operation_id:
+          anyOf:
+            - type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -3895,14 +4236,17 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   name:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - name
@@ -3917,11 +4261,14 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: ^[a-zA-Z0-9_-]{1,80}$
+                    allOf:
+                      - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                      - pattern: ^[a-zA-Z0-9_-]{1,80}$
                   phase_key:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   task_id:
                     type: string
                     format: uuid
@@ -3934,10 +4281,12 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   priority:
                     default: medium
                     type: string
@@ -3978,6 +4327,7 @@ components:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   depends_on:
                     default: []
                     maxItems: 500
@@ -3986,6 +4336,7 @@ components:
                       type: string
                       minLength: 1
                       maxLength: 80
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - phase_key
@@ -4005,6 +4356,7 @@ components:
           additionalProperties: false
         content_hash:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_by:
           type: string
           format: uuid
@@ -4020,6 +4372,7 @@ components:
               pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
             - type: "null"
       required:
+        - origin_operation_id
         - id
         - project_id
         - number
@@ -4052,14 +4405,17 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   name:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - name
@@ -4073,11 +4429,14 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: ^[a-zA-Z0-9_-]{1,80}$
+                    allOf:
+                      - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                      - pattern: ^[a-zA-Z0-9_-]{1,80}$
                   phase_key:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   task_id:
                     type: string
                     format: uuid
@@ -4090,10 +4449,12 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   priority:
                     default: medium
                     type: string
@@ -4134,6 +4495,7 @@ components:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   depends_on:
                     default: []
                     maxItems: 500
@@ -4142,6 +4504,7 @@ components:
                       type: string
                       minLength: 1
                       maxLength: 80
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - phase_key
@@ -4163,6 +4526,12 @@ components:
           items:
             type: object
             properties:
+              origin_operation_id:
+                anyOf:
+                  - type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  - type: "null"
               id:
                 type: string
                 format: uuid
@@ -4202,14 +4571,17 @@ components:
                           type: string
                           minLength: 1
                           maxLength: 200
+                          pattern: ^[^\u0000\uD800-\uDFFF]*$
                         name:
                           type: string
                           minLength: 1
                           maxLength: 200
+                          pattern: ^[^\u0000\uD800-\uDFFF]*$
                         description:
                           default: ""
                           type: string
                           maxLength: 20000
+                          pattern: ^[^\u0000\uD800-\uDFFF]*$
                       required:
                         - key
                         - name
@@ -4224,11 +4596,14 @@ components:
                       properties:
                         key:
                           type: string
-                          pattern: ^[a-zA-Z0-9_-]{1,80}$
+                          allOf:
+                            - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                            - pattern: ^[a-zA-Z0-9_-]{1,80}$
                         phase_key:
                           type: string
                           minLength: 1
                           maxLength: 200
+                          pattern: ^[^\u0000\uD800-\uDFFF]*$
                         task_id:
                           type: string
                           format: uuid
@@ -4241,10 +4616,12 @@ components:
                           type: string
                           minLength: 1
                           maxLength: 200
+                          pattern: ^[^\u0000\uD800-\uDFFF]*$
                         description:
                           default: ""
                           type: string
                           maxLength: 20000
+                          pattern: ^[^\u0000\uD800-\uDFFF]*$
                         priority:
                           default: medium
                           type: string
@@ -4285,6 +4662,7 @@ components:
                           default: ""
                           type: string
                           maxLength: 20000
+                          pattern: ^[^\u0000\uD800-\uDFFF]*$
                         depends_on:
                           default: []
                           maxItems: 500
@@ -4293,6 +4671,7 @@ components:
                             type: string
                             minLength: 1
                             maxLength: 80
+                            pattern: ^[^\u0000\uD800-\uDFFF]*$
                       required:
                         - key
                         - phase_key
@@ -4312,6 +4691,7 @@ components:
                 additionalProperties: false
               content_hash:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               created_by:
                 type: string
                 format: uuid
@@ -4327,6 +4707,7 @@ components:
                     pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
                   - type: "null"
             required:
+              - origin_operation_id
               - id
               - project_id
               - number
@@ -4354,6 +4735,12 @@ components:
     getPlanResponse:
       type: object
       properties:
+        origin_operation_id:
+          anyOf:
+            - type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -4393,14 +4780,17 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   name:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - name
@@ -4415,11 +4805,14 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: ^[a-zA-Z0-9_-]{1,80}$
+                    allOf:
+                      - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                      - pattern: ^[a-zA-Z0-9_-]{1,80}$
                   phase_key:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   task_id:
                     type: string
                     format: uuid
@@ -4432,10 +4825,12 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   priority:
                     default: medium
                     type: string
@@ -4476,6 +4871,7 @@ components:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   depends_on:
                     default: []
                     maxItems: 500
@@ -4484,6 +4880,7 @@ components:
                       type: string
                       minLength: 1
                       maxLength: 80
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - phase_key
@@ -4503,6 +4900,7 @@ components:
           additionalProperties: false
         content_hash:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_by:
           type: string
           format: uuid
@@ -4518,6 +4916,7 @@ components:
               pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
             - type: "null"
       required:
+        - origin_operation_id
         - id
         - project_id
         - number
@@ -4532,6 +4931,12 @@ components:
     proposeChangesResponse:
       type: object
       properties:
+        origin_operation_id:
+          anyOf:
+            - type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -4571,14 +4976,17 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   name:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - name
@@ -4593,11 +5001,14 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: ^[a-zA-Z0-9_-]{1,80}$
+                    allOf:
+                      - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                      - pattern: ^[a-zA-Z0-9_-]{1,80}$
                   phase_key:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   task_id:
                     type: string
                     format: uuid
@@ -4610,10 +5021,12 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   priority:
                     default: medium
                     type: string
@@ -4654,6 +5067,7 @@ components:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   depends_on:
                     default: []
                     maxItems: 500
@@ -4662,6 +5076,7 @@ components:
                       type: string
                       minLength: 1
                       maxLength: 80
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - phase_key
@@ -4681,6 +5096,7 @@ components:
           additionalProperties: false
         content_hash:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_by:
           type: string
           format: uuid
@@ -4696,6 +5112,7 @@ components:
               pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
             - type: "null"
       required:
+        - origin_operation_id
         - id
         - project_id
         - number
@@ -4728,14 +5145,17 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   name:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - name
@@ -4749,11 +5169,14 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: ^[a-zA-Z0-9_-]{1,80}$
+                    allOf:
+                      - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                      - pattern: ^[a-zA-Z0-9_-]{1,80}$
                   phase_key:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   task_id:
                     type: string
                     format: uuid
@@ -4766,10 +5189,12 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   priority:
                     default: medium
                     type: string
@@ -4810,6 +5235,7 @@ components:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   depends_on:
                     default: []
                     maxItems: 500
@@ -4818,6 +5244,7 @@ components:
                       type: string
                       minLength: 1
                       maxLength: 80
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - phase_key
@@ -4831,6 +5258,7 @@ components:
           type: string
           minLength: 1
           maxLength: 200
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
       required:
         - base_project_version
         - snapshot
@@ -4839,6 +5267,12 @@ components:
     submitReviewResponse:
       type: object
       properties:
+        origin_operation_id:
+          anyOf:
+            - type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -4878,14 +5312,17 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   name:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - name
@@ -4900,11 +5337,14 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: ^[a-zA-Z0-9_-]{1,80}$
+                    allOf:
+                      - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                      - pattern: ^[a-zA-Z0-9_-]{1,80}$
                   phase_key:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   task_id:
                     type: string
                     format: uuid
@@ -4917,10 +5357,12 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   priority:
                     default: medium
                     type: string
@@ -4961,6 +5403,7 @@ components:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   depends_on:
                     default: []
                     maxItems: 500
@@ -4969,6 +5412,7 @@ components:
                       type: string
                       minLength: 1
                       maxLength: 80
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - phase_key
@@ -4988,6 +5432,7 @@ components:
           additionalProperties: false
         content_hash:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_by:
           type: string
           format: uuid
@@ -5003,6 +5448,7 @@ components:
               pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
             - type: "null"
       required:
+        - origin_operation_id
         - id
         - project_id
         - number
@@ -5017,6 +5463,12 @@ components:
     requestApprovalResponse:
       type: object
       properties:
+        origin_operation_id:
+          anyOf:
+            - type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -5056,14 +5508,17 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   name:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - name
@@ -5078,11 +5533,14 @@ components:
                 properties:
                   key:
                     type: string
-                    pattern: ^[a-zA-Z0-9_-]{1,80}$
+                    allOf:
+                      - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                      - pattern: ^[a-zA-Z0-9_-]{1,80}$
                   phase_key:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   task_id:
                     type: string
                     format: uuid
@@ -5095,10 +5553,12 @@ components:
                     type: string
                     minLength: 1
                     maxLength: 200
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   description:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   priority:
                     default: medium
                     type: string
@@ -5139,6 +5599,7 @@ components:
                     default: ""
                     type: string
                     maxLength: 20000
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
                   depends_on:
                     default: []
                     maxItems: 500
@@ -5147,6 +5608,7 @@ components:
                       type: string
                       minLength: 1
                       maxLength: 80
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                 required:
                   - key
                   - phase_key
@@ -5166,6 +5628,7 @@ components:
           additionalProperties: false
         content_hash:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_by:
           type: string
           format: uuid
@@ -5181,6 +5644,7 @@ components:
               pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
             - type: "null"
       required:
+        - origin_operation_id
         - id
         - project_id
         - number
@@ -5213,6 +5677,7 @@ components:
           pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
         content_hash:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         decision:
           type: string
           enum:
@@ -5220,6 +5685,7 @@ components:
             - rejected
         comment:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_at:
           type: string
           format: date-time
@@ -5239,7 +5705,9 @@ components:
       properties:
         content_hash:
           type: string
-          pattern: ^[a-f0-9]{64}$
+          allOf:
+            - pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - pattern: ^[a-f0-9]{64}$
         decision:
           type: string
           enum:
@@ -5249,13 +5717,180 @@ components:
           default: ""
           type: string
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
       required:
         - content_hash
         - decision
       additionalProperties: false
+    approvalHistoryResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              project_id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              plan_version_id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              user_id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              content_hash:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              decision:
+                type: string
+                enum:
+                  - approved
+                  - rejected
+              comment:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              created_at:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+            required:
+              - id
+              - project_id
+              - plan_version_id
+              - user_id
+              - content_hash
+              - decision
+              - comment
+              - created_at
+            additionalProperties: false
+        revocations:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              approval_id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              actor_id:
+                anyOf:
+                  - type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  - type: "null"
+              reason:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              source:
+                type: string
+                enum:
+                  - human
+                  - identity_disabled
+                  - membership_removed
+                  - role_downgraded
+                  - upgrade
+              request_id:
+                anyOf:
+                  - type: string
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
+                  - type: "null"
+              created_at:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+            required:
+              - id
+              - approval_id
+              - actor_id
+              - reason
+              - source
+              - request_id
+              - created_at
+            additionalProperties: false
+      required:
+        - items
+        - revocations
+      additionalProperties: false
+    revokeApprovalResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        approval_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        actor_id:
+          anyOf:
+            - type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            - type: "null"
+        reason:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        source:
+          type: string
+          enum:
+            - human
+            - identity_disabled
+            - membership_removed
+            - role_downgraded
+            - upgrade
+        request_id:
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
+        created_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      required:
+        - id
+        - approval_id
+        - actor_id
+        - reason
+        - source
+        - request_id
+        - created_at
+      additionalProperties: false
+    revokeApprovalRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+      required:
+        - reason
+      additionalProperties: false
     publishPlanResponse:
       type: object
       properties:
+        request_id:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        context_hash:
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -5284,18 +5919,21 @@ components:
           type: object
           propertyNames:
             type: string
+            pattern: ^[^\u0000\uD800-\uDFFF]*$
           additionalProperties: {}
         result:
           anyOf:
             - type: object
               propertyNames:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               additionalProperties: {}
             - type: "null"
         error:
-          type:
-            - string
-            - "null"
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
         attempts:
           type: integer
           minimum: -9007199254740991
@@ -5329,6 +5967,8 @@ components:
           format: date-time
           pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
       required:
+        - request_id
+        - context_hash
         - id
         - project_id
         - created_by
@@ -5350,7 +5990,9 @@ components:
       properties:
         content_hash:
           type: string
-          pattern: ^[a-f0-9]{64}$
+          allOf:
+            - pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - pattern: ^[a-f0-9]{64}$
       required:
         - content_hash
       additionalProperties: false
@@ -5362,6 +6004,14 @@ components:
           items:
             type: object
             properties:
+              request_id:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              context_hash:
+                anyOf:
+                  - type: string
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
+                  - type: "null"
               id:
                 type: string
                 format: uuid
@@ -5390,18 +6040,21 @@ components:
                 type: object
                 propertyNames:
                   type: string
+                  pattern: ^[^\u0000\uD800-\uDFFF]*$
                 additionalProperties: {}
               result:
                 anyOf:
                   - type: object
                     propertyNames:
                       type: string
+                      pattern: ^[^\u0000\uD800-\uDFFF]*$
                     additionalProperties: {}
                   - type: "null"
               error:
-                type:
-                  - string
-                  - "null"
+                anyOf:
+                  - type: string
+                    pattern: ^[^\u0000\uD800-\uDFFF]*$
+                  - type: "null"
               attempts:
                 type: integer
                 minimum: -9007199254740991
@@ -5435,6 +6088,8 @@ components:
                 format: date-time
                 pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
             required:
+              - request_id
+              - context_hash
               - id
               - project_id
               - created_by
@@ -5467,6 +6122,14 @@ components:
     getOperationResponse:
       type: object
       properties:
+        request_id:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        context_hash:
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -5495,18 +6158,21 @@ components:
           type: object
           propertyNames:
             type: string
+            pattern: ^[^\u0000\uD800-\uDFFF]*$
           additionalProperties: {}
         result:
           anyOf:
             - type: object
               propertyNames:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               additionalProperties: {}
             - type: "null"
         error:
-          type:
-            - string
-            - "null"
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
         attempts:
           type: integer
           minimum: -9007199254740991
@@ -5540,6 +6206,8 @@ components:
           format: date-time
           pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
       required:
+        - request_id
+        - context_hash
         - id
         - project_id
         - created_by
@@ -5578,8 +6246,10 @@ components:
                 pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
               request_id:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               type:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               entity_id:
                 type: string
                 format: uuid
@@ -5588,6 +6258,7 @@ components:
                 type: object
                 propertyNames:
                   type: string
+                  pattern: ^[^\u0000\uD800-\uDFFF]*$
                 additionalProperties: {}
               created_at:
                 type: string
@@ -5619,6 +6290,14 @@ components:
     planningRequestResponse:
       type: object
       properties:
+        request_id:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        context_hash:
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -5647,18 +6326,21 @@ components:
           type: object
           propertyNames:
             type: string
+            pattern: ^[^\u0000\uD800-\uDFFF]*$
           additionalProperties: {}
         result:
           anyOf:
             - type: object
               propertyNames:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               additionalProperties: {}
             - type: "null"
         error:
-          type:
-            - string
-            - "null"
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
         attempts:
           type: integer
           minimum: -9007199254740991
@@ -5692,6 +6374,8 @@ components:
           format: date-time
           pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
       required:
+        - request_id
+        - context_hash
         - id
         - project_id
         - created_by
@@ -5715,6 +6399,7 @@ components:
           type: string
           minLength: 1
           maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         conversation_session_id:
           type: string
           format: uuid
@@ -5725,6 +6410,14 @@ components:
     operationResultResponse:
       type: object
       properties:
+        request_id:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        context_hash:
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
         id:
           type: string
           format: uuid
@@ -5753,18 +6446,21 @@ components:
           type: object
           propertyNames:
             type: string
+            pattern: ^[^\u0000\uD800-\uDFFF]*$
           additionalProperties: {}
         result:
           anyOf:
             - type: object
               propertyNames:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
               additionalProperties: {}
             - type: "null"
         error:
-          type:
-            - string
-            - "null"
+          anyOf:
+            - type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            - type: "null"
         attempts:
           type: integer
           minimum: -9007199254740991
@@ -5798,6 +6494,8 @@ components:
           format: date-time
           pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
       required:
+        - request_id
+        - context_hash
         - id
         - project_id
         - created_by
@@ -5815,136 +6513,160 @@ components:
         - updated_at
       additionalProperties: false
     operationResultRequest:
-      type: object
-      properties:
-        result:
-          type: object
+      anyOf:
+        - type: object
           properties:
-            base_project_version:
-              type: integer
-              exclusiveMinimum: 0
-              maximum: 9007199254740991
-            snapshot:
+            result:
               type: object
               properties:
-                phases:
-                  minItems: 1
-                  maxItems: 50
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      key:
-                        type: string
-                        minLength: 1
-                        maxLength: 200
-                      name:
-                        type: string
-                        minLength: 1
-                        maxLength: 200
-                      description:
-                        default: ""
-                        type: string
-                        maxLength: 20000
-                    required:
-                      - key
-                      - name
-                    additionalProperties: false
-                tasks:
-                  minItems: 1
-                  maxItems: 500
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      key:
-                        type: string
-                        pattern: ^[a-zA-Z0-9_-]{1,80}$
-                      phase_key:
-                        type: string
-                        minLength: 1
-                        maxLength: 200
-                      task_id:
-                        type: string
-                        format: uuid
-                        pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-                      expected_version:
-                        type: integer
-                        exclusiveMinimum: 0
-                        maximum: 9007199254740991
-                      title:
-                        type: string
-                        minLength: 1
-                        maxLength: 200
-                      description:
-                        default: ""
-                        type: string
-                        maxLength: 20000
-                      priority:
-                        default: medium
-                        type: string
-                        enum:
-                          - low
-                          - medium
-                          - high
-                          - urgent
-                      assignee_id:
-                        default: null
-                        anyOf:
-                          - type: string
+                base_project_version:
+                  type: integer
+                  exclusiveMinimum: 0
+                  maximum: 9007199254740991
+                snapshot:
+                  type: object
+                  properties:
+                    phases:
+                      minItems: 1
+                      maxItems: 50
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          key:
+                            type: string
+                            minLength: 1
+                            maxLength: 200
+                            pattern: ^[^\u0000\uD800-\uDFFF]*$
+                          name:
+                            type: string
+                            minLength: 1
+                            maxLength: 200
+                            pattern: ^[^\u0000\uD800-\uDFFF]*$
+                          description:
+                            default: ""
+                            type: string
+                            maxLength: 20000
+                            pattern: ^[^\u0000\uD800-\uDFFF]*$
+                        required:
+                          - key
+                          - name
+                        additionalProperties: false
+                    tasks:
+                      minItems: 1
+                      maxItems: 500
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          key:
+                            type: string
+                            allOf:
+                              - pattern: ^[^\u0000\uD800-\uDFFF]*$
+                              - pattern: ^[a-zA-Z0-9_-]{1,80}$
+                          phase_key:
+                            type: string
+                            minLength: 1
+                            maxLength: 200
+                            pattern: ^[^\u0000\uD800-\uDFFF]*$
+                          task_id:
+                            type: string
                             format: uuid
                             pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-                          - type: "null"
-                      start_date:
-                        default: null
-                        anyOf:
-                          - type: string
-                            format: date
-                            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
-                          - type: "null"
-                      due_date:
-                        default: null
-                        anyOf:
-                          - type: string
-                            format: date
-                            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
-                          - type: "null"
-                      estimated_effort:
-                        default: null
-                        anyOf:
-                          - type: number
-                            minimum: 0
-                            maximum: 100000
-                          - type: "null"
-                      definition_of_done:
-                        default: ""
-                        type: string
-                        maxLength: 20000
-                      depends_on:
-                        default: []
-                        maxItems: 500
-                        type: array
-                        items:
-                          type: string
-                          minLength: 1
-                          maxLength: 80
-                    required:
-                      - key
-                      - phase_key
-                      - title
-                    additionalProperties: false
+                          expected_version:
+                            type: integer
+                            exclusiveMinimum: 0
+                            maximum: 9007199254740991
+                          title:
+                            type: string
+                            minLength: 1
+                            maxLength: 200
+                            pattern: ^[^\u0000\uD800-\uDFFF]*$
+                          description:
+                            default: ""
+                            type: string
+                            maxLength: 20000
+                            pattern: ^[^\u0000\uD800-\uDFFF]*$
+                          priority:
+                            default: medium
+                            type: string
+                            enum:
+                              - low
+                              - medium
+                              - high
+                              - urgent
+                          assignee_id:
+                            default: null
+                            anyOf:
+                              - type: string
+                                format: uuid
+                                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                              - type: "null"
+                          start_date:
+                            default: null
+                            anyOf:
+                              - type: string
+                                format: date
+                                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                              - type: "null"
+                          due_date:
+                            default: null
+                            anyOf:
+                              - type: string
+                                format: date
+                                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                              - type: "null"
+                          estimated_effort:
+                            default: null
+                            anyOf:
+                              - type: number
+                                minimum: 0
+                                maximum: 100000
+                              - type: "null"
+                          definition_of_done:
+                            default: ""
+                            type: string
+                            maxLength: 20000
+                            pattern: ^[^\u0000\uD800-\uDFFF]*$
+                          depends_on:
+                            default: []
+                            maxItems: 500
+                            type: array
+                            items:
+                              type: string
+                              minLength: 1
+                              maxLength: 80
+                              pattern: ^[^\u0000\uD800-\uDFFF]*$
+                        required:
+                          - key
+                          - phase_key
+                          - title
+                        additionalProperties: false
+                  required:
+                    - phases
+                    - tasks
+                  additionalProperties: false
               required:
-                - phases
-                - tasks
+                - base_project_version
+                - snapshot
               additionalProperties: false
+            error:
+              not: {}
           required:
-            - base_project_version
-            - snapshot
+            - result
           additionalProperties: false
-        error:
-          type: string
-          maxLength: 2000
-      additionalProperties: false
+        - type: object
+          properties:
+            error:
+              type: string
+              minLength: 1
+              maxLength: 2000
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            result:
+              not: {}
+          required:
+            - error
+          additionalProperties: false
     conversationResponse:
       type: object
       properties:
@@ -5958,8 +6680,10 @@ components:
           pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
         provider:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         external_id:
           type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         created_by:
           type: string
           format: uuid
@@ -5983,10 +6707,12 @@ components:
           type: string
           minLength: 1
           maxLength: 200
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
         external_id:
           type: string
           minLength: 1
           maxLength: 200
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
       required:
         - provider
         - external_id
@@ -6003,8 +6729,10 @@ components:
               pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
             email:
               type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
             display_name:
               type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
             kind:
               type: string
               enum:
@@ -6014,6 +6742,7 @@ components:
               type: array
               items:
                 type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
           required:
             - id
             - email
@@ -6031,4 +6760,12 @@ components:
         - user
         - csrf_token
         - expires_at
+      additionalProperties: false
+    CsrfResponse:
+      type: object
+      properties:
+        csrf_token:
+          type: string
+      required:
+        - csrf_token
       additionalProperties: false

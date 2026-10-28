@@ -5,7 +5,8 @@
     "prompt": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 20000
+      "maxLength": 20000,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
     },
     "conversation_session_id": {
       "type": "string",

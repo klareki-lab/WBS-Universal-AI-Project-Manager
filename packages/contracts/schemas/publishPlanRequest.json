@@ -4,7 +4,14 @@
   "properties": {
     "content_hash": {
       "type": "string",
-      "pattern": "^[a-f0-9]{64}$"
+      "allOf": [
+        {
+          "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+        },
+        {
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      ]
     }
   },
   "required": [

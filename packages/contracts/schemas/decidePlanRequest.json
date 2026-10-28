@@ -4,7 +4,14 @@
   "properties": {
     "content_hash": {
       "type": "string",
-      "pattern": "^[a-f0-9]{64}$"
+      "allOf": [
+        {
+          "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+        },
+        {
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      ]
     },
     "decision": {
       "type": "string",
@@ -16,7 +23,8 @@
     "comment": {
       "default": "",
       "type": "string",
-      "maxLength": 20000
+      "maxLength": 20000,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
     }
   },
   "required": [

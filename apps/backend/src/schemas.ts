@@ -1,5 +1,12 @@
 import { z } from "zod";
 export const uuid = z.uuid();
+const string = () =>
+  z
+    .string()
+    .regex(
+      /^[^\u0000\uD800-\uDFFF]*$/u,
+      "Text must contain valid Unicode without NUL",
+    );
 export const taskStatus = z.enum([
   "todo",
   "in_progress",
@@ -22,8 +29,8 @@ export const planStatus = z.enum([
   "superseded",
   "rejected",
 ]);
-const text = z.string().trim().min(1).max(200);
-const longText = z.string().max(20000);
+const text = string().trim().min(1).max(200);
+const longText = string().max(20000);
 const date = z.iso.date().nullable().default(null);
 const version = z.number().int().positive();
 export const projectCreate = z.strictObject({
@@ -53,12 +60,12 @@ export const taskFields = {
 };
 export const taskDraft = z
   .strictObject({
-    key: z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/),
+    key: string().regex(/^[a-zA-Z0-9_-]{1,80}$/),
     phase_key: text,
     task_id: uuid.optional(),
     expected_version: version.optional(),
     ...taskFields,
-    depends_on: z.array(z.string().min(1).max(80)).max(500).default([]),
+    depends_on: z.array(string().min(1).max(80)).max(500).default([]),
   })
   .refine(
     (x) => !x.start_date || !x.due_date || x.start_date <= x.due_date,
@@ -88,12 +95,12 @@ export const planCreate = z.strictObject({
 export const proposalCreate = planCreate.extend({ reason: text });
 export const versionInput = z.strictObject({ version });
 export const decision = z.strictObject({
-  content_hash: z.string().regex(/^[a-f0-9]{64}$/),
+  content_hash: string().regex(/^[a-f0-9]{64}$/),
   decision: z.enum(["approved", "rejected"]),
   comment: longText.default(""),
 });
 export const hashInput = z.strictObject({
-  content_hash: z.string().regex(/^[a-f0-9]{64}$/),
+  content_hash: string().regex(/^[a-f0-9]{64}$/),
 });
 export const statusUpdate = z.strictObject({ version, status: taskStatus });
 export const metadataUpdate = z.strictObject({
@@ -103,31 +110,29 @@ export const metadataUpdate = z.strictObject({
   ),
 });
 export const planningRequest = z.strictObject({
-  prompt: z.string().trim().min(1).max(20000),
+  prompt: string().trim().min(1).max(20000),
   conversation_session_id: uuid.optional(),
 });
 export const conversationCreate = z.strictObject({
   provider: text,
   external_id: text,
 });
-export const operationResult = z
-  .strictObject({
-    result: planCreate.optional(),
-    error: z.string().max(2000).optional(),
-  })
-  .refine(
-    (x) => Boolean(x.result) !== Boolean(x.error),
-    "Provide result or error",
-  );
+export const operationResult = z.union([
+  z.strictObject({ result: planCreate, error: z.never().optional() }),
+  z.strictObject({
+    error: string().min(1).max(2000),
+    result: z.never().optional(),
+  }),
+]);
 export const login = z.strictObject({
   email: z.email().max(254),
-  password: z.string().min(1).max(1024),
+  password: string().min(1).max(1024),
 });
 export const listQuery = z.strictObject({
   status: taskStatus.optional(),
   phase_id: uuid.optional(),
   assignee_id: uuid.optional(),
-  q: z.string().max(200).optional(),
+  q: string().max(200).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).max(100000).default(0),
 });
@@ -165,16 +170,16 @@ const ts = z.iso.datetime({ offset: true });
 const nullableTs = ts.nullable();
 export const userResponse = z.object({
   id: uuid,
-  email: z.string(),
-  display_name: z.string(),
+  email: string(),
+  display_name: string(),
   kind: z.enum(["human", "service"]),
-  scopes: z.array(z.string()),
+  scopes: z.array(string()),
 });
 export const projectResponse = z.object({
   id: uuid,
   owner_id: uuid,
-  name: z.string(),
-  description: z.string(),
+  name: string(),
+  description: string(),
   status: projectStatus,
   version,
   published_plan_id: uuid.nullable(),
@@ -184,9 +189,9 @@ export const projectResponse = z.object({
 export const phaseResponse = z.object({
   id: uuid,
   project_id: uuid,
-  key: z.string(),
-  name: z.string(),
-  description: z.string(),
+  key: string(),
+  name: string(),
+  description: string(),
   position: z.number().int(),
 });
 export const taskResponse = z.object({
@@ -197,18 +202,19 @@ export const taskResponse = z.object({
   status: taskStatus,
   version,
   source_plan_id: uuid,
-  source_key: z.string(),
+  source_key: string(),
   created_at: ts,
   updated_at: ts,
 });
 export const planResponse = z.object({
+  origin_operation_id: uuid.nullable(),
   id: uuid,
   project_id: uuid,
   number: version,
   base_project_version: version,
   status: planStatus,
   snapshot,
-  content_hash: z.string(),
+  content_hash: string(),
   created_by: uuid,
   created_at: ts,
   published_at: nullableTs,
@@ -218,20 +224,22 @@ export const approvalResponse = z.object({
   project_id: uuid,
   plan_version_id: uuid,
   user_id: uuid,
-  content_hash: z.string(),
+  content_hash: string(),
   decision: z.enum(["approved", "rejected"]),
-  comment: z.string(),
+  comment: string(),
   created_at: ts,
 });
 export const operationResponse = z.object({
+  request_id: string(),
+  context_hash: string().nullable(),
   id: uuid,
   project_id: uuid,
   created_by: uuid,
   kind: z.enum(["planning", "publish"]),
   status: z.enum(["queued", "running", "succeeded", "failed"]),
-  input: z.record(z.string(), z.unknown()),
-  result: z.record(z.string(), z.unknown()).nullable(),
-  error: z.string().nullable(),
+  input: z.record(string(), z.unknown()),
+  result: z.record(string(), z.unknown()).nullable(),
+  error: string().nullable(),
   attempts: z.number().int(),
   max_attempts: z.number().int(),
   next_attempt_at: ts,
@@ -243,8 +251,8 @@ export const operationResponse = z.object({
 export const conversationResponse = z.object({
   id: uuid,
   project_id: uuid,
-  provider: z.string(),
-  external_id: z.string(),
+  provider: string(),
+  external_id: string(),
   created_by: uuid,
   created_at: ts,
 });
@@ -252,17 +260,17 @@ export const eventResponse = z.object({
   id: uuid,
   project_id: uuid,
   actor_id: uuid,
-  request_id: z.string(),
-  type: z.string(),
+  request_id: string(),
+  type: string(),
   entity_id: uuid,
-  data: z.record(z.string(), z.unknown()),
+  data: z.record(string(), z.unknown()),
   created_at: ts,
 });
 export const errorResponse = z.object({
   error: z.object({
-    code: z.string(),
-    message: z.string(),
-    request_id: z.string(),
+    code: string(),
+    message: string(),
+    request_id: string(),
   }),
 });
 export const collection = (item: z.ZodType) =>
@@ -271,3 +279,24 @@ export const collection = (item: z.ZodType) =>
     limit: z.number().int(),
     offset: z.number().int(),
   });
+
+export const revocationRequest = z.strictObject({ reason: longText.min(1) });
+export const revocationResponse = z.object({
+  id: uuid,
+  approval_id: uuid,
+  actor_id: uuid.nullable(),
+  reason: string(),
+  source: z.enum([
+    "human",
+    "identity_disabled",
+    "membership_removed",
+    "role_downgraded",
+    "upgrade",
+  ]),
+  request_id: string().nullable(),
+  created_at: ts,
+});
+export const approvalHistory = z.object({
+  items: z.array(approvalResponse),
+  revocations: z.array(revocationResponse),
+});

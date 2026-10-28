@@ -153,6 +153,18 @@ for (const route of ["me", "session"])
       responses: responses(user, 200),
     },
   };
+paths["/api/v1/auth/csrf"] = {
+  get: {
+    operationId: "csrfBootstrap",
+    summary:
+      "Get stable CSRF token for current human HttpOnly session after reload",
+    security: [{ cookieAuth: [] }],
+    responses: responses(
+      schema("CsrfResponse", z.object({ csrf_token: z.string() })),
+      200,
+    ),
+  },
+};
 paths["/api/v1/auth/logout"] = {
   post: {
     operationId: "logout",
@@ -206,11 +218,11 @@ const doc = {
   openapi: "3.1.0",
   info: {
     title: "Universal AI Project Manager Backend",
-    version: "1.0.0",
+    version: "1.1.0",
     description:
       "Canonical v1 contract. Mutations require Idempotency-Key. Cookie writes also require X-CSRF-Token. Human approval binds immutable content hash; services cannot approve. Task metadata PATCH returns a draft plan requiring approval and publication. Lists use limit/offset. HTTP errors contain stable request_id.",
   },
-  servers: [{ url: "http://127.0.0.1:13081" }],
+  servers: [{ url: "http://localhost:13081" }],
   paths,
   components: {
     securitySchemes: {

@@ -16,8 +16,8 @@ Set `POSTGRES_PASSWORD` to a new random local secret (for example generate it wi
 
 ```sh
 docker compose --env-file infra/backend/.env -f infra/backend/compose.yaml up -d --build
-curl --fail http://127.0.0.1:13081/health
-curl --fail http://127.0.0.1:13081/ready
+curl --fail http://localhost:13081/health
+curl --fail http://localhost:13081/ready
 ```
 
 The server automatically applies ordered SQL migrations under a transaction and advisory lock before listening. PostgreSQL and backend use only the `uapm-dev` project, `uapm-dev_postgres-data` volume, and `uapm-dev_backend` network. Default bindings are 127.0.0.1:13081→3001 and 127.0.0.1:15439→5432. There is no n8n service or MCP server in this Compose file. No production system is required.
@@ -32,9 +32,9 @@ docker compose --env-file infra/backend/.env -f infra/backend/compose.yaml exec 
   node dist/apps/backend/src/admin.js create-user
 ```
 
-Login: `POST /api/v1/auth/login` with `{email,password}`. Keep the HttpOnly cookie and returned `csrf_token`. Every authenticated browser mutation requires `X-CSRF-Token`; every domain mutation also requires `Idempotency-Key` (8–200 alphanumeric/underscore/dot/colon/hyphen characters). GET `/api/v1/auth/me` or `/auth/session` validates authentication. POST `/auth/logout` revokes the session. Login/logout are session lifecycle actions and do not use domain idempotency records.
+Login: `POST /api/v1/auth/login` with `{email,password}`. Keep the HttpOnly cookie and returned `csrf_token`. Every authenticated browser mutation requires `X-CSRF-Token`; every domain mutation also requires `Idempotency-Key` (8–200 alphanumeric/underscore/dot/colon/hyphen characters). GET `/api/v1/auth/me` or `/auth/session` validates authentication. After a page reload, GET `/api/v1/auth/csrf` using the cookie to recover the stable write token without re-login. POST `/auth/logout` revokes the session. Login/logout are session lifecycle actions and do not use domain idempotency records.
 
-The default allowed browser origin is `http://localhost:5173`. Set `ALLOWED_ORIGIN` to the frontend's exact origin. Cookies are SameSite=Strict: use matching hostnames for frontend and backend in browser development (`localhost` on both, or `127.0.0.1` on both). Local Compose explicitly uses COOKIE_SECURE=false; set true with HTTPS. Source server defaults to secure cookies.
+The default browser URLs are **frontend `http://localhost:5173` and API `http://localhost:13081`**. The API listener still binds to loopback 127.0.0.1 for isolation; that is a bind address, not the browser URL. Set `ALLOWED_ORIGIN` to the frontend's exact origin. Cookies remain SameSite=Strict. Do not combine localhost frontend with a 127.0.0.1 API URL. A deliberate 127.0.0.1 setup must use it for both sites and the matching configured Origin. Local Compose explicitly uses COOKIE_SECURE=false; set true with HTTPS. Source server defaults to secure cookies.
 
 ## Local source development
 
@@ -102,3 +102,7 @@ docker compose --env-file infra/backend/.env -f infra/backend/compose.yaml stop
 ```
 
 This preserves data. No broad Docker cleanup is needed. Database backups and any eventual destructive data removal are operator responsibilities outside this assignment.
+
+## Audit remediation and independent verification
+
+See `remediation/README.md`, `remediation/APPROVAL_POLICY.md` and `remediation/FRONTEND_GAPS.md` for the v1.1.0 RC evidence and decisions. Database outages leave the API alive: /health stays 200 and /ready returns 503; database-dependent requests return sanitized 503. Pool connection attempts are bounded at two seconds, no mutation is automatically retried, and broken clients are discarded. A lost/ambiguous response must be retried with the exact original Idempotency-Key. The worker backs off infrastructure polling to 30 seconds; operation delivery remains capped at three attempts. Startup failure exits nonzero; Compose allows three on-failure restarts, after which an operator must restart it.

@@ -10,11 +10,13 @@
     "name": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 200
+      "maxLength": 200,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
     },
     "description": {
       "type": "string",
-      "maxLength": 20000
+      "maxLength": 20000,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
     },
     "status": {
       "type": "string",

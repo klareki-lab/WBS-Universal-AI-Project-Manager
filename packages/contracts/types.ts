@@ -219,10 +219,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Read immutable approval and revocation history */
+        get: operations["approvalHistory"];
         put?: never;
         /** Human approves or rejects exact content hash */
         post: operations["decidePlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/plans/{planId}/revoke-approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Human owner or original approver revokes a pending approval */
+        post: operations["revokeApproval"];
         delete?: never;
         options?: never;
         head?: never;
@@ -389,6 +407,23 @@ export interface paths {
             cookie?: never;
         };
         get: operations["validateSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/csrf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get stable CSRF token for current human HttpOnly session after reload */
+        get: operations["csrfBootstrap"];
         put?: never;
         post?: never;
         delete?: never;
@@ -702,6 +737,7 @@ export interface components {
             status: "todo" | "in_progress" | "blocked" | "done" | "cancelled";
         };
         taskMetadataResponse: {
+            origin_operation_id: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -718,7 +754,7 @@ export interface components {
                     description: string;
                 }[];
                 tasks: {
-                    key: string;
+                    key: string & (unknown & unknown);
                     phase_key: string;
                     /** Format: uuid */
                     task_id?: string;
@@ -784,6 +820,7 @@ export interface components {
             }[];
         };
         createPlanResponse: {
+            origin_operation_id: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -800,7 +837,7 @@ export interface components {
                     description: string;
                 }[];
                 tasks: {
-                    key: string;
+                    key: string & (unknown & unknown);
                     phase_key: string;
                     /** Format: uuid */
                     task_id?: string;
@@ -844,7 +881,7 @@ export interface components {
                     description: string;
                 }[];
                 tasks: {
-                    key: string;
+                    key: string & (unknown & unknown);
                     phase_key: string;
                     /** Format: uuid */
                     task_id?: string;
@@ -874,6 +911,7 @@ export interface components {
         };
         listPlansResponse: {
             items: {
+                origin_operation_id: string | null;
                 /** Format: uuid */
                 id: string;
                 /** Format: uuid */
@@ -890,7 +928,7 @@ export interface components {
                         description: string;
                     }[];
                     tasks: {
-                        key: string;
+                        key: string & (unknown & unknown);
                         phase_key: string;
                         /** Format: uuid */
                         task_id?: string;
@@ -928,6 +966,7 @@ export interface components {
             offset: number;
         };
         getPlanResponse: {
+            origin_operation_id: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -944,7 +983,7 @@ export interface components {
                     description: string;
                 }[];
                 tasks: {
-                    key: string;
+                    key: string & (unknown & unknown);
                     phase_key: string;
                     /** Format: uuid */
                     task_id?: string;
@@ -979,6 +1018,7 @@ export interface components {
             published_at: string | null;
         };
         proposeChangesResponse: {
+            origin_operation_id: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -995,7 +1035,7 @@ export interface components {
                     description: string;
                 }[];
                 tasks: {
-                    key: string;
+                    key: string & (unknown & unknown);
                     phase_key: string;
                     /** Format: uuid */
                     task_id?: string;
@@ -1039,7 +1079,7 @@ export interface components {
                     description: string;
                 }[];
                 tasks: {
-                    key: string;
+                    key: string & (unknown & unknown);
                     phase_key: string;
                     /** Format: uuid */
                     task_id?: string;
@@ -1069,6 +1109,7 @@ export interface components {
             reason: string;
         };
         submitReviewResponse: {
+            origin_operation_id: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1085,7 +1126,7 @@ export interface components {
                     description: string;
                 }[];
                 tasks: {
-                    key: string;
+                    key: string & (unknown & unknown);
                     phase_key: string;
                     /** Format: uuid */
                     task_id?: string;
@@ -1120,6 +1161,7 @@ export interface components {
             published_at: string | null;
         };
         requestApprovalResponse: {
+            origin_operation_id: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1136,7 +1178,7 @@ export interface components {
                     description: string;
                 }[];
                 tasks: {
-                    key: string;
+                    key: string & (unknown & unknown);
                     phase_key: string;
                     /** Format: uuid */
                     task_id?: string;
@@ -1187,13 +1229,62 @@ export interface components {
             created_at: string;
         };
         decidePlanRequest: {
-            content_hash: string;
+            content_hash: string & (unknown & unknown);
             /** @enum {string} */
             decision: "approved" | "rejected";
             /** @default  */
             comment: string;
         };
+        approvalHistoryResponse: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                project_id: string;
+                /** Format: uuid */
+                plan_version_id: string;
+                /** Format: uuid */
+                user_id: string;
+                content_hash: string;
+                /** @enum {string} */
+                decision: "approved" | "rejected";
+                comment: string;
+                /** Format: date-time */
+                created_at: string;
+            }[];
+            revocations: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                approval_id: string;
+                actor_id: string | null;
+                reason: string;
+                /** @enum {string} */
+                source: "human" | "identity_disabled" | "membership_removed" | "role_downgraded" | "upgrade";
+                request_id: string | null;
+                /** Format: date-time */
+                created_at: string;
+            }[];
+        };
+        revokeApprovalResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            approval_id: string;
+            actor_id: string | null;
+            reason: string;
+            /** @enum {string} */
+            source: "human" | "identity_disabled" | "membership_removed" | "role_downgraded" | "upgrade";
+            request_id: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        revokeApprovalRequest: {
+            reason: string;
+        };
         publishPlanResponse: {
+            request_id: string;
+            context_hash: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1223,10 +1314,12 @@ export interface components {
             updated_at: string;
         };
         publishPlanRequest: {
-            content_hash: string;
+            content_hash: string & (unknown & unknown);
         };
         listOperationsResponse: {
             items: {
+                request_id: string;
+                context_hash: string | null;
                 /** Format: uuid */
                 id: string;
                 /** Format: uuid */
@@ -1259,6 +1352,8 @@ export interface components {
             offset: number;
         };
         getOperationResponse: {
+            request_id: string;
+            context_hash: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1309,6 +1404,8 @@ export interface components {
             offset: number;
         };
         planningRequestResponse: {
+            request_id: string;
+            context_hash: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1343,6 +1440,8 @@ export interface components {
             conversation_session_id?: string;
         };
         operationResultResponse: {
+            request_id: string;
+            context_hash: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1372,7 +1471,7 @@ export interface components {
             updated_at: string;
         };
         operationResultRequest: {
-            result?: {
+            result: {
                 base_project_version: number;
                 snapshot: {
                     phases: {
@@ -1382,7 +1481,7 @@ export interface components {
                         description: string;
                     }[];
                     tasks: {
-                        key: string;
+                        key: string & (unknown & unknown);
                         phase_key: string;
                         /** Format: uuid */
                         task_id?: string;
@@ -1410,7 +1509,10 @@ export interface components {
                     }[];
                 };
             };
-            error?: string;
+            error?: unknown;
+        } | {
+            error: string;
+            result?: unknown;
         };
         conversationResponse: {
             /** Format: uuid */
@@ -1441,6 +1543,9 @@ export interface components {
             csrf_token: string;
             /** Format: date-time */
             expires_at: string;
+        };
+        CsrfResponse: {
+            csrf_token: string;
         };
     };
     responses: never;
@@ -3315,6 +3420,119 @@ export interface operations {
             };
         };
     };
+    approvalHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                planId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["approvalHistoryResponse"];
+                };
+            };
+            /** @description Invalid input */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden or CSRF failure */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State/version/idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     decidePlan: {
         parameters: {
             query?: never;
@@ -3342,6 +3560,127 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["decidePlanResponse"];
+                };
+            };
+            /** @description Invalid input */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden or CSRF failure */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State/version/idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    revokeApproval: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+                /** @description Mandatory with cookie authentication on mutations; obtain from login. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                projectId: string;
+                planId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["revokeApprovalRequest"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["revokeApprovalResponse"];
                 };
             };
             /** @description Invalid input */
@@ -4499,6 +4838,116 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["User"];
+                };
+            };
+            /** @description Invalid input */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden or CSRF failure */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State/version/idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    csrfBootstrap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CsrfResponse"];
                 };
             };
             /** @description Invalid input */

@@ -17,3 +17,15 @@ The adapter uses only a configured fixed HTTP(S) URL; redirects are rejected, up
 The container runs as nonroot with a read-only filesystem, dropped capabilities and no-new-privileges. Local ports bind only to loopback. The Compose build context excludes .env files and host node_modules. Secrets come from ignored environment files or process environment, not tracked code. No production database, cloud resources or direct model calls are used.
 
 Before any production release, separately design TLS ingress, runtime/migrator DB roles, backup/restore policy, operational access, token rotation, centralized monitoring and rate-limit storage. This assignment does not deploy or claim those controls exist.
+
+## v1.1.0 audited controls
+
+Database pool and checked-out client error listeners prevent connection-loss events from terminating the process. Broken clients are destroyed; rollback errors are logged without replacing the original transaction failure. Outage requests receive sanitized 503, and no mutation is automatically retried. Reconnection is on demand with a two-second acquisition bound; worker infrastructure polling backs off to 30 seconds. See the [node-postgres Pool API](https://node-postgres.com/apis/pool) for error-event, connection-timeout and destroy-on-release behavior. Actual idle/active termination and stop/restart evidence is under `remediation/current/recovery.json`.
+
+Idempotency records now bind the affected project, including old records backfilled at upgrade. Replay rechecks current session/token, scopes and write membership under user/membership share locks, so role removal/downgrade and token changes serialize with writes. A cached success never grants access on its own.
+
+AI results are bound to immutable operation UUID, original request ID, input/project/creator/conversation context hash and original project version. Callback and worker paths check current originating authorization and current project state; a caller cannot relabel stale work by changing the returned base. Resulting plan versions retain origin_operation_id. Old queued work without verifiable context fails closed during migration.
+
+Approval revocation is an explicit conservative RC policy, documented in `remediation/APPROVAL_POLICY.md`. Pending approval eligibility is current and revocable; consumed publications remain immutable history. Identity disable/removal/downgrade append permanent revocations. Emergency human revocation is authenticated, authorized, idempotent and audited.
+
+All persisted text excludes NUL and unpaired UTF-16 surrogates using a representable schema constraint. Legitimate Unicode/multiline text round-trips. Callback exclusivity is a structural union, verified independently against Ajv and real HTTP, rather than a refinement lost during generation. Cross-field dates, paired task references and graph/project invariants remain semantic runtime rules documented in the integration contract.

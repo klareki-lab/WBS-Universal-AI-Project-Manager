@@ -25,12 +25,14 @@
           "title": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
           },
           "description": {
             "default": "",
             "type": "string",
-            "maxLength": 20000
+            "maxLength": 20000,
+            "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
           },
           "priority": {
             "default": "medium",
@@ -97,7 +99,8 @@
           "definition_of_done": {
             "default": "",
             "type": "string",
-            "maxLength": 20000
+            "maxLength": 20000,
+            "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
           },
           "status": {
             "type": "string",
@@ -120,7 +123,8 @@
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           },
           "source_key": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
           },
           "created_at": {
             "type": "string",

@@ -10,12 +10,14 @@
     "title": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 200
+      "maxLength": 200,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
     },
     "description": {
       "default": "",
       "type": "string",
-      "maxLength": 20000
+      "maxLength": 20000,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
     },
     "priority": {
       "default": "medium",
@@ -82,7 +84,8 @@
     "definition_of_done": {
       "default": "",
       "type": "string",
-      "maxLength": 20000
+      "maxLength": 20000,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
     }
   },
   "required": [

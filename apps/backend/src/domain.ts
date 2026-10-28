@@ -26,6 +26,7 @@ export async function createPlan(
   project: string,
   input: { base_project_version: number; snapshot: Snapshot },
   reason?: string,
+  originOperationId?: string,
 ) {
   const p = await lockedProject(c, project);
   ensure(p.status !== "archived", 409, "project_archived");
@@ -72,7 +73,7 @@ export async function createPlan(
   ).rows[0].n;
   const plan = (
     await c.db.query(
-      "INSERT INTO plan_versions(project_id,number,base_project_version,snapshot,content_hash,created_by) VALUES($1,$2,$3,$4,$5,$6) RETURNING *",
+      "INSERT INTO plan_versions(project_id,number,base_project_version,snapshot,content_hash,created_by,origin_operation_id) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
       [
         project,
         n,
@@ -80,6 +81,7 @@ export async function createPlan(
         input.snapshot,
         contentHash(input.snapshot),
         c.actor.id,
+        originOperationId ?? null,
       ],
     )
   ).rows[0];
@@ -185,15 +187,41 @@ export async function publish(
   ensure(plan.status === "approved", 409, "approval_required");
   ensure(p.status !== "archived", 409, "project_archived");
   ensure(p.version === plan.base_project_version, 409, "stale_project_version");
+  const approval = (
+    await c.db.query(
+      "SELECT * FROM approvals WHERE plan_version_id=$1 AND content_hash=$2 AND decision='approved'",
+      [id, expectedHash],
+    )
+  ).rows[0];
+  ensure(approval, 409, "approval_required");
+  const approver = (
+    await c.db.query("SELECT * FROM users WHERE id=$1 FOR SHARE", [
+      approval.user_id,
+    ])
+  ).rows[0];
+  const membership = (
+    await c.db.query(
+      "SELECT role FROM project_members WHERE project_id=$1 AND user_id=$2 FOR SHARE",
+      [project, approval.user_id],
+    )
+  ).rows[0];
   ensure(
-    (
+    approver?.kind === "human" &&
+      !approver.disabled &&
+      membership &&
+      membership.role !== "viewer",
+    409,
+    "approver_no_longer_authorized",
+  );
+  ensure(
+    !(
       await c.db.query(
-        "SELECT 1 FROM approvals a JOIN users u ON u.id=a.user_id WHERE a.plan_version_id=$1 AND a.content_hash=$2 AND a.decision='approved' AND u.kind='human'",
-        [id, expectedHash],
+        "SELECT 1 FROM approval_revocations WHERE approval_id=$1",
+        [approval.id],
       )
     ).rowCount,
     409,
-    "approval_required",
+    "approval_revoked",
   );
   const s = plan.snapshot as Snapshot;
   validateSnapshot(s);
@@ -384,4 +412,101 @@ export async function updateStatus(
     version: updated.version,
   });
   return updated;
+}
+
+export function operationContextHash(job: Record<string, any>) {
+  return contentHash({
+    id: job.id,
+    project_id: job.project_id,
+    created_by: job.created_by,
+    input: job.input,
+    conversation_session_id: job.conversation_session_id,
+    request_id: job.request_id,
+  });
+}
+export async function validatePlanningContext(
+  c: Context,
+  job: Record<string, any>,
+  result?: { base_project_version: number },
+) {
+  ensure(
+    job.kind === "planning" &&
+      job.context_hash &&
+      operationContextHash(job) === job.context_hash,
+    409,
+    "operation_context_mismatch",
+  );
+  const project = (
+    await c.db.query("SELECT version,status FROM projects WHERE id=$1", [
+      job.project_id,
+    ])
+  ).rows[0];
+  ensure(project.status !== "archived", 409, "project_archived");
+  ensure(
+    project.version === job.input.base_project_version &&
+      (!result ||
+        result.base_project_version === job.input.base_project_version),
+    409,
+    "stale_operation",
+  );
+  const user = (
+    await c.db.query(
+      "SELECT id,kind,disabled,scopes,token_expires_at FROM users WHERE id=$1 FOR SHARE",
+      [job.created_by],
+    )
+  ).rows[0];
+  const member = (
+    await c.db.query(
+      "SELECT role FROM project_members WHERE project_id=$1 AND user_id=$2 FOR SHARE",
+      [job.project_id, job.created_by],
+    )
+  ).rows[0];
+  ensure(
+    user &&
+      !user.disabled &&
+      member &&
+      member.role !== "viewer" &&
+      (user.kind === "human" ||
+        (user.scopes.includes("operations:write") &&
+          user.token_expires_at > new Date())),
+    409,
+    "originating_authorization_revoked",
+  );
+}
+export async function revokeApproval(
+  c: Context,
+  project: string,
+  id: string,
+  reason: string,
+) {
+  const p = await lockedProject(c, project);
+  const plan = await getPlan(c, project, id, true);
+  ensure(plan.status === "approved", 409, "approval_not_pending");
+  const approval = (
+    await c.db.query(
+      "SELECT * FROM approvals WHERE plan_version_id=$1 AND decision='approved'",
+      [id],
+    )
+  ).rows[0];
+  ensure(approval, 409, "approval_required");
+  ensure(
+    p.owner_id === c.actor.id || approval.user_id === c.actor.id,
+    403,
+    "revocation_not_permitted",
+  );
+  const r = await c.db.query(
+    "INSERT INTO approval_revocations(approval_id,actor_id,reason,source,request_id) VALUES($1,$2,$3,'human',$4) ON CONFLICT(approval_id) DO NOTHING RETURNING *",
+    [approval.id, c.actor.id, reason, c.requestId],
+  );
+  if (!r.rowCount)
+    return (
+      await c.db.query(
+        "SELECT * FROM approval_revocations WHERE approval_id=$1",
+        [approval.id],
+      )
+    ).rows[0];
+  await event(c, project, "approval.revoked", approval.id, {
+    revocation_id: r.rows[0].id,
+  });
+  return r.rows[0];
 }

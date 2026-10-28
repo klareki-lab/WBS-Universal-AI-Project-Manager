@@ -32,6 +32,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
     networks: [backend]
+    restart: "on-failure:3"
     init: true
     read_only: true
     tmpfs: [/tmp]

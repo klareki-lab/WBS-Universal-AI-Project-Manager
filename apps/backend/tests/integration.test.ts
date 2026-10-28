@@ -14,6 +14,7 @@ import { migrate } from "../src/migrate.js";
 import { buildApp } from "../src/app.js";
 import { passwordHash, hash, token, contentHash } from "../src/security.js";
 import { workOnce, httpAdapter } from "../src/worker.js";
+import { Ajv2020 } from "ajv/dist/2020.js";
 import type { FastifyInstance } from "fastify";
 const url = process.env.TEST_DATABASE_URL;
 if (!url)
@@ -173,7 +174,7 @@ describe("real HTTP + PostgreSQL backend", () => {
   it("applies migrations once and provisions all canonical entities", async () => {
     await migrate(pool);
     expect((await pool.query("SELECT * FROM schema_migrations")).rowCount).toBe(
-      2,
+      4,
     );
     for (const table of [
       "users",
@@ -994,5 +995,547 @@ describe("real HTTP + PostgreSQL backend", () => {
         })
       ).status,
     ).toBe(409);
+  });
+  it("F2 creation replay requires current membership, not cached historical access", async () => {
+    const key = randomUUID(),
+      body = { name: "Revoked creation" },
+      created = await request("POST", "/api/v1/projects", body, undefined, key);
+    expect(
+      (await request("POST", "/api/v1/projects", body, undefined, key)).body.id,
+    ).toBe(created.body.id);
+    await pool.query(
+      "DELETE FROM project_members WHERE project_id=$1 AND user_id=$2",
+      [created.body.id, owner],
+    );
+    expect(
+      (await request("POST", "/api/v1/projects", body, undefined, key)).status,
+    ).toBe(404);
+    expect(
+      (
+        await pool.query(
+          "SELECT count(*)::int AS n FROM projects WHERE id=$1",
+          [created.body.id],
+        )
+      ).rows[0].n,
+    ).toBe(1);
+  });
+  it("F2 mutation replay rechecks role, scopes, and concurrent permission changes", async () => {
+    const p = await project(),
+      key = randomUUID(),
+      body = { version: 1, name: "Before downgrade" };
+    expect(
+      (await request("PATCH", pp(p.id), body, undefined, key)).status,
+    ).toBe(200);
+    const blocker = await pool.connect();
+    await blocker.query("BEGIN");
+    await blocker.query(
+      "UPDATE project_members SET role='viewer' WHERE project_id=$1 AND user_id=$2",
+      [p.id, owner],
+    );
+    const replay = request("PATCH", pp(p.id), body, undefined, key);
+    await blocker.query("COMMIT");
+    blocker.release();
+    expect((await replay).status).toBe(403);
+    const b = await project(),
+      svc = await service(b.id),
+      sk = randomUUID(),
+      input = fresh();
+    expect(
+      (await request("POST", pp(b.id) + "/plans", input, svc, sk)).status,
+    ).toBe(201);
+    await pool.query("UPDATE users SET scopes='{read}' WHERE token_hash=$1", [
+      hash(svc.bearer!),
+    ]);
+    expect(
+      (await request("POST", pp(b.id) + "/plans", input, svc, sk)).status,
+    ).toBe(403);
+  });
+  it("F3 callback rejects original and relabeled stale bases without partial result or success record", async () => {
+    const p = await project(),
+      svc = await service(p.id),
+      op = await request("POST", pp(p.id) + "/agent/planning-requests", {
+        prompt: "Original requirement",
+      });
+    await request("PATCH", pp(p.id), {
+      version: 1,
+      description: "Requirements changed",
+    });
+    for (const v of [1, 2]) {
+      const input = fresh();
+      input.base_project_version = v;
+      const key = randomUUID();
+      const r = await request(
+        "POST",
+        `/api/v1/operations/${op.body.id}/result`,
+        { result: input },
+        svc,
+        key,
+      );
+      expect(r.status).toBe(409);
+      expect(r.body.error.code).toBe("stale_operation");
+      expect(
+        (
+          await pool.query("SELECT 1 FROM idempotency_records WHERE key=$1", [
+            key,
+          ])
+        ).rowCount,
+      ).toBe(0);
+    }
+    expect(await count("plan_versions", p.id)).toBe(0);
+    expect(
+      (await request("GET", `/api/v1/operations/${op.body.id}`)).body.status,
+    ).toBe("queued");
+    expect(
+      (
+        await pool.query(
+          "SELECT 1 FROM activity_events WHERE entity_id=$1 AND type='operation.succeeded'",
+          [op.body.id],
+        )
+      ).rowCount,
+    ).toBe(0);
+  });
+  it("F3 worker cannot relabel work after requirements change during adapter execution", async () => {
+    const p = await project(),
+      op = await request("POST", pp(p.id) + "/agent/planning-requests", {
+        prompt: "Original",
+      });
+    await workOnce(pool, async () => {
+      expect(
+        (
+          await request("PATCH", pp(p.id), {
+            version: 1,
+            description: "New scope",
+          })
+        ).status,
+      ).toBe(200);
+      const input = fresh();
+      input.base_project_version = 2;
+      return { result: input };
+    });
+    const state = (await request("GET", `/api/v1/operations/${op.body.id}`))
+      .body;
+    expect(state.status).toBe("failed");
+    expect(state.error).toBe("stale_operation");
+    expect(state.result).toBeNull();
+    expect(await count("plan_versions", p.id)).toBe(0);
+  });
+  it("F3 checks originating authorization and immutable identity/context on both result paths", async () => {
+    const p = await project(),
+      svc = await service(p.id),
+      op = await request("POST", pp(p.id) + "/agent/planning-requests", {
+        prompt: "Original",
+      });
+    expect(op.body.context_hash).toMatch(/^[a-f0-9]{64}$/);
+    expect(op.body.request_id).toBe(op.headers.get("x-request-id"));
+    await expect(
+      pool.query(
+        "UPDATE operation_jobs SET input=jsonb_set(input,'{base_project_version}','2') WHERE id=$1",
+        [op.body.id],
+      ),
+    ).rejects.toThrow("immutable operation context");
+    await pool.query(
+      "DELETE FROM project_members WHERE project_id=$1 AND user_id=$2",
+      [p.id, owner],
+    );
+    expect(
+      (
+        await request(
+          "POST",
+          `/api/v1/operations/${op.body.id}/result`,
+          { result: fresh() },
+          svc,
+        )
+      ).body.error.code,
+    ).toBe("originating_authorization_revoked");
+    let delivered = false;
+    await workOnce(pool, async () => {
+      delivered = true;
+      return { result: fresh() };
+    });
+    expect(delivered).toBe(false);
+    expect(await count("plan_versions", p.id)).toBe(0);
+  });
+  it("F3 accepted results retain original operation provenance and terminal retries stay idempotent", async () => {
+    const p = await project(),
+      svc = await service(p.id),
+      op = await request("POST", pp(p.id) + "/agent/planning-requests", {
+        prompt: "Original",
+      }),
+      key = randomUUID(),
+      path = `/api/v1/operations/${op.body.id}/result`;
+    const result = await request("POST", path, { result: fresh() }, svc, key);
+    expect(result.status).toBe(200);
+    const saved = (
+      await request(
+        "GET",
+        pp(p.id) + `/plans/${result.body.result.plan_version_id}`,
+      )
+    ).body;
+    expect(saved.origin_operation_id).toBe(op.body.id);
+    expect(saved.base_project_version).toBe(op.body.input.base_project_version);
+    expect(
+      (await request("POST", path, { result: fresh() }, svc, key)).body,
+    ).toEqual(result.body);
+    await pool.query(
+      "UPDATE project_members SET role='viewer' WHERE project_id=$1 AND user_id=(SELECT id FROM users WHERE token_hash=$2)",
+      [p.id, hash(svc.bearer!)],
+    );
+    expect(
+      (await request("POST", path, { result: fresh() }, svc, key)).status,
+    ).toBe(403);
+  });
+  it("F5 published callback schema and real HTTP agree for neither, either, both, empty error and unknown fields", async () => {
+    const schema = JSON.parse(
+      await readFile(
+        new URL(
+          "../../../packages/contracts/schemas/operationResultRequest.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    const validate = new Ajv2020({
+        strict: false,
+        validateFormats: false,
+      }).compile(schema),
+      p = await project(),
+      svc = await service(p.id);
+    const corpus = [
+      { body: {}, valid: false },
+      { body: { result: fresh() }, valid: true },
+      { body: { error: "Clarification required" }, valid: true },
+      { body: { result: fresh(), error: "Both" }, valid: false },
+      { body: { error: "" }, valid: false },
+      { body: { error: "x", extra: true }, valid: false },
+    ];
+    for (const { body, valid } of corpus) {
+      expect(validate(body)).toBe(valid);
+      const op = await request("POST", pp(p.id) + "/agent/planning-requests", {
+        prompt: "Corpus",
+      });
+      expect(
+        (
+          await request(
+            "POST",
+            `/api/v1/operations/${op.body.id}/result`,
+            body,
+            svc,
+          )
+        ).status,
+      ).toBe(valid ? 200 : 400);
+    }
+  });
+  it("F6 rejects NUL across persisted fields without rows and preserves legitimate Unicode", async () => {
+    const key = randomUUID();
+    expect(
+      (
+        await request(
+          "POST",
+          "/api/v1/projects",
+          { name: "bad\0name" },
+          undefined,
+          key,
+        )
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request("POST", "/api/v1/projects", {
+          name: "Valid",
+          description: "bad\0description",
+        })
+      ).status,
+    ).toBe(400);
+    expect((await pool.query("SELECT 1 FROM projects")).rowCount).toBe(0);
+    expect(
+      (
+        await pool.query("SELECT 1 FROM idempotency_records WHERE key=$1", [
+          key,
+        ])
+      ).rowCount,
+    ).toBe(0);
+    expect(
+      (await request("POST", "/api/v1/projects", { name: "bad\ud800" })).status,
+    ).toBe(400);
+    const p = await project("Проект — Grüße 🌍");
+    for (const field of ["title", "description", "definition_of_done"]) {
+      const input = fresh();
+      input.snapshot.tasks[0][field] = "bad\0text";
+      expect((await request("POST", pp(p.id) + "/plans", input)).status).toBe(
+        400,
+      );
+    }
+    expect(
+      (
+        await request("POST", pp(p.id) + "/agent/planning-requests", {
+          prompt: "bad\0prompt",
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await request("POST", pp(p.id) + "/conversations", {
+          provider: "test",
+          external_id: "bad\0id",
+        })
+      ).status,
+    ).toBe(400);
+    expect(await count("plan_versions", p.id)).toBe(0);
+    expect(await count("activity_events", p.id)).toBe(1);
+    const input = fresh();
+    input.snapshot.tasks[0].description = "Добро пожаловать\nGrüße — 日本語 🚀";
+    const plan = await draft(p.id, input);
+    expect(plan.snapshot.tasks[0].description).toBe(
+      input.snapshot.tasks[0].description,
+    );
+  });
+  it("P1 disabling and reenabling does not revive an unconsumed approval", async () => {
+    const p = await project(),
+      plan = await approved(p.id),
+      svc = await service(p.id, ["read", "plans:publish"]);
+    await pool.query("UPDATE users SET disabled=true WHERE id=$1", [owner]);
+    await pool.query("UPDATE users SET disabled=false WHERE id=$1", [owner]);
+    const history = await request(
+      "GET",
+      pp(p.id) + `/plans/${plan.id}/approvals`,
+    );
+    expect(history.body.items).toHaveLength(1);
+    expect(history.body.revocations[0].source).toBe("identity_disabled");
+    expect(
+      (
+        await request(
+          "POST",
+          pp(p.id) + `/plans/${plan.id}/publish`,
+          { content_hash: plan.content_hash },
+          svc,
+        )
+      ).body.error.code,
+    ).toBe("approval_revoked");
+    expect(await count("tasks", p.id)).toBe(0);
+    await expect(
+      pool.query("DELETE FROM approval_revocations WHERE approval_id=$1", [
+        history.body.items[0].id,
+      ]),
+    ).rejects.toThrow("immutable");
+  });
+  it("P1 role downgrade and membership removal permanently revoke pending approvals", async () => {
+    for (const action of ["downgrade", "remove"]) {
+      const p = await project(),
+        plan = await approved(p.id),
+        svc = await service(p.id, ["read", "plans:publish"]);
+      if (action === "downgrade") {
+        await pool.query(
+          "UPDATE project_members SET role='viewer' WHERE project_id=$1 AND user_id=$2",
+          [p.id, owner],
+        );
+        await pool.query(
+          "UPDATE project_members SET role='owner' WHERE project_id=$1 AND user_id=$2",
+          [p.id, owner],
+        );
+      } else {
+        await pool.query(
+          "DELETE FROM project_members WHERE project_id=$1 AND user_id=$2",
+          [p.id, owner],
+        );
+        await pool.query("INSERT INTO project_members VALUES($1,$2,'owner')", [
+          p.id,
+          owner,
+        ]);
+      }
+      expect(
+        (
+          await request(
+            "POST",
+            pp(p.id) + `/plans/${plan.id}/publish`,
+            { content_hash: plan.content_hash },
+            svc,
+          )
+        ).body.error.code,
+      ).toBe("approval_revoked");
+      expect(await count("tasks", p.id)).toBe(0);
+    }
+  });
+  it("P1 explicit human revocation is audited and services cannot revoke", async () => {
+    const p = await project(),
+      plan = await approved(p.id),
+      svc = await service(p.id, ["read", "plans:publish", "approvals:write"]);
+    const path = pp(p.id) + `/plans/${plan.id}/revoke-approval`;
+    expect((await request("POST", path, { reason: "Stop" }, svc)).status).toBe(
+      403,
+    );
+    const r = await request("POST", path, {
+      reason: "Scope requires another review",
+    });
+    expect(r.status).toBe(201);
+    expect(r.body.actor_id).toBe(owner);
+    expect(
+      (
+        await request(
+          "POST",
+          pp(p.id) + `/plans/${plan.id}/publish`,
+          { content_hash: plan.content_hash },
+          svc,
+        )
+      ).status,
+    ).toBe(409);
+    expect(
+      (
+        await pool.query(
+          "SELECT 1 FROM activity_events WHERE project_id=$1 AND type='approval.revoked'",
+          [p.id],
+        )
+      ).rowCount,
+    ).toBe(1);
+  });
+  it("P1 consumed publication remains historical after approver disable", async () => {
+    const { p, plan, job } = await published(),
+      svc = await service(p.id, ["read", "plans:publish"]);
+    await pool.query("UPDATE users SET disabled=true WHERE id=$1", [owner]);
+    const retry = await request(
+      "POST",
+      pp(p.id) + `/plans/${plan.id}/publish`,
+      { content_hash: plan.content_hash },
+      svc,
+    );
+    expect(retry.status).toBe(200);
+    expect(retry.body.id).toBe(job.id);
+    expect(await count("tasks", p.id)).toBe(12);
+    expect(
+      (
+        await request(
+          "GET",
+          pp(p.id) + `/plans/${plan.id}/approvals`,
+          undefined,
+          svc,
+        )
+      ).body.revocations,
+    ).toHaveLength(0);
+  });
+  it("P1 publication serializes with a concurrent approver disable and cannot consume revoked approval", async () => {
+    const p = await project(),
+      plan = await approved(p.id),
+      svc = await service(p.id, ["read", "plans:publish"]);
+    const blocker = await pool.connect();
+    await blocker.query("BEGIN");
+    await blocker.query("SELECT id FROM users WHERE id=$1 FOR UPDATE", [owner]);
+    const pending = request(
+      "POST",
+      pp(p.id) + `/plans/${plan.id}/publish`,
+      { content_hash: plan.content_hash },
+      svc,
+    );
+    let waiting = false;
+    for (let i = 0; i < 100; i++) {
+      const lock = await pool.query(
+        "SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query='SELECT * FROM users WHERE id=$1 FOR SHARE'",
+      );
+      if (lock.rowCount) {
+        waiting = true;
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    expect(waiting).toBe(true);
+    await blocker.query("UPDATE users SET disabled=true WHERE id=$1", [owner]);
+    await blocker.query("COMMIT");
+    blocker.release();
+    expect((await pending).status).toBe(409);
+    expect(await count("tasks", p.id)).toBe(0);
+  });
+  it("browser CSRF bootstrap survives reload without rotating other tabs and respects authentication", async () => {
+    const a = await request("GET", "/api/v1/auth/csrf"),
+      b = await request("GET", "/api/v1/auth/csrf");
+    expect(a.status).toBe(200);
+    expect(a.body.csrf_token).toBe(csrf);
+    expect(b.body.csrf_token).toBe(csrf);
+    expect(
+      (
+        await request(
+          "POST",
+          "/api/v1/projects",
+          { name: "Reload mutation" },
+          { cookie, csrf: a.body.csrf_token },
+        )
+      ).status,
+    ).toBe(201);
+    expect(
+      (await request("GET", "/api/v1/auth/csrf", undefined, {})).status,
+    ).toBe(401);
+    const p = await project(),
+      svc = await service(p.id);
+    expect(
+      (await request("GET", "/api/v1/auth/csrf", undefined, svc)).status,
+    ).toBe(403);
+  });
+  it("P1 publication ordered before disable consumes approval without retroactive revocation", async () => {
+    const p = await project(),
+      plan = await approved(p.id),
+      svc = await service(p.id, ["read", "plans:publish"]);
+    const blocker = await pool.connect();
+    await blocker.query("BEGIN");
+    await blocker.query("LOCK TABLE tasks IN ACCESS EXCLUSIVE MODE");
+    let released = false;
+    try {
+      const publish = request(
+        "POST",
+        pp(p.id) + `/plans/${plan.id}/publish`,
+        { content_hash: plan.content_hash },
+        svc,
+      );
+      let inserting = false;
+      for (let i = 0; i < 100; i++) {
+        if (
+          (
+            await pool.query(
+              "SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE 'INSERT INTO tasks%'",
+            )
+          ).rowCount
+        ) {
+          inserting = true;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      expect(inserting).toBe(true);
+      const disable = pool.query("UPDATE users SET disabled=true WHERE id=$1", [
+        owner,
+      ]);
+      let waiting = false;
+      for (let i = 0; i < 100; i++) {
+        if (
+          (
+            await pool.query(
+              "SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query='UPDATE users SET disabled=true WHERE id=$1'",
+            )
+          ).rowCount
+        ) {
+          waiting = true;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      expect(waiting).toBe(true);
+      await blocker.query("COMMIT");
+      blocker.release();
+      released = true;
+      expect((await publish).status).toBe(200);
+      await disable;
+      expect(await count("tasks", p.id)).toBe(12);
+      expect(
+        (
+          await request(
+            "GET",
+            pp(p.id) + `/plans/${plan.id}/approvals`,
+            undefined,
+            svc,
+          )
+        ).body.revocations,
+      ).toHaveLength(0);
+    } finally {
+      if (!released) {
+        await blocker.query("ROLLBACK");
+        blocker.release();
+      }
+    }
   });
 });

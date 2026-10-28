@@ -46,3 +46,13 @@ Same-state requests are no-ops after checking the expected version. Starting/com
 ## Operational scope
 
 Migrations are append-only after publication; this initial migration is transactional and idempotently tracked. Schema owner credentials belong only to the backend/operator, never MCP. This local implementation uses a single backend database role; split migrator/runtime roles and external log/backup retention are deployment hardening work. DB superusers can always bypass triggers, so the database owner is a trusted operator, not an adversarial principal.
+
+## v1.1.0 remediation changes
+
+Migrations 003/004 add project context to idempotency records, immutable request/context provenance to operation jobs, origin_operation_id to saved plans, and append-only approval revocations. Legacy pending AI jobs are failed explicitly because the backend cannot infer their original immutable context. Completed history is retained.
+
+Both callback and synchronous worker result application validate the original operation context, base version and current originating identity/membership/scopes. Preflight also prevents stale/unauthorized jobs from starting new adapter deliveries. Permanent context/auth conflicts fail the worker job without retrying; transient delivery/infrastructure errors retain bounded retry/lease behavior.
+
+Pending approvals now require current eligible approvers and no recorded revocation. Disable, membership removal and viewer downgrade permanently revoke unconsumed approvals; explicit human revocation and history endpoints are available. This is a published conservative RC decision, not an inferred original product requirement; see remediation/APPROVAL_POLICY.md. The canonical API version is 1.1.0.
+
+Pool/client background errors are handled and broken connections discarded. Original transaction errors survive rollback failure. No application mutation is automatically retried after an ambiguous connection loss; atomic idempotency records make exact-key client retries safe. The process stays alive through runtime database outages and reconnects on subsequent bounded requests; readiness returns 503. Startup migration failure exits and Compose permits three on-failure restarts. A future production supervisor/DB failover topology still needs its own operational design.

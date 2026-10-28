@@ -7,6 +7,18 @@
       "items": {
         "type": "object",
         "properties": {
+          "origin_operation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -51,17 +63,20 @@
                     "key": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                     },
                     "name": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                     },
                     "description": {
                       "default": "",
                       "type": "string",
-                      "maxLength": 20000
+                      "maxLength": 20000,
+                      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                     }
                   },
                   "required": [
@@ -81,12 +96,20 @@
                   "properties": {
                     "key": {
                       "type": "string",
-                      "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+                      "allOf": [
+                        {
+                          "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+                        },
+                        {
+                          "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+                        }
+                      ]
                     },
                     "phase_key": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                     },
                     "task_id": {
                       "type": "string",
@@ -101,12 +124,14 @@
                     "title": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                     },
                     "description": {
                       "default": "",
                       "type": "string",
-                      "maxLength": 20000
+                      "maxLength": 20000,
+                      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                     },
                     "priority": {
                       "default": "medium",
@@ -173,7 +198,8 @@
                     "definition_of_done": {
                       "default": "",
                       "type": "string",
-                      "maxLength": 20000
+                      "maxLength": 20000,
+                      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                     },
                     "depends_on": {
                       "default": [],
@@ -182,7 +208,8 @@
                       "items": {
                         "type": "string",
                         "minLength": 1,
-                        "maxLength": 80
+                        "maxLength": 80,
+                        "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                       }
                     }
                   },
@@ -210,7 +237,8 @@
             "additionalProperties": false
           },
           "content_hash": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
           },
           "created_by": {
             "type": "string",
@@ -236,6 +264,7 @@
           }
         },
         "required": [
+          "origin_operation_id",
           "id",
           "project_id",
           "number",

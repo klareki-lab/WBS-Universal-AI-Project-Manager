@@ -7,6 +7,21 @@
       "items": {
         "type": "object",
         "properties": {
+          "request_id": {
+            "type": "string",
+            "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+          },
+          "context_hash": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -41,7 +56,8 @@
           "input": {
             "type": "object",
             "propertyNames": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
             },
             "additionalProperties": {}
           },
@@ -50,7 +66,8 @@
               {
                 "type": "object",
                 "propertyNames": {
-                  "type": "string"
+                  "type": "string",
+                  "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
                 },
                 "additionalProperties": {}
               },
@@ -60,9 +77,14 @@
             ]
           },
           "error": {
-            "type": [
-              "string",
-              "null"
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "attempts": {
@@ -116,6 +138,8 @@
           }
         },
         "required": [
+          "request_id",
+          "context_hash",
           "id",
           "project_id",
           "created_by",

@@ -167,6 +167,23 @@ export const specs: Record<string, Spec> = {
     human: true,
     status: 201,
   },
+  approvalHistory: {
+    method: "GET",
+    url: p + "/plans/:planId/approvals",
+    summary: "Read immutable approval and revocation history",
+    response: s.approvalHistory,
+    scope: "read",
+  },
+  revokeApproval: {
+    method: "POST",
+    url: p + "/plans/:planId/revoke-approval",
+    summary: "Human owner or original approver revokes a pending approval",
+    body: s.revocationRequest,
+    response: s.revocationResponse,
+    scope: "approvals:write",
+    human: true,
+    status: 201,
+  },
   publishPlan: {
     method: "POST",
     url: p + "/plans/:planId/publish",

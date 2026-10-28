@@ -4,7 +4,7 @@ import { makePool } from "./db.js";
 import { passwordHash, token, ensure } from "./security.js";
 const database = process.env.DATABASE_URL;
 if (!database) throw new Error("DATABASE_URL required");
-const base = process.env.UAPM_BASE_URL ?? "http://127.0.0.1:13081";
+const base = process.env.UAPM_BASE_URL ?? "http://localhost:13081";
 const host = new URL(base);
 ensure(
   ["localhost", "127.0.0.1"].includes(host.hostname),

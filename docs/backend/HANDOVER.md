@@ -1,3 +1,5 @@
+> Historical v1.0.0 handover for audit target 7faca55. The subsequent independent audit found defects. This report is superseded by [the v1.1.0 remediation RC report](remediation/README.md); its original evidence remains historical.
+
 # Backend Core engineering handover — 2026-10-28
 
 **Overall: CONDITIONAL PASS. Backend foundation: PASS.** The complete local backend, database, security controls, contract and durable automation adapter are implemented and verified. End-to-end integration with the other workstreams remains conditional because no frontend/MCP client or live n8n workflow/credentials were supplied to this workstream. A real local HTTP adapter fixture verifies the automation boundary without touching existing n8n services.

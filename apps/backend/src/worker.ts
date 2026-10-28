@@ -1,8 +1,13 @@
 import type pg from "pg";
 import { transaction, type DB } from "./db.js";
-import { createPlan, event, lockedProject } from "./domain.js";
+import {
+  createPlan,
+  event,
+  lockedProject,
+  validatePlanningContext,
+} from "./domain.js";
 import { operationResult } from "./schemas.js";
-import { ensure } from "./security.js";
+import { ensure, HttpError } from "./security.js";
 export type Adapter = (job: Record<string, any>) => Promise<unknown>;
 export function httpAdapter(endpoint: string, secret: string): Adapter {
   const url = new URL(endpoint);
@@ -26,6 +31,8 @@ export function httpAdapter(endpoint: string, secret: string): Adapter {
       },
       body: JSON.stringify({
         operation_id: job.id,
+        request_id: job.request_id,
+        context_hash: job.context_hash,
         project_id: job.project_id,
         conversation_session_id: job.conversation_session_id,
         input: job.input,
@@ -101,6 +108,27 @@ export async function workOnce(
   });
   if (!job) return false;
   try {
+    await transaction(pool, async (db) => {
+      const creator = (
+        await db.query("SELECT id,kind,scopes FROM users WHERE id=$1", [
+          job.created_by,
+        ])
+      ).rows[0];
+      ensure(creator, 409, "originating_authorization_revoked");
+      const c = { db, actor: creator, requestId: job.id };
+      await lockedProject(c, job.project_id);
+      const current = (
+        await db.query("SELECT * FROM operation_jobs WHERE id=$1 FOR UPDATE", [
+          job.id,
+        ])
+      ).rows[0];
+      ensure(
+        current.status === "running" && current.attempts === job.attempts,
+        409,
+        "operation_terminal",
+      );
+      await validatePlanningContext(c, current);
+    });
     const raw = await adapter(job);
     if (
       raw &&
@@ -125,8 +153,9 @@ export async function workOnce(
       ).rows[0];
       if (current.status !== "running" || current.attempts !== job.attempts)
         return;
+      await validatePlanningContext(c, current, body.result);
       const plan = body.result
-        ? await createPlan(c, job.project_id, body.result)
+        ? await createPlan(c, job.project_id, body.result, undefined, job.id)
         : null;
       await db.query(
         "UPDATE operation_jobs SET status=$2,result=$3,error=$4,lease_until=NULL,updated_at=now() WHERE id=$1",
@@ -147,15 +176,25 @@ export async function workOnce(
         { source: "n8n" },
       );
     });
-  } catch {
+  } catch (error) {
+    const permanent =
+      error instanceof HttpError &&
+      [400, 403, 404, 409].includes(error.statusCode);
     // Never persist upstream error messages: they may contain secrets or arbitrary model text.
     await transaction(pool, async (db) => {
       await db.query("SELECT id FROM projects WHERE id=$1 FOR UPDATE", [
         job.project_id,
       ]);
       const changed = await db.query(
-        "UPDATE operation_jobs SET status=CASE WHEN attempts>=max_attempts THEN 'failed' ELSE 'queued' END,error='Automation delivery or result validation failed',lease_until=NULL,next_attempt_at=now()+interval '10 seconds'*attempts,updated_at=now() WHERE id=$1 AND status='running' AND attempts=$2 RETURNING *",
-        [job.id, job.attempts],
+        "UPDATE operation_jobs SET status=CASE WHEN attempts>=max_attempts OR $3::boolean THEN 'failed' ELSE 'queued' END,error=$4,lease_until=NULL,next_attempt_at=now()+interval '10 seconds'*attempts,updated_at=now() WHERE id=$1 AND status='running' AND attempts=$2 RETURNING *",
+        [
+          job.id,
+          job.attempts,
+          permanent,
+          permanent
+            ? (error as HttpError).code
+            : "Automation delivery or result validation failed",
+        ],
       );
       if (changed.rowCount)
         await operationEvent(
@@ -170,22 +209,32 @@ export async function workOnce(
   return true;
 }
 export function startWorker(pool: pg.Pool, adapter: Adapter) {
-  let stopped = false;
-  let pending: Promise<unknown> | undefined;
-  const timer = setInterval(() => {
-    if (!stopped && !pending)
+  let stopped = false,
+    delay = 1000,
+    timer: NodeJS.Timeout | undefined,
+    pending: Promise<unknown> | undefined;
+  const schedule = () => {
+    if (stopped) return;
+    timer = setTimeout(() => {
       pending = workOnce(pool, adapter)
+        .then(() => {
+          delay = 1000;
+        })
         .catch(() => {
           console.error("Automation worker poll failed");
+          delay = Math.min(delay * 2, 30000);
         })
         .finally(() => {
           pending = undefined;
+          schedule();
         });
-  }, 1000);
-  timer.unref();
+    }, delay);
+    timer.unref();
+  };
+  schedule();
   return async () => {
     stopped = true;
-    clearInterval(timer);
+    clearTimeout(timer);
     await pending;
   };
 }

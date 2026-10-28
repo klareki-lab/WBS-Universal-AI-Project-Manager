@@ -5,9 +5,10 @@ import rateLimit from "@fastify/rate-limit";
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { z } from "zod";
-import { transaction, type DB } from "./db.js";
+import { transaction, isConnectionError, type DB } from "./db.js";
 import {
   hash,
+  csrfToken,
   token,
   passwordMatches,
   passwordHash,
@@ -63,28 +64,35 @@ export async function buildApp(config: Config) {
   });
   app.setErrorHandler((err, req, reply) => {
     const e = err as Error & { code?: string; statusCode?: number };
-    const status =
-      e instanceof z.ZodError
+    const status = isConnectionError(e)
+      ? 503
+      : e instanceof z.ZodError
         ? 400
         : (e.statusCode ??
           (e.code === "23505"
             ? 409
-            : e.code === "23503" || e.code === "23514"
+            : e.code === "23503" ||
+                e.code === "23514" ||
+                e.code === "22021" ||
+                e.code === "22P05"
               ? 400
               : 500));
     if (status >= 500) req.log.error({ err: e }, "Request failed");
     reply.code(status).send({
       error: {
-        code:
-          e instanceof z.ZodError
+        code: isConnectionError(e)
+          ? "database_unavailable"
+          : e instanceof z.ZodError || ["22021", "22P05"].includes(e.code ?? "")
             ? "invalid_input"
             : status >= 500
               ? "internal_error"
               : (e.code ?? "request_error"),
-        message:
-          status >= 500
+        message: isConnectionError(e)
+          ? "Database temporarily unavailable; retry the same idempotency key"
+          : status >= 500
             ? "Internal server error"
-            : e instanceof z.ZodError
+            : e instanceof z.ZodError ||
+                ["22021", "22P05"].includes(e.code ?? "")
               ? "Input validation failed"
               : e.message,
         request_id: req.id,
@@ -105,7 +113,7 @@ export async function buildApp(config: Config) {
     try {
       await config.pool
         .query(
-          "SELECT 1 FROM schema_migrations WHERE name='002_publish_uniqueness.sql'",
+          "SELECT 1 FROM schema_migrations WHERE name='004_approval_revocations.sql'",
         )
         .then((r) => ensure(r.rowCount, 503, "not_migrated"));
       return { status: "ready" };
@@ -116,6 +124,8 @@ export async function buildApp(config: Config) {
   async function authenticate(
     req: FastifyRequest,
     write = false,
+    executor: Pick<pg.Pool, "query"> = config.pool,
+    lock = false,
   ): Promise<Actor> {
     const authorization = req.headers.authorization;
     if (authorization) {
@@ -124,8 +134,9 @@ export async function buildApp(config: Config) {
         401,
         "invalid_token",
       );
-      const r = await config.pool.query(
-        "SELECT id,kind,scopes FROM users WHERE token_hash=$1 AND kind='service' AND NOT disabled AND token_expires_at>now()",
+      const r = await executor.query(
+        "SELECT id,kind,scopes FROM users WHERE token_hash=$1 AND kind='service' AND NOT disabled AND token_expires_at>now()" +
+          (lock ? " FOR SHARE" : ""),
         [hash(authorization.slice(7))],
       );
       ensure(r.rowCount, 401, "invalid_token");
@@ -133,8 +144,9 @@ export async function buildApp(config: Config) {
     }
     const session = req.cookies.uapm_session;
     ensure(session, 401, "authentication_required");
-    const r = await config.pool.query(
-      "SELECT u.id,u.kind,u.scopes,s.csrf_hash FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND NOT u.disabled AND u.kind='human'",
+    const r = await executor.query(
+      "SELECT u.id,u.kind,u.scopes,s.csrf_hash FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND NOT u.disabled AND u.kind='human'" +
+        (lock ? " FOR SHARE OF u,s" : ""),
       [hash(session)],
     );
     ensure(r.rowCount, 401, "session_expired");
@@ -164,7 +176,7 @@ export async function buildApp(config: Config) {
       );
       ensure(valid && r.rowCount, 401, "invalid_credentials");
       const session = token(),
-        csrf = token();
+        csrf = csrfToken(session);
       const expiry = new Date(Date.now() + 8 * 3600 * 1000);
       await config.pool.query(
         "INSERT INTO sessions(token_hash,user_id,csrf_hash,expires_at) VALUES($1,$2,$3,$4)",
@@ -213,6 +225,21 @@ export async function buildApp(config: Config) {
       );
       return s.userResponse.parse(r.rows[0]);
     });
+  app.get("/api/v1/auth/csrf", async (req) => {
+    const actor = await authenticate(req);
+    ensure(
+      actor.kind === "human" && req.cookies.uapm_session,
+      403,
+      "human_session_required",
+    );
+    const csrf = csrfToken(req.cookies.uapm_session!);
+    const updated = await config.pool.query(
+      "UPDATE sessions SET csrf_hash=$2 WHERE token_hash=$1 AND expires_at>now() RETURNING user_id",
+      [hash(req.cookies.uapm_session!), hash(csrf)],
+    );
+    ensure(updated.rowCount, 401, "session_expired");
+    return { csrf_token: csrf };
+  });
   function page(rows: unknown[], q: any) {
     return { items: rows, limit: q.limit, offset: q.offset };
   }
@@ -453,13 +480,24 @@ export async function buildApp(config: Config) {
           400,
           "invalid_conversation",
         );
+      const operationId = randomUUID();
       const r = await c.db.query(
-        "INSERT INTO operation_jobs(project_id,created_by,kind,status,input,conversation_session_id) VALUES($1,$2,'planning','queued',$3,$4) RETURNING *",
+        "INSERT INTO operation_jobs(project_id,created_by,kind,status,input,conversation_session_id,request_id,context_hash,id) VALUES($1,$2,'planning','queued',$3,$4,$5,$6,$7) RETURNING *",
         [
           p.projectId,
           c.actor.id,
           { ...b, base_project_version: project.version },
           b.conversation_session_id ?? null,
+          c.requestId,
+          d.operationContextHash({
+            id: operationId,
+            project_id: p.projectId,
+            created_by: c.actor.id,
+            input: { ...b, base_project_version: project.version },
+            conversation_session_id: b.conversation_session_id ?? null,
+            request_id: c.requestId,
+          }),
+          operationId,
         ],
       );
       await d.event(c, p.projectId, "operation.queued", r.rows[0].id);
@@ -482,8 +520,9 @@ export async function buildApp(config: Config) {
         409,
         "operation_terminal",
       );
+      await d.validatePlanningContext(c, job, b.result);
       const result = b.result
-        ? await d.createPlan(c, job.project_id, b.result)
+        ? await d.createPlan(c, job.project_id, b.result, undefined, job.id)
         : null;
       const r = await c.db.query(
         "UPDATE operation_jobs SET status=$2,result=$3,error=$4,lease_until=NULL,updated_at=now() WHERE id=$1 RETURNING *",
@@ -499,6 +538,25 @@ export async function buildApp(config: Config) {
       await d.event(c, job.project_id, "operation." + r.rows[0].status, job.id);
       return r.rows[0];
     },
+    approvalHistory: async (c, p) => {
+      await d.getPlan(c, p.projectId, p.planId);
+      return {
+        items: (
+          await c.db.query(
+            "SELECT * FROM approvals WHERE project_id=$1 AND plan_version_id=$2 ORDER BY created_at,id",
+            [p.projectId, p.planId],
+          )
+        ).rows,
+        revocations: (
+          await c.db.query(
+            "SELECT r.* FROM approval_revocations r JOIN approvals a ON a.id=r.approval_id WHERE a.project_id=$1 AND a.plan_version_id=$2 ORDER BY r.created_at,r.id",
+            [p.projectId, p.planId],
+          )
+        ).rows,
+      };
+    },
+    revokeApproval: async (c, p, b) =>
+      d.revokeApproval(c, p.projectId, p.planId, b.reason),
     conversation: async (c, p, b) => {
       const r = await c.db.query(
         "INSERT INTO conversation_sessions(project_id,provider,external_id,created_by) VALUES($1,$2,$3,$4) ON CONFLICT(project_id,provider,external_id) DO UPDATE SET external_id=EXCLUDED.external_id RETURNING *",
@@ -550,7 +608,11 @@ export async function buildApp(config: Config) {
           body: body ?? null,
         });
         const result = await transaction(config.pool, async (db) => {
-          const c = { db, actor, requestId: req.id };
+          const currentActor = await authenticate(req, write, db, true);
+          scope(currentActor, spec.scope);
+          for (const extra of spec.additionalScopes ?? [])
+            scope(currentActor, extra);
+          const c = { db, actor: currentActor, requestId: req.id };
           if (params.projectId)
             await access(db, actor, params.projectId, write);
           if (params.operationId) {
@@ -576,6 +638,17 @@ export async function buildApp(config: Config) {
                 409,
                 "idempotency_key_reused",
               );
+              ensure(
+                old.rows[0].resource_project_id,
+                409,
+                "idempotency_context_missing",
+              );
+              await access(
+                db,
+                currentActor,
+                old.rows[0].resource_project_id,
+                true,
+              );
               return {
                 status: old.rows[0].status_code,
                 body: old.rows[0].response,
@@ -594,8 +667,17 @@ export async function buildApp(config: Config) {
           const status = spec.status ?? 200;
           if (key)
             await db.query(
-              "INSERT INTO idempotency_records(actor_id,key,request_hash,response,status_code) VALUES($1,$2,$3,$4,$5)",
-              [actor.id, key, requestHash, response, status],
+              "INSERT INTO idempotency_records(actor_id,key,request_hash,response,status_code,resource_project_id) VALUES($1,$2,$3,$4,$5,$6)",
+              [
+                actor.id,
+                key,
+                requestHash,
+                response,
+                status,
+                params.projectId ??
+                  (response as any).project_id ??
+                  (response as any).id,
+              ],
             );
           return { status, body: response };
         });

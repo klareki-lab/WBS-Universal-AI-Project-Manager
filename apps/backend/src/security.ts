@@ -18,6 +18,7 @@ const scrypt = (
   );
 export const token = () => randomBytes(32).toString("base64url");
 export const hash = (x: string) => createHash("sha256").update(x).digest("hex");
+export const csrfToken = (session: string) => hash("uapm-csrf-v1:" + session);
 export function canonical(x: unknown): string {
   if (Array.isArray(x)) return "[" + x.map(canonical).join(",") + "]";
   if (x && typeof x === "object")
@@ -78,7 +79,7 @@ export async function access(
   write = false,
 ) {
   const r = await db.query(
-    "SELECT p.*,m.role FROM projects p JOIN project_members m ON m.project_id=p.id WHERE p.id=$1 AND m.user_id=$2",
+    "SELECT p.*,m.role FROM projects p JOIN project_members m ON m.project_id=p.id WHERE p.id=$1 AND m.user_id=$2 FOR SHARE OF m",
     [projectId, actor.id],
   );
   ensure(r.rowCount, 404, "project_not_found");

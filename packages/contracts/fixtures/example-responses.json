@@ -1,18 +1,19 @@
 {
   "project": {
-    "id": "b730caea-ee23-42cf-bc22-9faca74fcfa2",
-    "owner_id": "a5eecda1-1930-4be1-aad1-c46c2c59a823",
+    "id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+    "owner_id": "2346bb03-7faa-4e39-ab05-4be826138faf",
     "name": "Backend E2E — release workspace",
     "description": "Twelve realistic tasks over Discovery, Delivery and Launch.",
     "status": "draft",
     "version": 1,
     "published_plan_id": null,
-    "created_at": "2026-10-28T18:17:08.450Z",
-    "updated_at": "2026-10-28T18:17:08.450Z"
+    "created_at": "2026-10-28T19:23:39.695Z",
+    "updated_at": "2026-10-28T19:23:39.695Z"
   },
   "plan": {
-    "id": "af272822-8d51-46e7-b5b9-de966508fb7f",
-    "project_id": "b730caea-ee23-42cf-bc22-9faca74fcfa2",
+    "origin_operation_id": null,
+    "id": "f614849f-6f70-4a19-844d-8c560ff5d5e9",
+    "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
     "number": 1,
     "base_project_version": 1,
     "status": "draft",
@@ -216,88 +217,90 @@
       ]
     },
     "content_hash": "0e68ea316f374163c0a04801cf4ead75d14d4fc0d82d8c7d452d8dd5faec58ef",
-    "created_by": "a5eecda1-1930-4be1-aad1-c46c2c59a823",
-    "created_at": "2026-10-28T18:17:08.516Z",
+    "created_by": "2346bb03-7faa-4e39-ab05-4be826138faf",
+    "created_at": "2026-10-28T19:23:39.736Z",
     "published_at": null
   },
   "approval": {
-    "id": "838750d3-e3e1-47be-b1c2-802b87cc972a",
-    "project_id": "b730caea-ee23-42cf-bc22-9faca74fcfa2",
-    "plan_version_id": "af272822-8d51-46e7-b5b9-de966508fb7f",
-    "user_id": "a5eecda1-1930-4be1-aad1-c46c2c59a823",
+    "id": "72e9cbde-1119-4a14-891d-2d0be36617ff",
+    "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+    "plan_version_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9",
+    "user_id": "2346bb03-7faa-4e39-ab05-4be826138faf",
     "content_hash": "0e68ea316f374163c0a04801cf4ead75d14d4fc0d82d8c7d452d8dd5faec58ef",
     "decision": "approved",
     "comment": "",
-    "created_at": "2026-10-28T18:17:08.580Z"
+    "created_at": "2026-10-28T19:23:39.828Z"
   },
   "operation": {
-    "id": "a1cb1a65-44f7-4e4b-b7b2-1b7f542f2f87",
-    "project_id": "b730caea-ee23-42cf-bc22-9faca74fcfa2",
-    "created_by": "a5eecda1-1930-4be1-aad1-c46c2c59a823",
+    "request_id": "2424a6c2-b09b-4cd6-9756-5be67e405ffd",
+    "context_hash": null,
+    "id": "65e5e2ee-1ae6-482b-94f2-43e5fc12e68f",
+    "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+    "created_by": "2346bb03-7faa-4e39-ab05-4be826138faf",
     "kind": "publish",
     "status": "succeeded",
     "input": {
-      "plan_version_id": "af272822-8d51-46e7-b5b9-de966508fb7f"
+      "plan_version_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9"
     },
     "result": {
       "task_ids": {
-        "task-1": "0cc2c03b-4b22-4a22-be59-ea5d3dd9e5f7",
-        "task-2": "faf745b6-dce2-4889-8a0f-96d9eb784225",
-        "task-3": "99d0d8ec-b5b1-4a55-b3aa-3fd12209048f",
-        "task-4": "f89407aa-64b6-4d67-9f38-29c82d0159e3",
-        "task-5": "981cf9c6-06b8-4cc3-8b8a-581f1aa971df",
-        "task-6": "38e015c4-e510-4085-8d96-ce30d1647dd4",
-        "task-7": "ac5da15a-4a34-4c5c-b88c-f1fe830a2486",
-        "task-8": "a27dfd4c-f71d-40c7-91e8-eb8d8c0b3619",
-        "task-9": "cb84b767-95f8-4f15-8ed2-f559e40ebafc",
-        "task-10": "063511d1-c914-449f-a7c9-47d8cb343c3d",
-        "task-11": "0ab9a393-e00f-4265-bb9e-463563ccef7e",
-        "task-12": "f9c6fb34-fd9f-44d5-add1-e7ce39cf3a55"
+        "task-1": "dd144041-0d07-488b-b885-e1f3beeb5161",
+        "task-2": "80d7a6f3-292c-44a8-bf0e-074eadd2265c",
+        "task-3": "f4569cb5-256a-4e88-a73c-0c2390962581",
+        "task-4": "155c5d51-54b9-4da3-aa5f-79ce0c408c2f",
+        "task-5": "ee5e6847-0f4e-4c75-b07c-66232b2907bf",
+        "task-6": "e06dd265-ebd4-4d23-bcaa-033bd7c16433",
+        "task-7": "f2f98f31-14e0-4726-a3c5-aaca922865e7",
+        "task-8": "549cdc86-0362-48ef-aac4-72ddbc91511c",
+        "task-9": "b2c6334e-c814-426c-9c46-e71820a70470",
+        "task-10": "8df1e3ac-e682-43a2-817e-daa6bb427efa",
+        "task-11": "c65e83e4-b817-4373-8a43-2e8922c361e1",
+        "task-12": "ed7551f5-2c8c-4ff8-ac91-0cc9d0460b1c"
       },
       "task_count": 12,
-      "plan_version_id": "af272822-8d51-46e7-b5b9-de966508fb7f"
+      "plan_version_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9"
     },
     "error": null,
     "attempts": 1,
     "max_attempts": 3,
-    "next_attempt_at": "2026-10-28T18:17:08.592Z",
+    "next_attempt_at": "2026-10-28T19:23:39.844Z",
     "lease_until": null,
     "conversation_session_id": null,
-    "created_at": "2026-10-28T18:17:08.592Z",
-    "updated_at": "2026-10-28T18:17:08.592Z"
+    "created_at": "2026-10-28T19:23:39.844Z",
+    "updated_at": "2026-10-28T19:23:39.844Z"
   },
   "dashboard": {
     "project": {
-      "id": "b730caea-ee23-42cf-bc22-9faca74fcfa2",
-      "owner_id": "a5eecda1-1930-4be1-aad1-c46c2c59a823",
+      "id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+      "owner_id": "2346bb03-7faa-4e39-ab05-4be826138faf",
       "name": "Backend E2E — release workspace",
       "description": "Twelve realistic tasks over Discovery, Delivery and Launch.",
       "status": "active",
       "version": 4,
-      "published_plan_id": "af272822-8d51-46e7-b5b9-de966508fb7f",
-      "created_at": "2026-10-28T18:17:08.450Z",
-      "updated_at": "2026-10-28T18:17:08.626Z"
+      "published_plan_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9",
+      "created_at": "2026-10-28T19:23:39.695Z",
+      "updated_at": "2026-10-28T19:23:39.896Z"
     },
     "phases": [
       {
-        "id": "282a6012-09b3-40d2-b69e-3ca1c0b6bc34",
-        "project_id": "b730caea-ee23-42cf-bc22-9faca74fcfa2",
+        "id": "cadd1c41-e0e5-48bd-8ecd-66f3f1a82075",
+        "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
         "key": "discovery",
         "name": "Discovery",
         "description": "Validate the scope and acceptance criteria",
         "position": 0
       },
       {
-        "id": "80c31c7a-abb6-42ad-bca0-6fbb1a32da77",
-        "project_id": "b730caea-ee23-42cf-bc22-9faca74fcfa2",
+        "id": "438fba18-be6e-494b-8cad-9c598812475c",
+        "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
         "key": "delivery",
         "name": "Delivery",
         "description": "Build and verify the release",
         "position": 1
       },
       {
-        "id": "5d985a2c-a589-4951-beda-71fac1c95afb",
-        "project_id": "b730caea-ee23-42cf-bc22-9faca74fcfa2",
+        "id": "b257bd02-247f-4759-b70a-45b1636517cc",
+        "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
         "key": "launch",
         "name": "Launch",
         "description": "Prepare a controlled handover",

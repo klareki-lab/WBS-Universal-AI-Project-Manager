@@ -6,13 +6,16 @@
       "type": "object",
       "properties": {
         "code": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
         },
         "message": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
         },
         "request_id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
         }
       },
       "required": [

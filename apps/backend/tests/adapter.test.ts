@@ -28,6 +28,8 @@ it("delivers real internal HTTP with operation idempotency/correlation, handles 
       id: "c7f6fc84-5328-4c44-b25f-d5f90dc9716c",
       project_id: "b6b74ef7-d13f-428a-a1ab-4ebc358202c7",
       conversation_session_id: null,
+      request_id: "8207963d-3cb2-427a-9e3b-ad3834ec665c",
+      context_hash: "a".repeat(64),
       input: { prompt: "Prepare draft", base_project_version: 1 },
     };
     expect(await httpAdapter(endpoint, secret)(job)).toEqual({
@@ -38,6 +40,8 @@ it("delivers real internal HTTP with operation idempotency/correlation, handles 
     expect(received.body.callback_path).toBe(
       `/api/v1/operations/${job.id}/result`,
     );
+    expect(received.body.request_id).toBe(job.request_id);
+    expect(received.body.context_hash).toBe(job.context_hash);
     expect(received.body).not.toHaveProperty("database_url");
     expect(await httpAdapter(endpoint + "/accepted", secret)(job)).toEqual({
       accepted: true,
