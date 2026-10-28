@@ -1,0 +1,144 @@
+{
+  "name": "UAPM WF-03 — Planning and Review",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sub-input",
+      "name": "Sub-workflow input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-700, 320]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Planner agent. Produce a schema-conformant project plan JSON.\n\nUser goal: {{ $json.request.text }}\nDomain hint: {{ $json.decision.rationale }}\n\nReturn STRICT JSON only (no prose) matching PlanDraft:\n{\n  \"summary\": string,\n  \"assumptions\": string[],\n  \"risks\": string[],\n  \"phases\": [{ \"name\": string, \"order\": number, \"description\"?: string }],\n  \"tasks\": [{ \"tempId\": string, \"phaseName\": string, \"title\": string, \"description\"?: string, \"priority\": \"low|medium|high|critical\", \"dependsOn\": string[], \"estimateHours\"?: number, \"definitionOfDone\"?: string, \"owner\"?: string, \"dueDate\"?: string }]\n}\n\nRules:\n- At least 2 phases.\n- Every task has a measurable Definition of Done.\n- Do NOT invent confirmed owners or dates. If missing, add to assumptions.\n- Do NOT call tools.",
+        "options": { "systemMessage": "Return pure JSON only. Max iterations 3." }
+      },
+      "id": "planner-agent",
+      "name": "Planner agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [-440, 260]
+    },
+    {
+      "parameters": {
+        "model": "={{ $env.UAPM_MODEL || 'gpt-4.1-mini' }}",
+        "options": { "temperature": 0.2 }
+      },
+      "id": "planner-llm",
+      "name": "Planner model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [-440, 460],
+      "credentials": { "openAiApi": { "id": "uapm-openai", "name": "UAPM OpenAI (dev)" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "let plan;\ntry { plan = typeof $json.output === 'string' ? JSON.parse($json.output) : $json.output; } catch (e) { return [{ json: { error: 'planner_output_invalid', detail: String(e) } }]; }\n// Shallow structural guards (schema validation happens via MCP server on save)\nif (!plan || !Array.isArray(plan.phases) || !Array.isArray(plan.tasks)) return [{ json: { error: 'planner_output_shape' } }];\nreturn [{ json: { plan, request: $('Sub-workflow input').item.json.request, decision: $('Sub-workflow input').item.json.decision } }];"
+      },
+      "id": "parse-plan",
+      "name": "Parse planner output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 260]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Reviewer agent. Review the plan below and return STRICT JSON with keys:\n{\n  \"ok\": boolean,\n  \"issues\": [{ \"severity\": \"info|warning|error\", \"taskRef\": string|null, \"category\": \"clarity|duplicate|phase|dependency|timeline|owner|dod|unsupported_claim\", \"message\": string, \"suggestion\"?: string }],\n  \"revisedPlan\": PlanDraft | null\n}\nPlan to review:\n{{ JSON.stringify($json.plan) }}\n\nIf issues of severity 'error' exist, provide revisedPlan with fixes. Otherwise revisedPlan = null.\nDo NOT call tools.",
+        "options": { "systemMessage": "Return pure JSON only. Single review pass." }
+      },
+      "id": "reviewer-agent",
+      "name": "Reviewer agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [80, 260]
+    },
+    {
+      "parameters": {
+        "model": "={{ $env.UAPM_MODEL || 'gpt-4.1-mini' }}",
+        "options": { "temperature": 0.1 }
+      },
+      "id": "reviewer-llm",
+      "name": "Reviewer model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [80, 460],
+      "credentials": { "openAiApi": { "id": "uapm-openai", "name": "UAPM OpenAI (dev)" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "let review;\ntry { review = typeof $json.output === 'string' ? JSON.parse($json.output) : $json.output; } catch { review = { ok: false, issues: [{ severity: 'error', category: 'clarity', message: 'Review output malformed' }], revisedPlan: null }; }\nconst original = $('Parse planner output').item.json.plan;\nconst finalPlan = review.revisedPlan && typeof review.revisedPlan === 'object' ? review.revisedPlan : original;\nreturn [{ json: { plan: finalPlan, review, request: $('Parse planner output').item.json.request } }];"
+      },
+      "id": "merge-review",
+      "name": "Merge review (bounded 1 revision)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [340, 260]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deterministic schema sanity: ensure arrays & phase ordering\nconst p = $json.plan;\nif (!p.phases.length || !p.tasks.length) return [{ json: { error: 'empty_plan' } }];\nconst phaseNames = new Set(p.phases.map(x => x.name));\nfor (const t of p.tasks) if (!phaseNames.has(t.phaseName)) return [{ json: { error: 'task_phase_mismatch', detail: t.title } }];\nreturn [{ json: $json }];"
+      },
+      "id": "validate-plan",
+      "name": "Validate plan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 260]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "authorization", "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}" },
+            { "name": "x-on-behalf-of", "value": "={{ $json.request.principal.userId }}" },
+            { "name": "x-correlation-id", "value": "={{ $json.request.principal.correlationId }}" }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"create_plan_draft\",\n  \"arguments\": {\n    \"projectId\": \"{{ $json.decision && $json.decision.projectId || $json.request.projectId }}\",\n    \"plan\": {{ JSON.stringify($json.plan) }},\n    \"idempotencyKey\": \"wf03-draft-{{ $json.request.principal.correlationId }}\"\n  }\n}",
+        "options": { "response": { "response": { "neverError": true } }, "timeout": 15000 }
+      },
+      "id": "save-draft",
+      "name": "Save draft via MCP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 260]
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $('Validate plan').item.json;\nconst res = $json;\nreturn [{ json: {\n  response: res.error ? `Plan reviewed but save failed: ${JSON.stringify(res.error)}` : `Draft saved. Plan version: ${res?.planVersion?.id || 'unknown'}. ${req.review?.issues?.length || 0} review notes.`,\n  correlationId: req.request.principal.correlationId,\n  operationIds: res?.operationId ? [res.operationId] : []\n} }];"
+      },
+      "id": "shape-output",
+      "name": "Shape output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 260]
+    }
+  ],
+  "connections": {
+    "Sub-workflow input": {
+      "main": [[{ "node": "Planner agent", "type": "main", "index": 0 }]]
+    },
+    "Planner model": {
+      "ai_languageModel": [[{ "node": "Planner agent", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Planner agent": { "main": [[{ "node": "Parse planner output", "type": "main", "index": 0 }]] },
+    "Parse planner output": { "main": [[{ "node": "Reviewer agent", "type": "main", "index": 0 }]] },
+    "Reviewer model": { "ai_languageModel": [[{ "node": "Reviewer agent", "type": "ai_languageModel", "index": 0 }]] },
+    "Reviewer agent": { "main": [[{ "node": "Merge review (bounded 1 revision)", "type": "main", "index": 0 }]] },
+    "Merge review (bounded 1 revision)": { "main": [[{ "node": "Validate plan", "type": "main", "index": 0 }]] },
+    "Validate plan": { "main": [[{ "node": "Save draft via MCP", "type": "main", "index": 0 }]] },
+    "Save draft via MCP": { "main": [[{ "node": "Shape output", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-03-planning-review-v1",
+  "triggerCount": 0,
+  "tags": [{ "name": "uapm" }, { "name": "planning" }]
+}

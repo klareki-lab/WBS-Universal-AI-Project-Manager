@@ -1,0 +1,72 @@
+{
+  "name": "UAPM WF-01 — Chat Development Adapter",
+  "nodes": [
+    {
+      "parameters": {
+        "public": false,
+        "options": {}
+      },
+      "id": "chat-trigger",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [-460, 240]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize incoming chat message into a request packet.\nconst input = $input.first().json;\nconst text = (input.chatInput || input.message || input.text || '').toString();\nconst sessionId = input.sessionId || input.session || 'chat-dev';\nreturn [{\n  json: {\n    request: {\n      text,\n      sessionId,\n      principal: {\n        userId: input.userId || 'user_demo',\n        correlationId: input.correlationId || crypto.randomUUID()\n      },\n      channel: 'chat-dev'\n    }\n  }\n}];"
+      },
+      "id": "normalize-session",
+      "name": "Normalize session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-220, 240]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.UAPM_WF_MULTI_AGENT_CORE_ID }}",
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "request": "={{ $json.request }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "invoke-core",
+      "name": "Invoke WF-02 Multi-Agent Core",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [40, 240]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nreturn [{ json: { chatResponse: r.response || r.error?.message || 'No response', meta: { correlationId: r.correlationId, operationIds: r.operationIds || [] } } }];"
+      },
+      "id": "shape-response",
+      "name": "Shape chat response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, 240]
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [[{ "node": "Normalize session", "type": "main", "index": 0 }]]
+    },
+    "Normalize session": {
+      "main": [[{ "node": "Invoke WF-02 Multi-Agent Core", "type": "main", "index": 0 }]]
+    },
+    "Invoke WF-02 Multi-Agent Core": {
+      "main": [[{ "node": "Shape chat response", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-01-chat-dev-adapter-v1",
+  "triggerCount": 1,
+  "tags": [{ "name": "uapm" }, { "name": "chat-dev" }]
+}

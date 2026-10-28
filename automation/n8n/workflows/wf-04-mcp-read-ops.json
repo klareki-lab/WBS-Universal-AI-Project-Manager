@@ -1,0 +1,112 @@
+{
+  "name": "UAPM WF-04 — MCP Read Operations",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sub-input",
+      "name": "Sub-workflow input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-640, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json; const d = r.decision || {}; const req = r.request;\n// Normalize read intent: project overview or task list\nconst projectId = d.projectId || req.projectId || null;\nif (!projectId) return [{ json: { error: 'projectId_missing' } }];\nreturn [{ json: { request: req, projectId, kind: d.readKind || 'overview' } }];"
+      },
+      "id": "resolve-read",
+      "name": "Resolve read intent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-400, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "authorization", "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}" },
+            { "name": "x-on-behalf-of", "value": "={{ $json.request.principal.userId }}" },
+            { "name": "x-correlation-id", "value": "={{ $json.request.principal.correlationId }}" }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"get_project\",\n  \"arguments\": { \"id\": \"{{ $json.projectId }}\" }\n}",
+        "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+      },
+      "id": "get-project",
+      "name": "Get project",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-160, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "authorization", "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}" },
+            { "name": "x-on-behalf-of", "value": "={{ $('Resolve read intent').item.json.request.principal.userId }}" },
+            { "name": "x-correlation-id", "value": "={{ $('Resolve read intent').item.json.request.principal.correlationId }}" }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"get_project_progress\",\n  \"arguments\": { \"projectId\": \"{{ $('Resolve read intent').item.json.projectId }}\" }\n}",
+        "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+      },
+      "id": "get-progress",
+      "name": "Get progress",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [120, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "authorization", "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}" },
+            { "name": "x-on-behalf-of", "value": "={{ $('Resolve read intent').item.json.request.principal.userId }}" },
+            { "name": "x-correlation-id", "value": "={{ $('Resolve read intent').item.json.request.principal.correlationId }}" }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"list_project_tasks\",\n  \"arguments\": { \"projectId\": \"{{ $('Resolve read intent').item.json.projectId }}\", \"limit\": 50 }\n}",
+        "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+      },
+      "id": "list-tasks",
+      "name": "List tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [400, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "const project = $('Get project').item.json;\nconst progress = $('Get progress').item.json;\nconst tasks = $('List tasks').item.json;\nconst req = $('Resolve read intent').item.json.request;\nconst err = project.error || progress.error || tasks.error;\nif (err) return [{ json: { response: `Read failed: ${err.message || err.code}`, correlationId: req.principal.correlationId, operationIds: [] } }];\nconst totalTasks = progress.counts?.total ?? 0;\nconst completion = Math.round((progress.completionRatio ?? 0) * 100);\nconst head = tasks.items?.slice(0, 5).map(t => `- ${t.title} [${t.status}]`).join('\\n') || 'no tasks';\nreturn [{ json: {\n  response: `Project ${project.name}: ${totalTasks} tasks, ${completion}% done. Overdue: ${progress.overdue}.\\nFirst tasks:\\n${head}`,\n  correlationId: req.principal.correlationId,\n  operationIds: []\n} }];"
+      },
+      "id": "shape-read",
+      "name": "Shape read response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 320]
+    }
+  ],
+  "connections": {
+    "Sub-workflow input": { "main": [[{ "node": "Resolve read intent", "type": "main", "index": 0 }]] },
+    "Resolve read intent": { "main": [[{ "node": "Get project", "type": "main", "index": 0 }]] },
+    "Get project": { "main": [[{ "node": "Get progress", "type": "main", "index": 0 }]] },
+    "Get progress": { "main": [[{ "node": "List tasks", "type": "main", "index": 0 }]] },
+    "List tasks": { "main": [[{ "node": "Shape read response", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-04-mcp-read-ops-v1",
+  "triggerCount": 0,
+  "tags": [{ "name": "uapm" }, { "name": "read" }]
+}
