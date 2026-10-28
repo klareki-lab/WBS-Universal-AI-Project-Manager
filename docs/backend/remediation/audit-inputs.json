@@ -1,0 +1,6 @@
+{
+  "target": "7faca555776d134c3483c5667bfb567487932fe4",
+  "report_sha256": "fba85ed3f68d903e751fc051ce5e7f1bcb222e59f0a19f7862df16208f48a3c7",
+  "evidence_archive_sha256": "2ee6c632bea7d73bb1fd83c0cb39df8ac9a011e57ad4f79da1181566075f0a87",
+  "source": "Original audit and archive read only. Copied runners change only fixture address and evidence destination; original assertions retained."
+}

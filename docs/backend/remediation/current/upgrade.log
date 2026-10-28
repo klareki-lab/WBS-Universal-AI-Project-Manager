@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Upgrade from exact audit-target migrations preserves immutable history, backfills replay context and fails unverifiable pending work closed",
+    "status": "PASS",
+    "migrations": 4
+  },
+  {
+    "name": "Backfilled old creation response remains idempotent but rejects revoked-access replay over real HTTP",
+    "status": "PASS"
+  }
+]

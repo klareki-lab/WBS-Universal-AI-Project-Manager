@@ -1,0 +1,204 @@
+{
+  "result": {
+    "base_project_version": 1,
+    "snapshot": {
+      "phases": [
+        {
+          "key": "discovery",
+          "name": "Discovery",
+          "description": "Validate the scope and acceptance criteria"
+        },
+        {
+          "key": "delivery",
+          "name": "Delivery",
+          "description": "Build and verify the release"
+        },
+        {
+          "key": "launch",
+          "name": "Launch",
+          "description": "Prepare a controlled handover"
+        }
+      ],
+      "tasks": [
+        {
+          "key": "task-1",
+          "phase_key": "discovery",
+          "title": "Collect stakeholder requirements",
+          "description": "Produce and review the evidence for: collect stakeholder requirements.",
+          "priority": "high",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": []
+        },
+        {
+          "key": "task-2",
+          "phase_key": "discovery",
+          "title": "Map existing workflows",
+          "description": "Produce and review the evidence for: map existing workflows.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-1"
+          ]
+        },
+        {
+          "key": "task-3",
+          "phase_key": "discovery",
+          "title": "Agree acceptance criteria",
+          "description": "Produce and review the evidence for: agree acceptance criteria.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-2"
+          ]
+        },
+        {
+          "key": "task-4",
+          "phase_key": "discovery",
+          "title": "Review scope",
+          "description": "Produce and review the evidence for: review scope.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-3"
+          ]
+        },
+        {
+          "key": "task-5",
+          "phase_key": "delivery",
+          "title": "Design API and data model",
+          "description": "Produce and review the evidence for: design api and data model.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-4"
+          ]
+        },
+        {
+          "key": "task-6",
+          "phase_key": "delivery",
+          "title": "Implement core workflows",
+          "description": "Produce and review the evidence for: implement core workflows.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-5"
+          ]
+        },
+        {
+          "key": "task-7",
+          "phase_key": "delivery",
+          "title": "Run integration tests",
+          "description": "Produce and review the evidence for: run integration tests.",
+          "priority": "high",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-6"
+          ]
+        },
+        {
+          "key": "task-8",
+          "phase_key": "delivery",
+          "title": "Complete security review",
+          "description": "Produce and review the evidence for: complete security review.",
+          "priority": "high",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-7"
+          ]
+        },
+        {
+          "key": "task-9",
+          "phase_key": "launch",
+          "title": "Prepare operating guide",
+          "description": "Produce and review the evidence for: prepare operating guide.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-8"
+          ]
+        },
+        {
+          "key": "task-10",
+          "phase_key": "launch",
+          "title": "Rehearse release",
+          "description": "Produce and review the evidence for: rehearse release.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-9"
+          ]
+        },
+        {
+          "key": "task-11",
+          "phase_key": "launch",
+          "title": "Run acceptance session",
+          "description": "Produce and review the evidence for: run acceptance session.",
+          "priority": "high",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-10"
+          ]
+        },
+        {
+          "key": "task-12",
+          "phase_key": "launch",
+          "title": "Record handover",
+          "description": "Produce and review the evidence for: record handover.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-11"
+          ]
+        }
+      ]
+    }
+  }
+}

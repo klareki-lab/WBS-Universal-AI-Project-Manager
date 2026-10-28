@@ -1,0 +1,27 @@
+{
+  "browser": "chromium",
+  "records": [
+    {
+      "name": "Documented default API hostname authenticates and mutates from default frontend site",
+      "status": "FAIL",
+      "api_hostname": "127.0.0.1",
+      "login": 200,
+      "me": 401,
+      "project": null,
+      "request_id": "de0c5318-3e2a-4694-96a4-3b6a7d75d604"
+    },
+    {
+      "name": "Independent browser storage preserves project isolation",
+      "status": "SKIP",
+      "cross_project_status": null
+    },
+    {
+      "name": "Cross-site hostname remains blocked by Strict cookie policy",
+      "status": "PASS",
+      "login": 200,
+      "me": 401,
+      "project": null,
+      "request_id": "b385a684-035b-43c8-9cbf-c82cf88a2789"
+    }
+  ]
+}

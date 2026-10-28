@@ -1,0 +1,108 @@
+{
+  "records": [
+    {
+      "name": "Built server survives isolated PostgreSQL stop",
+      "status": "FAIL",
+      "actual_exit_code": 1,
+      "expectation": "process remains alive, /ready 503, reconnect after recovery"
+    },
+    {
+      "name": "Full DB/application restart preserves session and idempotent response",
+      "status": "PASS",
+      "original_project": "6cfe8886-7e32-4c57-9149-bda1ca26279e",
+      "replayed_project": "6cfe8886-7e32-4c57-9149-bda1ca26279e",
+      "http_status": 201
+    }
+  ],
+  "events": [
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214493112,\"pid\":17463,\"hostname\":\"iMac.fritz.box\",\"msg\":\"Server listening at http://127.0.0.1:26481\"}\n"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214493124,\"pid\":17463,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"711c646c-9baa-42f3-b939-37f882746308\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":64925},\"msg\":\"incoming request\"}\n"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214493132,\"pid\":17463,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"711c646c-9baa-42f3-b939-37f882746308\",\"res\":{\"statusCode\":200},\"responseTime\":7.792957999999999,\"msg\":\"request completed\"}\n"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214493137,\"pid\":17463,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"9a2a1dd0-ed3d-4d68-bfb0-f8af84290b8b\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/auth/login\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":64926},\"msg\":\"incoming request\"}\n"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "request_id": "9a2a1dd0-ed3d-4d68-bfb0-f8af84290b8b"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214493208,\"pid\":17463,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"9a2a1dd0-ed3d-4d68-bfb0-f8af84290b8b\",\"res\":{\"statusCode\":200},\"responseTime\":70.985208,\"msg\":\"request completed\"}\n"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214493210,\"pid\":17463,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"8e0198d4-fc2b-4b80-9560-0b0a49ee6d37\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":64925},\"msg\":\"incoming request\"}\n"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "8e0198d4-fc2b-4b80-9560-0b0a49ee6d37"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214493220,\"pid\":17463,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"8e0198d4-fc2b-4b80-9560-0b0a49ee6d37\",\"res\":{\"statusCode\":201},\"responseTime\":10.16745800000001,\"msg\":\"request completed\"}\n"
+    },
+    {
+      "stream": "stderr",
+      "text": "node:events:487\n      throw er; // Unhandled 'error' event\n      ^\n\nerror: terminating connection due to administrator command\n    at parseErrorMessage (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg-protocol/dist/parser.js:306:11)\n    at Parser.handlePacket (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg-protocol/dist/parser.js:143:27)\n    at Parser.parse (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg-protocol/dist/parser.js:37:38)\n    at Socket.<anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg-protocol/dist/index.js:12:42)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Readable.push (node:internal/streams/readable:394:5)\n    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)\nEmitted 'error' event on BoundPool instance at:\n    at Client.idleListener (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg-pool/index.js:62:10)\n    at Client.emit (node:events:509:28)\n    at Client._handleErrorEvent (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg/lib/client.js:422:10)\n    at Client._handleErrorMessage (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg/lib/client.js:433:12)\n    at Connection.emit (node:events:509:28)\n    at /Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg/lib/connection.js:143:12\n    at Parser.parse (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg-protocol/dist/parser.js:38:17)\n    at Socket.<anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg-protocol/dist/index.js:12:42)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12) {\n  length: 116,\n  severity: 'FATAL',\n  code: '57P01',\n  detail: undefined,\n  hint: undefined,\n  position: undefined,\n  internalPosition: undefined,\n  internalQuery: undefined,\n  where: undefined,\n  schema: undefined,\n  table: undefined,\n  column: undefined,\n  dataType: undefined,\n  constraint: undefined,\n  file: 'postgres.c',\n  line: '3316',\n  routine: 'ProcessInterrupts',\n  client: Client {\n    _events: [Object: null prototype] { error: [Function (anonymous)] },\n    _eventsCount: 1,\n    _maxListeners: undefined,\n    connectionParameters: ConnectionParameters {\n      user: 'uapm_audit',\n      database: 'uapm_audit_baseline',\n      port: 26439,\n      host: '127.0.0.1',\n      binary: false,\n      options: undefined,\n      ssl: false,\n      sslnegotiation: undefined,\n      client_encoding: '',\n      replication: undefined,\n      isDomainSocket: false,\n      application_name: undefined,\n      fallback_application_name: undefined,\n      statement_timeout: 15000,\n      lock_timeout: false,\n      idle_in_transaction_session_timeout: false,\n      query_timeout: false,\n      connect_timeout: 5\n    },\n    user: 'uapm_audit',\n    database: 'uapm_audit_baseline',\n    port: 26439,\n    host: '127.0.0.1',\n    replication: undefined,\n    _Promise: [Function: Promise],\n    _types: TypeOverrides {\n      _types: {\n        getTypeParser: [Function: getTypeParser],\n        setTypeParser: [Function: setTypeParser],\n        arrayParser: { create: [Function: create] },\n        builtins: {\n          BOOL: 16,\n          BYTEA: 17,\n          CHAR: 18,\n          INT8: 20,\n          INT2: 21,\n          INT4: 23,\n          REGPROC: 24,\n          TEXT: 25,\n          OID: 26,\n          TID: 27,\n          XID: 28,\n          CID: 29,\n          JSON: 114,\n          XML: 142,\n          PG_NODE_TREE: 194,\n          SMGR: 210,\n          PATH: 602,\n          POLYGON: 604,\n          CIDR: 650,\n          FLOAT4: 700,\n          FLOAT8: 701,\n          ABSTIME: 702,\n          RELTIME: 703,\n          TINTERVAL: 704,\n          CIRCLE: 718,\n          MACADDR8: 774,\n          MONEY: 790,\n          MACADDR: 829,\n          INET: 869,\n          ACLITEM: 1033,\n          BPCHAR: 1042,\n          VARCHAR: 1043,\n          DATE: 1082,\n          TIME: 1083,\n          TIMESTAMP: 1114,\n          TIMESTAMPTZ: 1184,\n          INTERVAL: 1186,\n          TIMETZ: 1266,\n          BIT: 1560,\n          VARBIT: 1562,\n          NUMERIC: 1700,\n          REFCURSOR: 1790,\n          REGPROCEDURE: 2202,\n          REGOPER: 2203,\n          REGOPERATOR: 2204,\n          REGCLASS: 2205,\n          REGTYPE: 2206,\n          UUID: 2950,\n          TXID_SNAPSHOT: 2970,\n          PG_LSN: 3220,\n          PG_NDISTINCT: 3361,\n          PG_DEPENDENCIES: 3402,\n          TSVECTOR: 3614,\n          TSQUERY: 3615,\n          GTSVECTOR: 3642,\n          REGCONFIG: 3734,\n          REGDICTIONARY: 3769,\n          JSONB: 3802,\n          REGNAMESPACE: 4089,\n          REGROLE: 4096\n        }\n      },\n      text: {},\n      binary: {}\n    },\n    _ending: true,\n    _ended: false,\n    _connecting: false,\n    _connected: true,\n    _connectionError: false,\n    _queryable: false,\n    _activeQuery: null,\n    _txStatus: 'I',\n    enableChannelBinding: false,\n    scramMaxIterations: 100000,\n    connection: Connection {\n      _events: [Object: null prototype] {\n        newListener: [Function (anonymous)],\n        connect: [Function (anonymous)],\n        sslconnect: [Function (anonymous)],\n        authenticationCleartextPassword: [Function: bound _handleAuthCleartextPassword],\n        authenticationMD5Password: [Function: bound _handleAuthMD5Password],\n        authenticationSASL: [Function: bound _handleAuthSASL],\n        authenticationSASLContinue: [Function: bound _handleAuthSASLContinue] AsyncFunction,\n        authenticationSASLFinal: [Function: bound _handleAuthSASLFinal],\n        backendKeyData: [Function: bound _handleBackendKeyData],\n        error: [Function: bound _handleErrorEvent],\n        errorMessage: [Function: bound _handleErrorMessage],\n        readyForQuery: [Function: bound _handleReadyForQuery],\n        notice: [Function: bound _handleNotice],\n        rowDescription: [Function: bound _handleRowDescription],\n        dataRow: [Function: bound _handleDataRow],\n        portalSuspended: [Function: bound _handlePortalSuspended],\n        emptyQuery: [Function: bound _handleEmptyQuery],\n        commandComplete: [Function: bound _handleCommandComplete],\n        parseComplete: [Function: bound _handleParseComplete],\n        copyInResponse: [Function: bound _handleCopyInResponse],\n        copyData: [Function: bound _handleCopyData],\n        notification: [Function: bound _handleNotification],\n        end: [\n          [Function: bound onceWrapper] {\n            listener: [Function (anonymous)]\n          },\n          [Function: bound onceWrapper] {\n            listener: [Function (anonymous)]\n          },\n          Symbol(events.emitting): 0\n        ]\n      },\n      _eventsCount: 23,\n      _maxListeners: undefined,\n      stream: Socket {\n        connecting: false,\n        _hadError: false,\n        _parent: null,\n        _host: null,\n        _closeAfterHandlingError: false,\n        _events: {\n          close: [Function (anonymous)],\n          error: [Function: reportStreamError],\n          prefinish: undefined,\n          finish: undefined,\n          drain: undefined,\n          data: [Function (anonymous)],\n          end: [\n            [Function: onReadableStreamEnd],\n            [Function (anonymous)],\n            Symbol(events.emitting): 0\n          ],\n          readable: undefined,\n          connect: undefined\n        },\n        _readableState: ReadableState {\n          highWaterMark: 65536,\n          buffer: [],\n          bufferIndex: 0,\n          length: 0,\n          pipes: [],\n          awaitDrainWriters: null,\n          Symbol(kState): 194519348\n        },\n        _writableState: WritableState {\n          highWaterMark: 65536,\n          length: 0,\n          corked: 0,\n          onwrite: [Function (anonymous)],\n          writelen: 0,\n          bufferedIndex: 0,\n          pendingcb: 0,\n          Symbol(kState): 17563956,\n          Symbol(kBufferedValue): null,\n          Symbol(kWriteCbValue): null\n        },\n        allowHalfOpen: false,\n        _maxListeners: undefined,\n        _eventsCount: 4,\n        _sockname: null,\n        _pendingData: null,\n        _pendingEncoding: '',\n        server: null,\n        _server: null,\n        Symbol(async_id_symbol): 6,\n        Symbol(kHandle): null,\n        Symbol(lastWriteQueueSize): 0,\n        Symbol(timeout): null,\n        Symbol(kBuffer): null,\n        Symbol(kBufferCb): null,\n        Symbol(kBufferGen): null,\n        Symbol(shapeMode): true,\n        Symbol(kCapture): false,\n        Symbol(kSetNoDelay): true,\n        Symbol(kSetKeepAlive): false,\n        Symbol(kSetKeepAliveInitialDelay): 0,\n        Symbol(kSetTOS): undefined,\n        Symbol(kBytesRead): 2893,\n        Symbol(kBytesWritten): 3152\n      },\n      _keepAlive: false,\n      _keepAliveInitialDelayMillis: 0,\n      parsedStatements: {},\n      submittedNamedStatements: {},\n      ssl: false,\n      sslNegotiation: 'postgres',\n      _ending: false,\n      _emitMessage: false,\n      _connecting: true,\n      Symbol(shapeMode): false,\n      Symbol(kCapture): false\n    },\n    _queryQueue: [],\n    _sentQueryQueue: [],\n    pipeline: false,\n    binary: false,\n    processID: 110,\n    secretKey: 1729313111,\n    ssl: false,\n    sslNegotiation: 'postgres',\n    _connectionTimeoutMillis: 5000,\n    _connectionCallback: null,\n    connectionTimeoutHandle: Timeout {\n      _idleTimeout: -1,\n      _idlePrev: null,\n      _idleNext: null,\n      _idleStart: 148,\n      _onTimeout: null,\n      _timerArgs: undefined,\n      _repeat: null,\n      _destroyed: true,\n      Symbol(refed): false,\n      Symbol(kHasPrimitive): false,\n      Symbol(asyncId): 5,\n      Symbol(triggerId): 0,\n      Symbol(kAsyncContextFrame): undefined\n    },\n    release: [Function (anonymous)],\n    readyForQuery: true,\n    hasExecuted: true,\n    _poolUseCount: 6,\n    Symbol(shapeMode): false,\n    Symbol(kCapture): false\n  }\n}\n\nNode.js v24.15.0\n"
+    },
+    {
+      "exit": 1,
+      "signal": null
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214496235,\"pid\":17472,\"hostname\":\"iMac.fritz.box\",\"msg\":\"Server listening at http://127.0.0.1:26481\"}\n"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214496292,\"pid\":17472,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"da684637-f066-4bb9-86bc-0ff7041153eb\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":64934},\"msg\":\"incoming request\"}\n"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214496299,\"pid\":17472,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"da684637-f066-4bb9-86bc-0ff7041153eb\",\"res\":{\"statusCode\":200},\"responseTime\":6.746458000000018,\"msg\":\"request completed\"}\n"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214496300,\"pid\":17472,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"80f6753a-4153-48f4-8b8a-4f230e41c859\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":64935},\"msg\":\"incoming request\"}\n"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "80f6753a-4153-48f4-8b8a-4f230e41c859"
+    },
+    {
+      "stream": "stdout",
+      "text": "{\"level\":30,\"time\":1793214496313,\"pid\":17472,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"80f6753a-4153-48f4-8b8a-4f230e41c859\",\"res\":{\"statusCode\":201},\"responseTime\":13.319334000000026,\"msg\":\"request completed\"}\n"
+    },
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "database_stats": {
+    "BlockIO": "49.2kB / 28.7kB",
+    "CPUPerc": "0.13%",
+    "Container": "uapm-remediation-20261028-db",
+    "ID": "be5661668a20",
+    "MemPerc": "0.54%",
+    "MemUsage": "21.09MiB / 3.825GiB",
+    "Name": "uapm-remediation-20261028-db",
+    "NetIO": "3.48kB / 3.22kB",
+    "PIDs": "7"
+  }
+}

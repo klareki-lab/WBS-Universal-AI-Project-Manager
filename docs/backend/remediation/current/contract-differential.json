@@ -1,0 +1,48 @@
+[
+  {
+    "body": {},
+    "schema_accepts": false,
+    "http_status": 400,
+    "response": {
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "e191b8c9-8a50-47ff-89ba-6c6090d037a4"
+      }
+    },
+    "request_id": "e191b8c9-8a50-47ff-89ba-6c6090d037a4"
+  },
+  {
+    "body": {
+      "error": "SYNTHETIC failed",
+      "result": {
+        "base_project_version": 1,
+        "snapshot": {
+          "phases": [
+            {
+              "key": "p",
+              "name": "p"
+            }
+          ],
+          "tasks": [
+            {
+              "key": "t",
+              "phase_key": "p",
+              "title": "SYNTHETIC"
+            }
+          ]
+        }
+      }
+    },
+    "schema_accepts": false,
+    "http_status": 400,
+    "response": {
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "24decc36-3733-42f2-8f17-fbe16549b835"
+      }
+    },
+    "request_id": "24decc36-3733-42f2-8f17-fbe16549b835"
+  }
+]
