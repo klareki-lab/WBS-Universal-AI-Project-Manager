@@ -1,0 +1,253 @@
+{
+  "name": "UAPM WF-05 — Approved Mutation Executor",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sub-input",
+      "name": "Sub-workflow input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -720,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate the structured mutation request. No LLM is allowed to synthesize this freely.\nconst r = $input.first().json;\nconst req = r.request || {};\nconst d = r.decision || {};\nconst op = r.operation || d.operation || {};\nconst allowed = new Set(['publish_approved_plan','update_task_status','update_task']);\nif (!allowed.has(op.name)) return [{ json: { error: { code: 'invalid_operation', message: `Not an allowed mutation: ${op.name}` } } }];\nif (!op.arguments || typeof op.arguments !== 'object') return [{ json: { error: { code: 'invalid_arguments', message: 'Missing arguments' } } }];\nif (!op.arguments.idempotencyKey) return [{ json: { error: { code: 'missing_idempotency_key', message: 'idempotencyKey required' } } }];\n// For publish_approved_plan, we MUST verify approval status first.\nreturn [{ json: { request: req, op } }];"
+      },
+      "id": "validate-op",
+      "name": "Validate mutation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.op.name }}",
+              "rightValue": "publish_approved_plan",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "needs-approval-check",
+      "name": "Needs approval check?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-on-behalf-of",
+              "value": "={{ $json.request.principal.userId }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $json.request.principal.correlationId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"get_approval_status\",\n  \"arguments\": { \"planVersionId\": \"{{ $json.op.arguments.planVersionId }}\" }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "fetch-approval",
+      "name": "Fetch approval status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        40,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('Validate mutation').item.json;\nconst approval = $json;\nif (approval.state !== 'approved') return [{ json: { error: { code: 'approval_required', message: 'Plan not approved by a human' } } }];\nreturn [{ json: prev }];"
+      },
+      "id": "enforce-approval",
+      "name": "Enforce human approval",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        280,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-on-behalf-of",
+              "value": "={{ $json.request.principal.userId }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $json.request.principal.correlationId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"{{ $json.op.name }}\",\n  \"arguments\": {{ JSON.stringify($json.op.arguments) }}\n}",
+        "options": {
+          "timeout": 15000,
+          "retry": {
+            "maxTries": 2
+          },
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "exec-mutation",
+      "name": "Execute mutation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const res = $json;\nconst req = $('Validate mutation').item.json.request;\nif (res.error) return [{ json: { response: `Mutation failed: ${res.error.code}: ${res.error.message}`, correlationId: req.principal.correlationId, operationIds: [] } }];\nreturn [{ json: { response: `Mutation succeeded (operationId=${res.operationId})`, correlationId: req.principal.correlationId, operationIds: [res.operationId] } }];"
+      },
+      "id": "shape-exec",
+      "name": "Shape execution result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Sub-workflow input": {
+      "main": [
+        [
+          {
+            "node": "Validate mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate mutation": {
+      "main": [
+        [
+          {
+            "node": "Needs approval check?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs approval check?": {
+      "main": [
+        [
+          {
+            "node": "Fetch approval status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch approval status": {
+      "main": [
+        [
+          {
+            "node": "Enforce human approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enforce human approval": {
+      "main": [
+        [
+          {
+            "node": "Execute mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute mutation": {
+      "main": [
+        [
+          {
+            "node": "Shape execution result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-05-approved-mutation-executor-v1",
+  "triggerCount": 0,
+  "active": false
+}
