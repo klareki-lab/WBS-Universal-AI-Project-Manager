@@ -5,5 +5,6 @@ export class ApiError extends Error {
   }
 }
 export const explainError = (error: unknown): string =>
+  error instanceof Error && 'requestId' in error ? error.message + ('requestId' in error && error.requestId ? ' · Request-ID '+String(error.requestId) : '') + (('status' in error && error.status===409) ? ' · Bitte aktuellen Stand neu laden.' : '') :
   error instanceof ApiError ? `${error.message} ${error.retrySafe ? 'Ein erneuter Versuch ist sicher.' : 'Nicht erneut senden; zuerst den Stand aktualisieren.'}` :
   'Unerwarteter Fehler. Bitte den aktuellen Stand prüfen, bevor du eine Aktion wiederholst.';

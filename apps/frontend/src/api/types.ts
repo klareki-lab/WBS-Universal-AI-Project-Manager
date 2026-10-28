@@ -1,10 +1,10 @@
 /** DRAFT interfaces, not an approved backend schema. No HTTP routes are assumed. */
 export type ProjectType = 'it' | 'marketing' | 'operations' | 'event' | 'custom';
-export type ProjectStatus = 'planning' | 'active' | 'at_risk' | 'completed';
-export type PlanStatus = 'draft' | 'approved' | 'superseded' | 'rejected';
-export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done';
-export type TaskPriority = 'low' | 'medium' | 'high';
-export type OperationState = 'queued' | 'running' | 'completed' | 'partial' | 'failed';
+export type ProjectStatus = 'planning' | 'active' | 'at_risk' | 'completed' | 'draft' | 'on_hold' | 'archived';
+export type PlanStatus = 'draft' | 'in_review' | 'approved' | 'published' | 'superseded' | 'rejected';
+export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done' | 'cancelled';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type OperationState = 'queued' | 'running' | 'succeeded' | 'completed' | 'partial' | 'failed';
 export type ProposalStatus = 'pending' | 'applied' | 'rejected' | 'revision_requested';
 export interface User { id: string; displayName: string; }
 export interface ProjectMember { projectId: string; userId: string; roleLabel: string; }
