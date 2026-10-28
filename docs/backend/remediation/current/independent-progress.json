@@ -1,0 +1,2052 @@
+{
+  "records": [
+    {
+      "name": "Independent password encoding authenticates human and sets hardened cookie",
+      "status": "PASS",
+      "duration_ms": 113
+    },
+    {
+      "name": "Unrelated owners and projects cannot enumerate each other",
+      "status": "PASS",
+      "duration_ms": 74
+    },
+    {
+      "name": "Viewer cannot mutate, approve, publish or elevate role",
+      "status": "PASS",
+      "duration_ms": 91
+    },
+    {
+      "name": "Nested task plan and operation UUID substitution is isolated",
+      "status": "PASS",
+      "duration_ms": 195
+    },
+    {
+      "name": "SQL composite FK blocks cross-project dependencies",
+      "status": "PASS",
+      "duration_ms": 860
+    },
+    {
+      "name": "CSRF missing forged foreign-session and hostile Origin all fail",
+      "status": "PASS",
+      "duration_ms": 47
+    },
+    {
+      "name": "Expired session and disabled human cannot authenticate",
+      "status": "PASS",
+      "duration_ms": 19
+    },
+    {
+      "name": "Scoped service cannot approve even with explicit approval scope",
+      "status": "PASS",
+      "duration_ms": 53
+    },
+    {
+      "name": "Expired service token and missing scopes are rejected",
+      "status": "PASS",
+      "duration_ms": 18
+    },
+    {
+      "name": "Saved plan hash independently recomputes; SQL content and history immutable",
+      "status": "PASS",
+      "duration_ms": 52
+    },
+    {
+      "name": "Forged and other-version hashes rejected; unauthorized publication has no effects",
+      "status": "PASS",
+      "duration_ms": 104
+    },
+    {
+      "name": "Approved content has immutable exact-hash approval; rejected plans cannot publish",
+      "status": "PASS",
+      "duration_ms": 124
+    },
+    {
+      "name": "Self cycles multi-task cycles duplicate IDs and unknown keys fail safely",
+      "status": "PASS",
+      "duration_ms": 41
+    },
+    {
+      "name": "Concurrent publication with same and different keys creates one materialization",
+      "status": "PASS",
+      "duration_ms": 204
+    },
+    {
+      "name": "Changed payload method and resource with reused idempotency key conflict",
+      "status": "PASS",
+      "duration_ms": 51
+    },
+    {
+      "name": "Stale task and project writes produce exactly one winner",
+      "status": "PASS",
+      "duration_ms": 132
+    },
+    {
+      "name": "Intervening mutation invalidates previously approved base version",
+      "status": "PASS",
+      "duration_ms": 74
+    },
+    {
+      "name": "Metadata edit remains proposal until approval and publication",
+      "status": "PASS",
+      "duration_ms": 171
+    },
+    {
+      "name": "Progress and audit actor/request correlation match database after lifecycle",
+      "status": "PASS",
+      "duration_ms": 120
+    },
+    {
+      "name": "Invalid oversized payload and manipulated identifiers return safe errors",
+      "status": "PASS",
+      "duration_ms": 28
+    },
+    {
+      "name": "Lost committed HTTP response is recovered after application restart without duplicate",
+      "status": "PASS",
+      "duration_ms": 92
+    },
+    {
+      "name": "Injected publication SQL failure rolls back phases tasks events operation and retry key",
+      "status": "PASS",
+      "duration_ms": 90
+    },
+    {
+      "name": "Actual cancelled transaction rolls back and same key safely retries",
+      "status": "PASS",
+      "duration_ms": 126
+    },
+    {
+      "name": "Independent worker reclaim and duplicate callbacks commit one draft",
+      "status": "PASS",
+      "duration_ms": 59
+    },
+    {
+      "name": "20 bounded concurrent GETs are successful with measured latency",
+      "status": "PASS",
+      "duration_ms": 161
+    },
+    {
+      "name": "Pagination bounds and distinct stable pages",
+      "status": "PASS",
+      "duration_ms": 84
+    },
+    {
+      "name": "Contract-valid 200-character phase key can be published",
+      "status": "PASS",
+      "duration_ms": 71
+    },
+    {
+      "name": "Schema-valid PostgreSQL text NUL returns client validation error",
+      "status": "PASS",
+      "duration_ms": 3
+    },
+    {
+      "name": "Client out-of-range integer version returns client validation error",
+      "status": "PASS",
+      "duration_ms": 20
+    },
+    {
+      "name": "Planning callback is bound to original requested base version",
+      "status": "PASS",
+      "duration_ms": 45
+    },
+    {
+      "name": "Publication rejects approval whose approving human was disabled before publish",
+      "status": "PASS",
+      "duration_ms": 68
+    },
+    {
+      "name": "Generated contract constrains result/error exclusivity",
+      "status": "PASS",
+      "duration_ms": 1
+    },
+    {
+      "name": "CORS preflight response includes DELETE only when implemented and request ID always exists",
+      "status": "PASS",
+      "duration_ms": 2
+    },
+    {
+      "name": "Idempotency replay after creation membership revocation must recheck authorization",
+      "status": "PASS",
+      "duration_ms": 24
+    },
+    {
+      "name": "Maximum 500-task chain publishes atomically with bounded concurrency",
+      "status": "PASS",
+      "duration_ms": 1590
+    }
+  ],
+  "http": [
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "request_id": "348d789d-e06e-4868-afed-24bde8b99dfb",
+      "latency_ms": 112.65
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "0f669157-585f-4227-80f6-7e8f4389d378",
+      "latency_ms": 28.94
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "9d4349e8-0f8f-4e5f-a876-047582749b9c",
+      "latency_ms": 15.79
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/aa1b0c40-2b5b-4728-b94f-c2bbb394eb71",
+      "status": 404,
+      "request_id": "0b8a4403-c834-48f1-a014-ebb2fdb3df26",
+      "error": {
+        "code": "project_not_found",
+        "message": "project_not_found",
+        "request_id": "0b8a4403-c834-48f1-a014-ebb2fdb3df26"
+      },
+      "latency_ms": 7.64
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/1f57fd61-5041-4cb0-bbf8-7686e9db4711",
+      "status": 404,
+      "request_id": "608af9ad-9440-485f-a0a2-d180ae137b28",
+      "error": {
+        "code": "project_not_found",
+        "message": "project_not_found",
+        "request_id": "608af9ad-9440-485f-a0a2-d180ae137b28"
+      },
+      "latency_ms": 7.75
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "request_id": "c1bebf0b-06e6-4c02-a6d5-59880c07c7b1",
+      "latency_ms": 13.35
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "83c97e74-83c9-4312-9cf9-520756739218",
+      "latency_ms": 11.85
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/1e6bc958-c468-4ff7-a327-5c9c8a3ad6e7/plans",
+      "status": 201,
+      "request_id": "9b10cfb7-3f47-4e94-99eb-4c06ffc607ec",
+      "latency_ms": 37.72
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/1e6bc958-c468-4ff7-a327-5c9c8a3ad6e7",
+      "status": 200,
+      "request_id": "7f8f8a8f-8363-41f8-af76-2fab900b53b7",
+      "latency_ms": 9.39
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/1e6bc958-c468-4ff7-a327-5c9c8a3ad6e7",
+      "status": 403,
+      "request_id": "c5d17178-2b92-4cb5-9abe-7d174020085b",
+      "error": {
+        "code": "read_only",
+        "message": "read_only",
+        "request_id": "c5d17178-2b92-4cb5-9abe-7d174020085b"
+      },
+      "latency_ms": 6.3
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/1e6bc958-c468-4ff7-a327-5c9c8a3ad6e7/plans",
+      "status": 403,
+      "request_id": "8590f10e-fc37-4d83-a8d1-9cdcad345fa8",
+      "error": {
+        "code": "read_only",
+        "message": "read_only",
+        "request_id": "8590f10e-fc37-4d83-a8d1-9cdcad345fa8"
+      },
+      "latency_ms": 5.7
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/1e6bc958-c468-4ff7-a327-5c9c8a3ad6e7/plans/f8f8c02d-824f-4c4c-9626-1f53701494fe/approvals",
+      "status": 403,
+      "request_id": "8c517e30-1c9c-417e-b5ba-1f1d5ba009c5",
+      "error": {
+        "code": "read_only",
+        "message": "read_only",
+        "request_id": "8c517e30-1c9c-417e-b5ba-1f1d5ba009c5"
+      },
+      "latency_ms": 6.53
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/1e6bc958-c468-4ff7-a327-5c9c8a3ad6e7/plans/f8f8c02d-824f-4c4c-9626-1f53701494fe/publish",
+      "status": 403,
+      "request_id": "bf0f4c6d-225c-4209-a7c8-cf6d0b47682d",
+      "error": {
+        "code": "read_only",
+        "message": "read_only",
+        "request_id": "bf0f4c6d-225c-4209-a7c8-cf6d0b47682d"
+      },
+      "latency_ms": 6.37
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/1e6bc958-c468-4ff7-a327-5c9c8a3ad6e7",
+      "status": 400,
+      "request_id": "aeb46e04-f6a7-4476-a1cb-9f211e88bfa4",
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "aeb46e04-f6a7-4476-a1cb-9f211e88bfa4"
+      },
+      "latency_ms": 3.41
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "35686fad-8f67-4404-a727-9c7af2e88663",
+      "latency_ms": 33.13
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/33ac24ae-5389-483e-b66c-8e080b1dec78/plans",
+      "status": 201,
+      "request_id": "3e8d4b90-d38b-45dd-ada9-28b4fd2732ec",
+      "latency_ms": 23.41
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/33ac24ae-5389-483e-b66c-8e080b1dec78/plans/39b80430-e31e-4a22-acb9-8b15b3250519/submit-review",
+      "status": 200,
+      "request_id": "af2011bd-7102-426e-897e-aaf85636cf1d",
+      "latency_ms": 15.99
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/33ac24ae-5389-483e-b66c-8e080b1dec78/plans/39b80430-e31e-4a22-acb9-8b15b3250519/approvals",
+      "status": 201,
+      "request_id": "4a9f2d4b-c976-403d-a1a9-14844d1a22b0",
+      "latency_ms": 24.22
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/33ac24ae-5389-483e-b66c-8e080b1dec78/plans/39b80430-e31e-4a22-acb9-8b15b3250519/publish",
+      "status": 200,
+      "request_id": "1488b86a-1c85-4bc9-95bf-9c5b113a9fec",
+      "error": null,
+      "latency_ms": 30.7
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "95f64916-3188-421a-8fb8-1133588c6295",
+      "latency_ms": 18.69
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/33ac24ae-5389-483e-b66c-8e080b1dec78/agent/planning-requests",
+      "status": 202,
+      "request_id": "930ac476-8648-4a30-8e42-7986f5511781",
+      "error": null,
+      "latency_ms": 14.2
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/2cc6385e-16b4-4079-84c7-7bd2db96712e/tasks/c90ded42-dc3e-4f90-9421-9e82a0c2e439",
+      "status": 404,
+      "request_id": "b84aebf0-7e5a-439a-9c1f-05e83a649c3c",
+      "error": {
+        "code": "task_not_found",
+        "message": "task_not_found",
+        "request_id": "b84aebf0-7e5a-439a-9c1f-05e83a649c3c"
+      },
+      "latency_ms": 6.8
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/2cc6385e-16b4-4079-84c7-7bd2db96712e/plans/39b80430-e31e-4a22-acb9-8b15b3250519",
+      "status": 404,
+      "request_id": "c081e5e1-ebe3-4056-b72b-7d0afcd6a005",
+      "error": {
+        "code": "plan_not_found",
+        "message": "plan_not_found",
+        "request_id": "c081e5e1-ebe3-4056-b72b-7d0afcd6a005"
+      },
+      "latency_ms": 10.78
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/operations/31859f4c-0dc5-475f-a5cd-4dacf1eaa8c7",
+      "status": 404,
+      "request_id": "c3fc6cc3-e736-4349-9795-9987e9e77813",
+      "error": {
+        "code": "project_not_found",
+        "message": "project_not_found",
+        "request_id": "c3fc6cc3-e736-4349-9795-9987e9e77813"
+      },
+      "latency_ms": 6.51
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/2cc6385e-16b4-4079-84c7-7bd2db96712e/plans",
+      "status": 400,
+      "request_id": "edaf26c7-e811-4fbd-846a-f9684d64fba2",
+      "error": {
+        "code": "invalid_task_reference",
+        "message": "invalid_task_reference",
+        "request_id": "edaf26c7-e811-4fbd-846a-f9684d64fba2"
+      },
+      "latency_ms": 10.04
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "273fa36b-e873-4eeb-9ff2-49b5ed405e70",
+      "latency_ms": 300.95
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7692f7b9-48d2-474e-8454-62b686198a7a/plans",
+      "status": 201,
+      "request_id": "96e25a7b-05fb-4c63-b6fd-bece9f275838",
+      "latency_ms": 47.47
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7692f7b9-48d2-474e-8454-62b686198a7a/plans/20b0f331-bfb4-4619-837e-9b331d3e5dde/submit-review",
+      "status": 200,
+      "request_id": "7bf1a4a6-f5f8-4ec9-92eb-46226e63000e",
+      "latency_ms": 23.76
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7692f7b9-48d2-474e-8454-62b686198a7a/plans/20b0f331-bfb4-4619-837e-9b331d3e5dde/approvals",
+      "status": 201,
+      "request_id": "abda5d93-30aa-475b-83be-5181600cad38",
+      "latency_ms": 32.8
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7692f7b9-48d2-474e-8454-62b686198a7a/plans/20b0f331-bfb4-4619-837e-9b331d3e5dde/publish",
+      "status": 200,
+      "request_id": "a504631e-8839-4b8e-8e88-ebcbb7c9c8c9",
+      "error": null,
+      "latency_ms": 224.58
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "16130a24-01d2-4a29-8d7f-d8e56f06c30d",
+      "latency_ms": 54.52
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/a53e75de-e773-4682-a22b-441f047f0826/plans",
+      "status": 201,
+      "request_id": "c9e007cd-3080-4166-b007-45669d50ae0f",
+      "latency_ms": 50.15
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/a53e75de-e773-4682-a22b-441f047f0826/plans/6a7436d6-e39d-4f44-b411-aefb435bed10/submit-review",
+      "status": 200,
+      "request_id": "f12ef3af-d5b3-4c41-aec8-37524041a809",
+      "latency_ms": 37.47
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/a53e75de-e773-4682-a22b-441f047f0826/plans/6a7436d6-e39d-4f44-b411-aefb435bed10/approvals",
+      "status": 201,
+      "request_id": "ab9c7bcf-0b96-463f-814d-9ee37ce409dc",
+      "latency_ms": 14.53
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/a53e75de-e773-4682-a22b-441f047f0826/plans/6a7436d6-e39d-4f44-b411-aefb435bed10/publish",
+      "status": 200,
+      "request_id": "a519ce3d-1b6e-414f-b65c-cdcc95c84f2f",
+      "error": null,
+      "latency_ms": 69.22
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "fd384c2d-f335-4159-87ab-32cd04d8cf63",
+      "latency_ms": 27.81
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/24b77d6a-9566-459d-a932-9ad41570879d",
+      "status": 403,
+      "request_id": "5808413d-85bc-4091-8554-7a4a57f06231",
+      "error": {
+        "code": "csrf_required",
+        "message": "csrf_required",
+        "request_id": "5808413d-85bc-4091-8554-7a4a57f06231"
+      },
+      "latency_ms": 3.74
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/24b77d6a-9566-459d-a932-9ad41570879d",
+      "status": 403,
+      "request_id": "dfcb09e0-e43d-4b9e-ba99-2e77612a1e7a",
+      "error": {
+        "code": "csrf_required",
+        "message": "csrf_required",
+        "request_id": "dfcb09e0-e43d-4b9e-ba99-2e77612a1e7a"
+      },
+      "latency_ms": 3.56
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/24b77d6a-9566-459d-a932-9ad41570879d",
+      "status": 403,
+      "request_id": "9dac3e32-cf17-47c1-9ecc-7f72049762ba",
+      "error": {
+        "code": "csrf_required",
+        "message": "csrf_required",
+        "request_id": "9dac3e32-cf17-47c1-9ecc-7f72049762ba"
+      },
+      "latency_ms": 6.61
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/24b77d6a-9566-459d-a932-9ad41570879d",
+      "status": 403,
+      "request_id": "722d71fd-f228-4385-8794-64857e381de8",
+      "error": {
+        "code": "origin_denied",
+        "message": "origin_denied",
+        "request_id": "722d71fd-f228-4385-8794-64857e381de8"
+      },
+      "latency_ms": 1.81
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/24b77d6a-9566-459d-a932-9ad41570879d",
+      "status": 403,
+      "request_id": "f84bd59c-4457-4166-bc44-2c3c9a48a08e",
+      "error": {
+        "code": "origin_denied",
+        "message": "origin_denied",
+        "request_id": "f84bd59c-4457-4166-bc44-2c3c9a48a08e"
+      },
+      "latency_ms": 2.19
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 401,
+      "request_id": "5c17c85e-a3d8-4c6a-b36a-f4262b675df5",
+      "error": {
+        "code": "session_expired",
+        "message": "session_expired",
+        "request_id": "5c17c85e-a3d8-4c6a-b36a-f4262b675df5"
+      },
+      "latency_ms": 2.86
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 401,
+      "request_id": "6b925904-d9cf-488a-8e44-741a9ce70b6c",
+      "error": {
+        "code": "session_expired",
+        "message": "session_expired",
+        "request_id": "6b925904-d9cf-488a-8e44-741a9ce70b6c"
+      },
+      "latency_ms": 2.79
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "3e0eba4d-ce84-4040-829e-fc14c5acf93a",
+      "latency_ms": 11.25
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/3c3ec6c2-e720-44c7-b32a-98a036c7b8e0/plans",
+      "status": 201,
+      "request_id": "5d13a6aa-4ad5-4b0e-b61e-069cb6c333dc",
+      "latency_ms": 18.89
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/3c3ec6c2-e720-44c7-b32a-98a036c7b8e0/plans/8963cdc7-bb81-4ba9-987b-b1d9d3355505/submit-review",
+      "status": 200,
+      "request_id": "4545d9be-a76a-45cc-88ad-47f000fbafbd",
+      "latency_ms": 15.78
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/3c3ec6c2-e720-44c7-b32a-98a036c7b8e0/plans/8963cdc7-bb81-4ba9-987b-b1d9d3355505/approvals",
+      "status": 403,
+      "request_id": "1db8f0bf-0c23-46bd-9fd7-6502b8296e06",
+      "error": {
+        "code": "human_required",
+        "message": "human_required",
+        "request_id": "1db8f0bf-0c23-46bd-9fd7-6502b8296e06"
+      },
+      "latency_ms": 3.2
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "16843f06-ffcc-4507-ade8-cba6a8816273",
+      "latency_ms": 9.32
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/68c1a854-86ee-46ec-b4d5-074f659a1a62",
+      "status": 403,
+      "request_id": "c85816f8-9d3a-4c9a-b664-73289b03b98e",
+      "error": {
+        "code": "insufficient_scope",
+        "message": "insufficient_scope",
+        "request_id": "c85816f8-9d3a-4c9a-b664-73289b03b98e"
+      },
+      "latency_ms": 2.16
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/68c1a854-86ee-46ec-b4d5-074f659a1a62",
+      "status": 401,
+      "request_id": "2e18cf3d-0a63-4495-b818-545a918f41cf",
+      "error": {
+        "code": "invalid_token",
+        "message": "invalid_token",
+        "request_id": "2e18cf3d-0a63-4495-b818-545a918f41cf"
+      },
+      "latency_ms": 1.65
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "e3498087-6d1f-42ba-9c3f-8c6a270bf4c6",
+      "latency_ms": 10.13
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/f9534474-0a7b-4448-8f5b-8ad07addb479/plans",
+      "status": 201,
+      "request_id": "2da605cb-071f-4575-9eba-3e344e0125f1",
+      "latency_ms": 18.95
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "f5f6e91e-e5d0-4775-9f04-77db4927adb0",
+      "latency_ms": 23.22
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/506107ae-09e8-4965-8545-84776909af1c/plans",
+      "status": 201,
+      "request_id": "6468a0fd-fe7c-4ae2-bd5b-d50f0f5737aa",
+      "latency_ms": 20.52
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/506107ae-09e8-4965-8545-84776909af1c/plans",
+      "status": 201,
+      "request_id": "8feacc67-bf8e-4684-a6d6-f68ff3f51ad1",
+      "latency_ms": 14.75
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/506107ae-09e8-4965-8545-84776909af1c/plans/5a8e98b0-8974-43d0-8792-9c0216b9194b/submit-review",
+      "status": 200,
+      "request_id": "2282f5b0-8473-4576-8bef-4579ddd4e3d2",
+      "latency_ms": 14.44
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/506107ae-09e8-4965-8545-84776909af1c/plans/5a8e98b0-8974-43d0-8792-9c0216b9194b/approvals",
+      "status": 409,
+      "request_id": "48a7e869-dc3f-4636-aa34-13032de86c9e",
+      "error": {
+        "code": "content_hash_mismatch",
+        "message": "content_hash_mismatch",
+        "request_id": "48a7e869-dc3f-4636-aa34-13032de86c9e"
+      },
+      "latency_ms": 13.38
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/506107ae-09e8-4965-8545-84776909af1c/plans/5a8e98b0-8974-43d0-8792-9c0216b9194b/approvals",
+      "status": 409,
+      "request_id": "0dc03d42-c2e8-4be8-9a00-cc832b2e4e2c",
+      "error": {
+        "code": "content_hash_mismatch",
+        "message": "content_hash_mismatch",
+        "request_id": "0dc03d42-c2e8-4be8-9a00-cc832b2e4e2c"
+      },
+      "latency_ms": 6.47
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/506107ae-09e8-4965-8545-84776909af1c/plans/5a8e98b0-8974-43d0-8792-9c0216b9194b/publish",
+      "status": 409,
+      "request_id": "34ba90c8-f86a-4d87-93c1-40d8e4436c7e",
+      "error": {
+        "code": "approval_required",
+        "message": "approval_required",
+        "request_id": "34ba90c8-f86a-4d87-93c1-40d8e4436c7e"
+      },
+      "latency_ms": 8.08
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "ff870479-0204-4779-ad3f-603136107928",
+      "latency_ms": 10.14
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/685fd2cd-31c4-4a5c-94bc-39178a814a87/plans",
+      "status": 201,
+      "request_id": "92c6d37a-6530-46f6-9a26-e742e9a1b3e1",
+      "latency_ms": 17.99
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/685fd2cd-31c4-4a5c-94bc-39178a814a87/plans/d8eac321-9395-4819-be0b-7b698c051afe/submit-review",
+      "status": 200,
+      "request_id": "3ed9d2fb-0ebf-4bd3-992f-575e529f1527",
+      "latency_ms": 13.52
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/685fd2cd-31c4-4a5c-94bc-39178a814a87/plans/d8eac321-9395-4819-be0b-7b698c051afe/approvals",
+      "status": 201,
+      "request_id": "d074734e-8645-4ca8-abe4-5320b2d5b44e",
+      "latency_ms": 12.04
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/685fd2cd-31c4-4a5c-94bc-39178a814a87/plans/d8eac321-9395-4819-be0b-7b698c051afe/publish",
+      "status": 409,
+      "request_id": "62786cb8-0f48-4502-a2e7-122641c23e51",
+      "error": {
+        "code": "content_hash_mismatch",
+        "message": "content_hash_mismatch",
+        "request_id": "62786cb8-0f48-4502-a2e7-122641c23e51"
+      },
+      "latency_ms": 15.57
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/685fd2cd-31c4-4a5c-94bc-39178a814a87/plans",
+      "status": 201,
+      "request_id": "6a108ea0-8cd9-41e4-81c0-ed5ba9efbbc4",
+      "latency_ms": 16.3
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/685fd2cd-31c4-4a5c-94bc-39178a814a87/plans/106699b2-33a8-4597-813a-180ad23a7471/submit-review",
+      "status": 200,
+      "request_id": "a0675e23-8644-46b0-baa2-e3290b78edcd",
+      "latency_ms": 15.8
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/685fd2cd-31c4-4a5c-94bc-39178a814a87/plans/106699b2-33a8-4597-813a-180ad23a7471/approvals",
+      "status": 201,
+      "request_id": "a24a95d2-0981-4a7d-9c52-cc2b2276c658",
+      "latency_ms": 11.29
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/685fd2cd-31c4-4a5c-94bc-39178a814a87/plans/106699b2-33a8-4597-813a-180ad23a7471/publish",
+      "status": 409,
+      "request_id": "57093c5b-3eb6-4783-a215-44642cf51a4a",
+      "error": {
+        "code": "approval_required",
+        "message": "approval_required",
+        "request_id": "57093c5b-3eb6-4783-a215-44642cf51a4a"
+      },
+      "latency_ms": 9.72
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "db7ff6d3-a362-4c35-b4bd-83b4cdcc7df3",
+      "latency_ms": 11.81
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/0b926899-9f0d-4588-a06f-f7d1f1309f5f/plans",
+      "status": 400,
+      "request_id": "959da0f0-6ed0-486d-ae3e-dfa893f63c5a",
+      "error": {
+        "code": "invalid_plan",
+        "message": "Dependency cycle",
+        "request_id": "959da0f0-6ed0-486d-ae3e-dfa893f63c5a"
+      },
+      "latency_ms": 10.39
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/0b926899-9f0d-4588-a06f-f7d1f1309f5f/plans",
+      "status": 400,
+      "request_id": "5cff0afb-0e00-4d7f-b98f-645a3ddbe393",
+      "error": {
+        "code": "invalid_plan",
+        "message": "Dependency cycle",
+        "request_id": "5cff0afb-0e00-4d7f-b98f-645a3ddbe393"
+      },
+      "latency_ms": 5.74
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/0b926899-9f0d-4588-a06f-f7d1f1309f5f/plans",
+      "status": 400,
+      "request_id": "f77fb499-5beb-4d05-9b73-cd93c49b96b5",
+      "error": {
+        "code": "invalid_plan",
+        "message": "Unknown dependency",
+        "request_id": "f77fb499-5beb-4d05-9b73-cd93c49b96b5"
+      },
+      "latency_ms": 6.8
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/0b926899-9f0d-4588-a06f-f7d1f1309f5f/plans",
+      "status": 400,
+      "request_id": "3f2f002b-5b00-40b8-8c05-30f6b447f470",
+      "error": {
+        "code": "invalid_plan",
+        "message": "Duplicate phase/task keys",
+        "request_id": "3f2f002b-5b00-40b8-8c05-30f6b447f470"
+      },
+      "latency_ms": 5.71
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "e91db632-a4f7-4da4-9768-d87d0020bc24",
+      "latency_ms": 25.5
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans",
+      "status": 201,
+      "request_id": "94b7c3e7-be9c-4af9-aa55-79f5cd6b8d8b",
+      "latency_ms": 26.31
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/submit-review",
+      "status": 200,
+      "request_id": "a7022d55-8a24-446f-a940-0fcfb9b883b8",
+      "latency_ms": 25.15
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/approvals",
+      "status": 201,
+      "request_id": "a901a29d-8311-4ab6-b474-1f2a9ddfbdc2",
+      "latency_ms": 14.12
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "1d0f5a67-c526-4367-8435-3e8ef6d01d28",
+      "error": null,
+      "latency_ms": 48.66
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "db8b2d80-423a-4d91-b93a-039c0e1606e6",
+      "error": null,
+      "latency_ms": 54.29
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "873450db-9930-4205-a4e5-f4052a3e3479",
+      "error": null,
+      "latency_ms": 58.43
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "3b094725-457b-4f29-be41-fbbedf94bdad",
+      "error": null,
+      "latency_ms": 67.42
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "ab1a13f2-be41-4eab-9bc4-8f8056bb47a0",
+      "error": null,
+      "latency_ms": 72.58
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "ef6d2c8f-fb5d-4961-8fec-3cd420421960",
+      "error": null,
+      "latency_ms": 75.55
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "6650418a-9b5b-4aae-a013-b21992da47f4",
+      "error": null,
+      "latency_ms": 79.89
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "68ea54fe-b063-49b3-b233-4b18fad4d109",
+      "error": null,
+      "latency_ms": 85.11
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "dbf43960-3288-465a-b01e-8f3a15151a17",
+      "error": null,
+      "latency_ms": 88
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "90e4a9fd-02f5-4585-b503-468c57c77dce",
+      "error": null,
+      "latency_ms": 95.69
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "96e68365-c094-417e-9758-b34bed7072b6",
+      "error": null,
+      "latency_ms": 103.33
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/03bb4c35-aa6d-4f3f-92e2-a45764e62942/plans/7cee917d-2d0a-4a14-8a97-5574f36f5a1c/publish",
+      "status": 200,
+      "request_id": "cd8589cd-5a55-472d-9829-8251019b0561",
+      "error": null,
+      "latency_ms": 109.77
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "e5a9f5b8-1e55-4dbe-8d86-5c0112de0a8d",
+      "latency_ms": 8.79
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 409,
+      "request_id": "cd980107-12c5-483e-9273-5705eee7d2c5",
+      "error": {
+        "code": "idempotency_key_reused",
+        "message": "idempotency_key_reused",
+        "request_id": "cd980107-12c5-483e-9273-5705eee7d2c5"
+      },
+      "latency_ms": 19.21
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/2bc50e3c-d64c-4cdf-93e0-a50687fc58e3",
+      "status": 409,
+      "request_id": "6ee9a396-1d5d-44ee-b572-809e1cbdd038",
+      "error": {
+        "code": "idempotency_key_reused",
+        "message": "idempotency_key_reused",
+        "request_id": "6ee9a396-1d5d-44ee-b572-809e1cbdd038"
+      },
+      "latency_ms": 22.92
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "3191ed30-9272-4a06-b868-33aafef09d2a",
+      "latency_ms": 10.7
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/plans",
+      "status": 201,
+      "request_id": "ceb5bea3-6c16-44cf-8561-2e819f678029",
+      "latency_ms": 14.07
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/plans/c5553b56-8436-40b9-bb4c-3bc61358ba8c/submit-review",
+      "status": 200,
+      "request_id": "cf7305dc-aeae-4b2c-a9e7-51e73ed30883",
+      "latency_ms": 14.34
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/plans/c5553b56-8436-40b9-bb4c-3bc61358ba8c/approvals",
+      "status": 201,
+      "request_id": "4a906d37-a606-4aef-ab5a-1a59841cdf01",
+      "latency_ms": 11.54
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/plans/c5553b56-8436-40b9-bb4c-3bc61358ba8c/publish",
+      "status": 200,
+      "request_id": "f2007fca-172f-4844-8e13-429ec38dfd3c",
+      "error": null,
+      "latency_ms": 20.93
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/tasks/5356705e-68b9-42f2-a0c2-8fafee7eea19/status",
+      "status": 200,
+      "request_id": "08262a0a-bf73-4ff0-869b-b0a8ea37417b",
+      "latency_ms": 23.2
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/tasks/5356705e-68b9-42f2-a0c2-8fafee7eea19/status",
+      "status": 409,
+      "request_id": "b8e7938b-0d63-4e43-b1cf-8a886afff81a",
+      "error": {
+        "code": "stale_task_version",
+        "message": "stale_task_version",
+        "request_id": "b8e7938b-0d63-4e43-b1cf-8a886afff81a"
+      },
+      "latency_ms": 27.37
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/tasks/5356705e-68b9-42f2-a0c2-8fafee7eea19/status",
+      "status": 409,
+      "request_id": "d6a02e05-6ea3-4890-b6a3-b2a89992b5ce",
+      "error": {
+        "code": "stale_task_version",
+        "message": "stale_task_version",
+        "request_id": "d6a02e05-6ea3-4890-b6a3-b2a89992b5ce"
+      },
+      "latency_ms": 29
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/tasks/5356705e-68b9-42f2-a0c2-8fafee7eea19/status",
+      "status": 409,
+      "request_id": "f819c3eb-7395-4345-a175-20f2b4a4f673",
+      "error": {
+        "code": "stale_task_version",
+        "message": "stale_task_version",
+        "request_id": "f819c3eb-7395-4345-a175-20f2b4a4f673"
+      },
+      "latency_ms": 31.48
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/tasks/5356705e-68b9-42f2-a0c2-8fafee7eea19/status",
+      "status": 409,
+      "request_id": "82dd6f30-d152-4be6-af26-e71c4e44f517",
+      "error": {
+        "code": "stale_task_version",
+        "message": "stale_task_version",
+        "request_id": "82dd6f30-d152-4be6-af26-e71c4e44f517"
+      },
+      "latency_ms": 34.29
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/tasks/5356705e-68b9-42f2-a0c2-8fafee7eea19/status",
+      "status": 409,
+      "request_id": "373e5601-98bc-4970-8f60-a15577ba1668",
+      "error": {
+        "code": "stale_task_version",
+        "message": "stale_task_version",
+        "request_id": "373e5601-98bc-4970-8f60-a15577ba1668"
+      },
+      "latency_ms": 36.68
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/tasks/5356705e-68b9-42f2-a0c2-8fafee7eea19/status",
+      "status": 409,
+      "request_id": "bd6cf133-b746-463e-81e5-09e5bdbf8f4d",
+      "error": {
+        "code": "stale_task_version",
+        "message": "stale_task_version",
+        "request_id": "bd6cf133-b746-463e-81e5-09e5bdbf8f4d"
+      },
+      "latency_ms": 49.97
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842/tasks/5356705e-68b9-42f2-a0c2-8fafee7eea19/status",
+      "status": 409,
+      "request_id": "53001f00-0447-4330-ba3e-157f4f9c1f53",
+      "error": {
+        "code": "stale_task_version",
+        "message": "stale_task_version",
+        "request_id": "53001f00-0447-4330-ba3e-157f4f9c1f53"
+      },
+      "latency_ms": 52
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/248ce02d-91cf-4268-9945-eef1eecdb842",
+      "status": 409,
+      "request_id": "3e6b7b83-dc33-49cd-b6af-16eb203a2e1e",
+      "error": {
+        "code": "stale_project_version",
+        "message": "stale_project_version",
+        "request_id": "3e6b7b83-dc33-49cd-b6af-16eb203a2e1e"
+      },
+      "latency_ms": 6.23
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "09982c20-e3de-42f1-944f-5f895f0c675b",
+      "latency_ms": 12.99
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/c6eef0e3-30ad-4541-bf10-dfe25a667cf8/plans",
+      "status": 201,
+      "request_id": "270696f0-3b4c-44f9-89c9-14c7334d1147",
+      "latency_ms": 15.65
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/c6eef0e3-30ad-4541-bf10-dfe25a667cf8/plans/042f2cff-6443-4b96-9684-6d1465f5b9f6/submit-review",
+      "status": 200,
+      "request_id": "dcd2c155-0011-49a9-b279-1f30146a2579",
+      "latency_ms": 17.05
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/c6eef0e3-30ad-4541-bf10-dfe25a667cf8/plans/042f2cff-6443-4b96-9684-6d1465f5b9f6/approvals",
+      "status": 201,
+      "request_id": "190f6718-7aae-4671-828b-2c2c8b75dace",
+      "latency_ms": 10.24
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/c6eef0e3-30ad-4541-bf10-dfe25a667cf8",
+      "status": 200,
+      "request_id": "1c0ef58d-edf9-4dc5-a664-0f5662eb0794",
+      "latency_ms": 7.53
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/c6eef0e3-30ad-4541-bf10-dfe25a667cf8/plans/042f2cff-6443-4b96-9684-6d1465f5b9f6/publish",
+      "status": 409,
+      "request_id": "aede2d09-7a96-481b-92d3-1072e2c474d0",
+      "error": {
+        "code": "stale_project_version",
+        "message": "stale_project_version",
+        "request_id": "aede2d09-7a96-481b-92d3-1072e2c474d0"
+      },
+      "latency_ms": 9.23
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "6b085fdf-c3e9-4db0-a2cf-7a76aaca0391",
+      "latency_ms": 14.28
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans",
+      "status": 201,
+      "request_id": "fadadc9a-e015-4497-92c2-98f3bc02de47",
+      "latency_ms": 14.38
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans/849f6a23-0d22-43b4-9279-382d7397ccf3/submit-review",
+      "status": 200,
+      "request_id": "4351b42c-a21b-4d34-af18-a13e9bd222d4",
+      "latency_ms": 12.48
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans/849f6a23-0d22-43b4-9279-382d7397ccf3/approvals",
+      "status": 201,
+      "request_id": "89227eff-2717-4140-8bfc-95a7c6db1821",
+      "latency_ms": 9.72
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans/849f6a23-0d22-43b4-9279-382d7397ccf3/publish",
+      "status": 200,
+      "request_id": "573fb0c4-94b1-49f4-9692-7793f7397e44",
+      "error": null,
+      "latency_ms": 25.15
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/tasks/d19da64f-31c9-4b1e-8b85-0aa40e183b7a",
+      "status": 201,
+      "request_id": "2d1665b8-5815-48a5-8b50-270759241f99",
+      "latency_ms": 22
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/tasks/d19da64f-31c9-4b1e-8b85-0aa40e183b7a",
+      "status": 200,
+      "request_id": "e5905187-7bd5-44a6-94d4-d36b8743da07",
+      "latency_ms": 6.98
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans/61793b5d-d632-4b00-8f56-4df7e2a2ad7e/publish",
+      "status": 409,
+      "request_id": "e82c1708-7fbb-47dc-9e85-059c2631dd8b",
+      "error": {
+        "code": "approval_required",
+        "message": "approval_required",
+        "request_id": "e82c1708-7fbb-47dc-9e85-059c2631dd8b"
+      },
+      "latency_ms": 8.19
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans/61793b5d-d632-4b00-8f56-4df7e2a2ad7e/submit-review",
+      "status": 200,
+      "request_id": "829bf0b3-f80f-4480-bfc5-a163be1e66fa",
+      "latency_ms": 10.79
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans/61793b5d-d632-4b00-8f56-4df7e2a2ad7e/approvals",
+      "status": 201,
+      "request_id": "c2a32491-2173-429a-a207-ddb72af1a635",
+      "latency_ms": 8.53
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans/61793b5d-d632-4b00-8f56-4df7e2a2ad7e/publish",
+      "status": 200,
+      "request_id": "1f92ce16-69ae-4aa3-8edc-1c6c28e470be",
+      "error": null,
+      "latency_ms": 17.61
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/tasks/d19da64f-31c9-4b1e-8b85-0aa40e183b7a",
+      "status": 200,
+      "request_id": "265733af-555b-45be-b51e-7ca3cd3d23cd",
+      "latency_ms": 7.12
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/plans/849f6a23-0d22-43b4-9279-382d7397ccf3",
+      "status": 200,
+      "request_id": "8d3704d5-687d-4964-bdcb-058680044165",
+      "latency_ms": 7.89
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/915e7a68-17d1-433f-8954-22083fd1af45/tasks/7f405600-b266-4b8e-96c3-31e295ab0bba/dependencies",
+      "status": 200,
+      "request_id": "5499f2a2-4253-4a25-9da6-7b9e165a74e1",
+      "latency_ms": 5.85
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "43194a46-7d76-45f9-b388-c13222e491ff",
+      "latency_ms": 14.44
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/256a7da9-5ed8-448d-a166-3abd0272de3f/plans",
+      "status": 201,
+      "request_id": "f5301e0f-e247-40b1-8e9e-08924ca6112d",
+      "latency_ms": 16
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/256a7da9-5ed8-448d-a166-3abd0272de3f/plans/3e0c86e4-638c-4e21-b958-8c92a5009b47/submit-review",
+      "status": 200,
+      "request_id": "d2d32f06-9fd5-4be5-8498-030830bbe84b",
+      "latency_ms": 16.6
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/256a7da9-5ed8-448d-a166-3abd0272de3f/plans/3e0c86e4-638c-4e21-b958-8c92a5009b47/approvals",
+      "status": 201,
+      "request_id": "572e463a-bbc0-4b4b-93f5-a4238766d1f2",
+      "latency_ms": 8.98
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/256a7da9-5ed8-448d-a166-3abd0272de3f/plans/3e0c86e4-638c-4e21-b958-8c92a5009b47/publish",
+      "status": 200,
+      "request_id": "bad825b6-9495-477c-bbc6-4baad2f8bb8f",
+      "error": null,
+      "latency_ms": 22.16
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/256a7da9-5ed8-448d-a166-3abd0272de3f/tasks/5d0de8e6-2e8c-4b95-bc0b-33d3825a18ff/status",
+      "status": 200,
+      "request_id": "1f580054-1cc3-426a-99c6-a324dfb1c6e8",
+      "latency_ms": 11.45
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/256a7da9-5ed8-448d-a166-3abd0272de3f/tasks/5d0de8e6-2e8c-4b95-bc0b-33d3825a18ff/status",
+      "status": 200,
+      "request_id": "7cdfbaf1-dcda-48c9-ac67-73e8f11adef0",
+      "latency_ms": 11.76
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/256a7da9-5ed8-448d-a166-3abd0272de3f/dashboard",
+      "status": 200,
+      "request_id": "f363a5fa-1e40-4f77-bf90-220e902d6f92",
+      "latency_ms": 10.86
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/256a7da9-5ed8-448d-a166-3abd0272de3f/activity",
+      "status": 200,
+      "request_id": "7ca9244f-9feb-42a8-87b6-84d3974e17be",
+      "latency_ms": 6.18
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "fd624d3a-f045-405c-a643-d40b8f841dfe",
+      "latency_ms": 7.9
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 400,
+      "request_id": "f3f0063b-1a32-4681-957b-efc054259c11",
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "f3f0063b-1a32-4681-957b-efc054259c11"
+      },
+      "latency_ms": 2.97
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 400,
+      "request_id": "7baaef87-7019-4b33-9b4e-0d509a7fbe6c",
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "7baaef87-7019-4b33-9b4e-0d509a7fbe6c"
+      },
+      "latency_ms": 2.58
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 400,
+      "request_id": "84954265-e3be-4211-87cb-9f793c6272d0",
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "84954265-e3be-4211-87cb-9f793c6272d0"
+      },
+      "latency_ms": 2.86
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/not-a-uuid",
+      "status": 400,
+      "request_id": "77cbd0d2-20cc-4d76-8ffc-2898ee7acca5",
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "77cbd0d2-20cc-4d76-8ffc-2898ee7acca5"
+      },
+      "latency_ms": 1.71
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 413,
+      "request_id": "7f1ad1d5-f777-49e6-80ab-68424cd1c709",
+      "error": {
+        "code": "FST_ERR_CTP_BODY_TOO_LARGE",
+        "message": "Request body is too large",
+        "request_id": "7f1ad1d5-f777-49e6-80ab-68424cd1c709"
+      },
+      "latency_ms": 4.79
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/e1f89a15-8a04-400d-b2b5-38b4f17063a7/tasks?limit=101",
+      "status": 400,
+      "request_id": "f5bf5750-3d77-4295-a1c0-e07740d24257",
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "f5bf5750-3d77-4295-a1c0-e07740d24257"
+      },
+      "latency_ms": 4.6
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "c76305eb-6b69-499d-91ce-2a692719d9b5",
+      "latency_ms": 14.06
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "accb48b5-91f8-44ef-95e3-c945e393b010",
+      "latency_ms": 7.24
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "d3a602ff-2382-47a5-bcb5-bdf405d90bff",
+      "latency_ms": 10.29
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/64047087-eb34-4737-a110-03e203f062be/plans",
+      "status": 201,
+      "request_id": "e4e4e876-a8f3-41d4-b6e5-9a943c0a5e67",
+      "latency_ms": 16.55
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/64047087-eb34-4737-a110-03e203f062be/plans/a3e92563-2e11-4f6b-8c15-23a2a587ffcc/submit-review",
+      "status": 200,
+      "request_id": "fd2a79a9-9222-48a9-aa60-a83bbb2ff9af",
+      "latency_ms": 14.51
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/64047087-eb34-4737-a110-03e203f062be/plans/a3e92563-2e11-4f6b-8c15-23a2a587ffcc/approvals",
+      "status": 201,
+      "request_id": "cf8ba7f2-50dc-4dd6-bd67-bc0b5e34c736",
+      "latency_ms": 11.6
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/64047087-eb34-4737-a110-03e203f062be/plans/a3e92563-2e11-4f6b-8c15-23a2a587ffcc/publish",
+      "status": 500,
+      "request_id": "76ae7332-568b-4c24-a778-7259063e24bd",
+      "error": {
+        "code": "internal_error",
+        "message": "Internal server error",
+        "request_id": "76ae7332-568b-4c24-a778-7259063e24bd"
+      },
+      "latency_ms": 11.77
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/64047087-eb34-4737-a110-03e203f062be/plans/a3e92563-2e11-4f6b-8c15-23a2a587ffcc/publish",
+      "status": 200,
+      "request_id": "694e01f7-fdc6-4e5e-ab04-970cbc836372",
+      "error": null,
+      "latency_ms": 19.15
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "b872313e-084c-4202-98a1-761d2e784969",
+      "latency_ms": 8.54
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/b208962d-0dc9-4ff9-b372-2fd151a1e15a/plans",
+      "status": 201,
+      "request_id": "cb528be4-2872-4d96-86af-676e5730a95e",
+      "latency_ms": 12.54
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/b208962d-0dc9-4ff9-b372-2fd151a1e15a/plans/8d67949f-e7c7-486c-a779-10587bcd198c/submit-review",
+      "status": 200,
+      "request_id": "8cd32241-6904-4064-9ace-4283527a4af2",
+      "latency_ms": 24.31
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/b208962d-0dc9-4ff9-b372-2fd151a1e15a/plans/8d67949f-e7c7-486c-a779-10587bcd198c/approvals",
+      "status": 201,
+      "request_id": "fc35319e-8e55-4f8e-8c1f-965e178f1e7e",
+      "latency_ms": 20.04
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/b208962d-0dc9-4ff9-b372-2fd151a1e15a/plans/8d67949f-e7c7-486c-a779-10587bcd198c/publish",
+      "status": 500,
+      "request_id": "c6047f66-3f58-4e43-b029-70a265f66f3d",
+      "error": {
+        "code": "internal_error",
+        "message": "Internal server error",
+        "request_id": "c6047f66-3f58-4e43-b029-70a265f66f3d"
+      },
+      "latency_ms": 30.65
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/b208962d-0dc9-4ff9-b372-2fd151a1e15a/plans/8d67949f-e7c7-486c-a779-10587bcd198c/publish",
+      "status": 200,
+      "request_id": "3997a7c9-ab85-4761-842d-f6d99f05ca2c",
+      "error": null,
+      "latency_ms": 28.01
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "d9d02205-8085-4fe8-aebd-c89bdd73b49e",
+      "latency_ms": 7.75
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/cad82feb-7ff0-416e-a42b-808c871e1bd4/agent/planning-requests",
+      "status": 202,
+      "request_id": "87259c25-2360-4943-91a7-ffe23d3a5f2a",
+      "error": null,
+      "latency_ms": 8.46
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/operations/05c919bb-605c-4d82-b05f-63e45dd3210e",
+      "status": 200,
+      "request_id": "35b1dd0a-3656-4bb5-9ce1-ff94a1ee886b",
+      "error": null,
+      "latency_ms": 7.25
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/operations/05c919bb-605c-4d82-b05f-63e45dd3210e/result",
+      "status": 409,
+      "request_id": "41935951-36b0-454f-b34f-b81e3e26c090",
+      "error": {
+        "code": "operation_terminal",
+        "message": "operation_terminal",
+        "request_id": "41935951-36b0-454f-b34f-b81e3e26c090"
+      },
+      "latency_ms": 9.49
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "7a0ec788-9523-4972-acf9-69366a59d13e",
+      "latency_ms": 7.46
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "34702943-eca2-42c9-9554-26c80195bdb5",
+      "latency_ms": 33.96
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "a76a9f1a-6eea-4b6f-a9a9-df6860211ff7",
+      "latency_ms": 40.2
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "f51130c6-1eb4-4604-9884-5c67ba0e8cda",
+      "latency_ms": 61.19
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "810617bc-e5e4-450b-b1e8-cb7bb2ce7527",
+      "latency_ms": 64.82
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "1b069470-e30b-4ec5-b681-2a92fc4c31b5",
+      "latency_ms": 68.18
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "08a236fc-edad-4ad1-bd3d-5e4c4e5011ac",
+      "latency_ms": 73.04
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "3fde60e1-8769-4e33-97c0-fd9e7dbb95a9",
+      "latency_ms": 78.17
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "ee589621-4090-40a4-98bc-03a44fe5a1a9",
+      "latency_ms": 86.91
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "9d7a484c-e4b8-437e-b6ef-5754be219936",
+      "latency_ms": 91.22
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "ef67027b-7f1a-47a4-925e-d58ace7d9036",
+      "latency_ms": 95.04
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "45c0b301-7eb4-47ae-a766-a058810403a9",
+      "latency_ms": 99.01
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "b35038bf-b14e-4029-9558-a73bc86f785b",
+      "latency_ms": 108.94
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "e2ab47fe-b59e-4a39-b672-46203463ed9a",
+      "latency_ms": 113.06
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "7a8f678d-f385-444c-9cef-eb2f993b3cc4",
+      "latency_ms": 121.58
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "6d43eff0-f5ca-431a-91d5-d73a0e9a98cd",
+      "latency_ms": 125.19
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "c62e9128-68fb-48bc-a949-78c7859fe427",
+      "latency_ms": 128.72
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "226a8200-af14-4a62-ac9e-2cba581d10b2",
+      "latency_ms": 134.69
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "d41febf2-fe96-43b5-a6d1-e056168041c0",
+      "latency_ms": 137.75
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "1c8521b1-47ec-4e7b-affb-2e038032e7c1",
+      "latency_ms": 148.47
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/98d440d9-5959-4623-bf05-6e54e6c47353/dashboard",
+      "status": 200,
+      "request_id": "fd8762ff-7fcb-41d2-a30b-6959ae8fc92d",
+      "latency_ms": 151.85
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "5044451d-0278-4f2e-9ff1-ac04f5e5d738",
+      "latency_ms": 9.57
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/1c129f8c-e196-4a18-ae9b-6f131950a0d3/plans",
+      "status": 201,
+      "request_id": "4aacf959-2dcd-4acc-a9db-0d031131fcbf",
+      "latency_ms": 17.23
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/1c129f8c-e196-4a18-ae9b-6f131950a0d3/plans/195cfe35-eb4d-41bc-a65b-ef2d65296551/submit-review",
+      "status": 200,
+      "request_id": "7544ba50-d4ae-44c0-aae6-a14567ee171c",
+      "latency_ms": 14.48
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/1c129f8c-e196-4a18-ae9b-6f131950a0d3/plans/195cfe35-eb4d-41bc-a65b-ef2d65296551/approvals",
+      "status": 201,
+      "request_id": "f45dc153-0e16-4a88-bf58-a6ddc06f6774",
+      "latency_ms": 10.27
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/1c129f8c-e196-4a18-ae9b-6f131950a0d3/plans/195cfe35-eb4d-41bc-a65b-ef2d65296551/publish",
+      "status": 200,
+      "request_id": "0c7bab31-2bbb-47f5-840d-72acd785e156",
+      "error": null,
+      "latency_ms": 17.26
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/1c129f8c-e196-4a18-ae9b-6f131950a0d3/tasks?limit=2&offset=0",
+      "status": 200,
+      "request_id": "11506200-a0e3-4000-9b74-3ba78b9c4fb9",
+      "latency_ms": 7.76
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/1c129f8c-e196-4a18-ae9b-6f131950a0d3/tasks?limit=2&offset=2",
+      "status": 200,
+      "request_id": "ebb179dc-6c55-4306-bcd1-c3ee95cbab0b",
+      "latency_ms": 7.4
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "0fbbae8a-00a7-4218-964f-15bc2707ef39",
+      "latency_ms": 8.75
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/da9b798e-5573-47f1-8400-145743c77c1c/plans",
+      "status": 201,
+      "request_id": "3a4bea23-2b20-4862-ad4f-c07126f65c9a",
+      "latency_ms": 13.74
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/da9b798e-5573-47f1-8400-145743c77c1c/plans/7760831f-a0c2-4c84-be3b-4805c469e1e9/submit-review",
+      "status": 200,
+      "request_id": "bc30104f-0fef-4f90-9341-773e59995efd",
+      "latency_ms": 13.71
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/da9b798e-5573-47f1-8400-145743c77c1c/plans/7760831f-a0c2-4c84-be3b-4805c469e1e9/approvals",
+      "status": 201,
+      "request_id": "b3ceb7c9-b760-40dd-9e5e-be7afbee4732",
+      "latency_ms": 15.15
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/da9b798e-5573-47f1-8400-145743c77c1c/plans/7760831f-a0c2-4c84-be3b-4805c469e1e9/publish",
+      "status": 200,
+      "request_id": "5ae4e105-8650-4ebc-a061-29e99010ddf2",
+      "error": null,
+      "latency_ms": 18.98
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 400,
+      "request_id": "6d06be49-d945-4464-ab94-d736bdb618af",
+      "error": {
+        "code": "invalid_input",
+        "message": "Input validation failed",
+        "request_id": "6d06be49-d945-4464-ab94-d736bdb618af"
+      },
+      "latency_ms": 2.93
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "67b10891-3eef-4141-a259-f88b779fef03",
+      "latency_ms": 7.87
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/0b3be887-67a2-4c94-a010-4ada9f170e4b",
+      "status": 409,
+      "request_id": "31ed5395-265b-4495-8f7f-81a29f6e674b",
+      "error": {
+        "code": "stale_project_version",
+        "message": "stale_project_version",
+        "request_id": "31ed5395-265b-4495-8f7f-81a29f6e674b"
+      },
+      "latency_ms": 12.04
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "2a5933cc-c793-43ad-a5d4-00db875f9d7d",
+      "latency_ms": 9.47
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/cb4d0faa-b725-42e7-9820-63f39111e840/agent/planning-requests",
+      "status": 202,
+      "request_id": "9450ae00-924d-413e-b754-af8ce36472ca",
+      "error": null,
+      "latency_ms": 10.45
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/cb4d0faa-b725-42e7-9820-63f39111e840",
+      "status": 200,
+      "request_id": "ebb9e1dd-b595-4be7-80d3-57efec9e5315",
+      "latency_ms": 12.44
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/operations/8508a69e-bead-467f-bac1-8a5e0aa1ed69/result",
+      "status": 409,
+      "request_id": "43fbcf87-1acf-4ce3-870e-f73cf6dcca39",
+      "error": {
+        "code": "stale_operation",
+        "message": "stale_operation",
+        "request_id": "43fbcf87-1acf-4ce3-870e-f73cf6dcca39"
+      },
+      "latency_ms": 10.55
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "60fff5c4-8bbf-45d2-8374-995c560d0184",
+      "latency_ms": 15.17
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/bdcd55fc-b16e-4751-958f-fc29d479c412/plans",
+      "status": 201,
+      "request_id": "44dff995-f5ed-4e3b-8b32-79b737e8aece",
+      "latency_ms": 12.95
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/bdcd55fc-b16e-4751-958f-fc29d479c412/plans/0e413bf9-c58e-4b02-ba9f-b3785effc1fb/submit-review",
+      "status": 200,
+      "request_id": "1eba9c74-40c7-4e70-9d20-9828b8c6928f",
+      "latency_ms": 15.61
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/bdcd55fc-b16e-4751-958f-fc29d479c412/plans/0e413bf9-c58e-4b02-ba9f-b3785effc1fb/approvals",
+      "status": 201,
+      "request_id": "625227cd-02ea-40db-a7e9-f573069c6ff8",
+      "latency_ms": 10.38
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/bdcd55fc-b16e-4751-958f-fc29d479c412/plans/0e413bf9-c58e-4b02-ba9f-b3785effc1fb/publish",
+      "status": 409,
+      "request_id": "b328f327-5373-432b-b6af-d0016a2b65b7",
+      "error": {
+        "code": "approver_no_longer_authorized",
+        "message": "approver_no_longer_authorized",
+        "request_id": "b328f327-5373-432b-b6af-d0016a2b65b7"
+      },
+      "latency_ms": 8.1
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/projects",
+      "status": 204,
+      "request_id": "60c6f97c-648d-4f05-9919-f8cb5f0ea664",
+      "latency_ms": 1.47
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "aa7c7c11-c691-4851-9be8-d17421c98de7",
+      "latency_ms": 9.18
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/2a5a51b0-f1c7-4c89-9db4-5721ebbe7f9a",
+      "status": 404,
+      "request_id": "4d5d6088-1f8c-480d-bd87-0b37f559cb84",
+      "error": {
+        "code": "project_not_found",
+        "message": "project_not_found",
+        "request_id": "4d5d6088-1f8c-480d-bd87-0b37f559cb84"
+      },
+      "latency_ms": 6.91
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 404,
+      "request_id": "04f10f72-50d7-4766-b220-ee394098c4f1",
+      "error": {
+        "code": "project_not_found",
+        "message": "project_not_found",
+        "request_id": "04f10f72-50d7-4766-b220-ee394098c4f1"
+      },
+      "latency_ms": 5.87
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "97d8d386-e2fd-49eb-8594-f22d5f33834f",
+      "latency_ms": 23.4
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/47819566-1e60-4402-bb85-514523ae8210/plans",
+      "status": 201,
+      "request_id": "952f5f8a-0db3-499c-913d-b58e0c7bb69c",
+      "latency_ms": 304.51
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/47819566-1e60-4402-bb85-514523ae8210/plans/5f860c8e-05b1-46e2-bbaa-c817e4e18139/submit-review",
+      "status": 200,
+      "request_id": "baa7b496-37ed-4d96-8cc0-f5924eb0e96c",
+      "latency_ms": 60.05
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/47819566-1e60-4402-bb85-514523ae8210/plans/5f860c8e-05b1-46e2-bbaa-c817e4e18139/approvals",
+      "status": 201,
+      "request_id": "1277babb-f99b-4d32-8439-c1845d828448",
+      "latency_ms": 53.23
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/47819566-1e60-4402-bb85-514523ae8210/plans/5f860c8e-05b1-46e2-bbaa-c817e4e18139/publish",
+      "status": 200,
+      "request_id": "dd15f56e-02a2-4a5d-bcc8-9501acc9d163",
+      "error": null,
+      "latency_ms": 1112.31
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/47819566-1e60-4402-bb85-514523ae8210/plans/5f860c8e-05b1-46e2-bbaa-c817e4e18139/publish",
+      "status": 200,
+      "request_id": "5cecee7d-1512-4754-91a7-52e93a20427a",
+      "error": null,
+      "latency_ms": 1144.29
+    }
+  ],
+  "metrics": [
+    {
+      "case": "12 concurrent publications",
+      "latencies_ms": [
+        48.66,
+        72.58,
+        67.42,
+        54.29,
+        79.89,
+        85.11,
+        88,
+        95.69,
+        75.55,
+        109.77,
+        58.43,
+        103.33
+      ]
+    },
+    {
+      "case": "20 concurrent dashboard reads",
+      "latencies_ms": [
+        40.2,
+        33.96,
+        61.19,
+        64.82,
+        68.18,
+        99.01,
+        78.17,
+        73.04,
+        86.91,
+        95.04,
+        91.22,
+        108.94,
+        113.06,
+        121.58,
+        151.85,
+        125.19,
+        134.69,
+        148.47,
+        128.72,
+        137.75
+      ]
+    },
+    {
+      "case": "500-task chain create/review/approve/two concurrent publishes",
+      "duration_ms": 1565.575167,
+      "publish_latencies_ms": [
+        1112.31,
+        1144.29
+      ]
+    }
+  ]
+}

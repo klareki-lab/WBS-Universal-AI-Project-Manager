@@ -1,0 +1,21 @@
+
+> @uapm/backend@1.1.0 typecheck
+> tsc --noEmit
+
+
+> @uapm/backend@1.1.0 contracts
+> tsx src/contracts.ts && openapi-typescript ../../packages/contracts/openapi.yaml -o ../../packages/contracts/types.ts
+
+Generated 28 paths, 43 schemas
+✨ openapi-typescript 7.13.0
+🚀 ../../packages/contracts/openapi.yaml → ../../packages/contracts/types.ts [130.6ms]
+
+> @uapm/backend@1.1.0 build
+> tsc -p tsconfig.build.json && node scripts/copy-migrations.mjs
+
+
+> @uapm/backend@1.1.0 format:check
+> prettier --check src tests scripts *.json vitest.config.ts
+
+Checking formatting...
+All matched files use Prettier code style!

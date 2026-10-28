@@ -1,0 +1,14 @@
+{
+  "records": [
+    {
+      "name": "Upgrade from exact audit-target migrations preserves immutable history, backfills replay context and fails unverifiable pending work closed",
+      "status": "PASS",
+      "migrations": 4
+    },
+    {
+      "name": "Upgrade acceptance",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n401 !== 200\n\n    at file:///Users/admin/Projects/uapm-codex/apps/backend/audit/upgrade.mjs:165:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+    }
+  ]
+}

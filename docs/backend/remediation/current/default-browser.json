@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "name": "Actual default localhost:5173 browser → localhost:13081 Docker API, reload/bootstrap/mutation and SQL persistence",
+  "executed_at": "2026-10-28T19:30:47.634Z",
+  "api": "http://localhost:13081",
+  "frontend": "http://localhost:5173",
+  "login": {
+    "status": 200,
+    "request_id": "a82a5ed5-415d-415d-afb7-d8f43f194c4f"
+  },
+  "session": 200,
+  "bootstrap": 200,
+  "mutation": 201,
+  "reloaded_project": 200,
+  "project_id": "ae27a644-cb60-476f-b6be-c6b3aa924300",
+  "request_id": "a63c0379-3dd3-4ec1-9c55-5cb666ef7b18",
+  "frontend_ui": "synthetic fixture, not Astra UI"
+}
