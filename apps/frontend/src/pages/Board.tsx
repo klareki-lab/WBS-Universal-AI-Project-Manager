@@ -1,3 +1,4 @@
+import { isDemoMode } from '../api';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Columns3, List, Plus, SlidersHorizontal } from 'lucide-react';
 import { useParams } from 'react-router-dom';
@@ -16,8 +17,8 @@ export default function Board(){
   const [newTask,setNewTask]=useState({title:'',description:'',priority:'medium' as TaskPriority,dueDate:''});
   const reload=useCallback(async()=>{if(!projectId)return;setLoading(true);try{const [ts,people]=await Promise.all([projectApi.listTasks(projectId),projectApi.listMembers(projectId)]);setTasks(ts);setMembers(people);setError(null);}catch(e){setError(explainError(e));}finally{setLoading(false);}},[projectId]);
   useEffect(()=>{void reload();},[reload]);
-  const save=async(patch:Parameters<typeof projectApi.updateTask>[2])=>{if(!projectId||!selected)return;await projectApi.updateTask(projectId,selected.id,patch);await Promise.all([reload(),refresh()]);setNotice('Aufgabe nur lokal gespeichert.');};
-  const add=async(event:FormEvent)=>{event.preventDefault();if(!projectId)return;setSaving(true);setError(null);try{await projectApi.createTask(projectId,{...newTask,dueDate:newTask.dueDate||undefined});setCreate(false);setNewTask({title:'',description:'',priority:'medium',dueDate:''});await Promise.all([reload(),refresh()]);setNotice('Neue Aufgabe lokal angelegt.');}catch(e){setError(explainError(e));}finally{setSaving(false);}};
+  const save=async(patch:Parameters<typeof projectApi.updateTask>[2])=>{if(!projectId||!selected)return;await projectApi.updateTask(projectId,selected.id,patch);await Promise.all([reload(),refresh()]);setNotice(isDemoMode?'Aufgabe lokal gespeichert.':'Status im Backend gespeichert.');};
+  const add=async(event:FormEvent)=>{event.preventDefault();if(!projectId)return;setSaving(true);setError(null);try{await projectApi.createTask(projectId,{...newTask,dueDate:newTask.dueDate||undefined});setCreate(false);setNewTask({title:'',description:'',priority:'medium',dueDate:''});await Promise.all([reload(),refresh()]);setNotice(isDemoMode?'Demo-Aufgabe lokal angelegt.':'Aufgabe gespeichert.');}catch(e){setError(explainError(e));}finally{setSaving(false);}};
   if(loading)return <Loading/>;if(error&&!create)return <ErrorState text={error} retry={()=>void reload()}/>;if(!project)return <EmptyState text="Projekt nicht gefunden."/>;
   const visible=tasks.filter(t=>(status==='all'||t.status===status)&&(priority==='all'||t.priority===priority));
   const columns:TaskStatus[]=['todo','in_progress','blocked','done'];const finished=tasks.filter(t=>t.status==='done').length;const percent=tasks.length?Math.round(finished/tasks.length*100):0;

@@ -1,5 +1,5 @@
 import type { ProjectApi } from './types';
 import { mockApi } from './mockApi';
-/** Reconcile the Backend Lead's contract and replace this one line with the live adapter. */
-export const projectApi: ProjectApi = mockApi;
-export const isDemoMode = true;
+import { liveApi } from './liveApi';
+export const isDemoMode = import.meta.env.VITE_DATA_MODE !== 'live';
+export const projectApi: ProjectApi = isDemoMode ? mockApi : liveApi;
