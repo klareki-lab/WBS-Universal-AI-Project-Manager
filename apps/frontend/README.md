@@ -1,48 +1,74 @@
-# Klare KI — Universal AI Project Manager Frontend v2
+# Klare KI — KI Project Studio
 
-Standalone native project-management frontend with optional AI-style planning and proposals. Built with React 18, TypeScript, Vite, Tailwind CSS and React Router. Default language: German.
+The existing Astra v2 React application, with one routed UI and a shared mock/live API adapter. React 18, TypeScript, Vite, Tailwind CSS and React Router; German is the default UI language. The technical repository and paths are unchanged.
 
-## Run locally
+## Local QA and startup
 
-Requirements: Node 20+ and npm, with access to the npm registry.
+Tested toolchain: **Node.js 24.15.0 / npm 11.12.1**. The declared Node minimum is 22.12.0; other versions are not covered by this verification. All TypeScript scripts use the declared local dependency, not a global installation.
+
+Before changing the isolated QA clone, inspect its real state. Do not overwrite uncommitted work or switch an unrelated worktree:
 
 ```bash
-npm install
+cd /Users/admin/Projects/uapm-frontend-qa
+git status --short --branch
+git branch --show-current
+git rev-parse HEAD
+# Continue only on feat/frontend after reconciling any local changes.
+cd apps/frontend
+npm ci
 npm run dev
 ```
 
-Open the local address printed by Vite (normally `http://localhost:5173`).
+The development server binds only to `http://127.0.0.1:15173` and fails if the port is occupied. It does not start or modify the backend, MCP, n8n or production services.
+
+## Reproducible verification
+
+Use the committed `package-lock.json`. Do not regenerate it during verification and do not use `npm audit fix --force`.
 
 ```bash
-npm run build           # typecheck + Vite production build
-npm test                # Vitest + React Testing Library
-npm run test:smoke      # dependency-free domain behavior smoke (global TypeScript required)
-node scripts/check-syntax.cjs
+npm ci
+npm run typecheck
+npm test
+npm run test:smoke
+npm run build
+npm audit
+npm audit --omit=dev
+npx playwright install chromium
+npm run test:browser
 ```
 
-**Known validation limitation of this delivery environment:** npm registry DNS was unavailable, so package installation could not be completed. Thus actual Vite build, React rendering tests and responsive browser QA of the React app were **not** verified here. The syntax/transpilation check and direct mock API smoke tests ran successfully, and the design previews are static examples, **not** actual screenshots of the running React application. Install dependencies and run the above commands before integration. `scripts/check-syntax.cjs` and `scripts/smoke-api.cjs` reference the system global TypeScript path for this environment; adapt if different.
+`npm run verify` runs typecheck, Vitest, smoke, build and the complete audit after installation. Browser tests start their own loopback-only Vite servers on 15173 and 15174; stop any manually started dev server first. Tests refuse to reuse existing servers. On a minimal Linux host, `npx playwright install --with-deps chromium` also installs required OS packages.
 
-## Eight MVP areas
+CI performs clean installation, checks the committed lockfile is unchanged, typechecks, runs tests, builds both modes, audits all dependencies and runtime dependencies separately, and captures actual Chromium screenshots. CI has read-only repository permissions. It never commits, merges or deploys. Every gate must pass; per-step continuation exists only to preserve diagnostic evidence.
 
-1. Dashboard — multiple projects, progress, health statuses, urgent tasks, due dates, recent changes.
-2. Create Project — free text or structured form. Free text uses transparent local defaults, **not AI**.
-3. AI Planning Studio — conversational demo plus editable versioned phases/tasks/dependencies.
-4. Plan Review & Approval — comparison with approved baseline, exact-version approval, rejection, revision request.
-5. Project Workspace — native editable tasks, list/Kanban, status/priority filters, assignees, deadlines, dependencies.
-6. Project Assistant — read-only answers versus proposal actions, explicit application into a draft.
-7. Activity & Operations — local events and five labeled illustrative operation states with retry guidance.
-8. Settings — application status and optional, disconnected integrations.
+## Data modes — one interface
 
-## Demo restrictions
+Default: `VITE_DATA_MODE=mock`. Demo projects, tasks, approvals and assistant responses are clearly labeled, in memory and reset on reload. They are not backend persistence, real authorization or AI execution.
 
-**All data is in memory and resets on reload.** Starter projects, approvals, event logs and operation cards are artificial examples, labeled throughout. A local approval is only a UI/domain demonstration, **not** real authorization. No model calls, no n8n/MCP calls, no PostgreSQL connection, no external sync, no actual job execution, no secrets, no production deployment, no Jira required. Everything stateful uses `src/api/mockApi.ts` behind `ProjectApi` in `src/api/types.ts`. The real backend will replace the adapter after contract reconciliation.
+To use the canonical backend, create an untracked `.env.local`:
 
-## Handover
+```dotenv
+VITE_DATA_MODE=live
+VITE_API_BASE_URL=http://127.0.0.1:13081
+```
 
-- `docs/ARCHITECTURE_V2.md`: reused UI, navigation and native state model.
-- `docs/API_CONTRACT_DRAFT_V2.md`: provisional logical operations, no final endpoints.
-- `docs/CONTRACT_QUESTIONS_V2.md`: open decisions for Backend Lead.
-- `docs/QA_REPORT_V2.md`: tests actually run and known limitations.
-- `screenshots/v2-*-preview.png`: **static visual design previews**, not running React screenshot.
+Restart Vite. A real backend must be started separately and allow origin `http://127.0.0.1:15173`. Human cookies use `credentials: include`; CSRF remains in tab memory. An existing cookie without a CSRF token requires reauthentication in the current UI. No service token, database secret, MCP credential or model key belongs in frontend environment variables.
 
-No existing WBS Employee Onboarding or Messe Hub repository has been changed.
+Live-mode production compilation is tested. Browser authentication regression tests use explicit intercepted HTTP fixtures; **they are not proof of a running Codex backend, PostgreSQL persistence or live MCP/n8n integration**. See the remaining integration limitations before release.
+
+## Existing product areas
+
+Dashboard; project creation; Project Workspace with list/Kanban and task panels; AI Planning Studio; Plan Review; Approval Center; Project Assistant; Activity & Operations; Settings. The design, routes and components are retained rather than replaced with a second application. Live controls remain limited by the current adapter and backend contract; the full backend acceptance gate is separate from the build/security gate.
+
+## Verified evidence and limitations
+
+The remediation verification in [CI run 40752714322](https://github.com/klareki-lab/WBS-Universal-AI-Project-Manager/actions/runs/40752714322) passed **28 Vitest tests, 10 smoke checks, 8 Chromium tests**, typecheck, clean installation and both production builds. The complete npm audit and runtime-only audit each reported **zero vulnerabilities**. Later commits are checked again by the same workflow; PR #2 links the final SHA and latest run.
+
+The user's Mac clone was not mounted in the execution environment. These are independent isolated Ubuntu CI results using the requested Node/npm versions, not a claim of commands executed on that Mac. Historical static images under `screenshots/` are not current running-application evidence. Current actual screenshots and JSON/log reports are attached to the relevant CI run under `qa-evidence/`.
+
+- [Build and security remediation](docs/BUILD_SECURITY_REMEDIATION.md): changes, audit analysis, evidence and scope.
+- [Live integration](docs/LIVE_INTEGRATION.md): adapter setup and remaining integration work.
+- [Backend gaps](docs/BACKEND_GAPS.md): earlier integration questions; some are frontend implementation gaps, not missing server capabilities.
+- `docs/ARCHITECTURE_V2.md` and the older API/QA documents are historical design records, not authoritative current verification. The canonical backend OpenAPI remains the source of truth.
+
+PR #2 stays Draft until the separate real-backend and full-system acceptance criteria are satisfied. No merge or production deployment is part of this work.

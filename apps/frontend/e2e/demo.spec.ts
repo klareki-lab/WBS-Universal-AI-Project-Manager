@@ -5,6 +5,14 @@ async function menu(page:Page){
   if((page.viewportSize()?.width??1440)<1024)await page.getByRole('button',{name:'Navigation öffnen',exact:true}).click();
   return page.getByRole('navigation',{name:'Hauptmenü',exact:true});
 }
+async function capture(page:Page,name:string){
+  // Capture the settled application, not an intermediate mobile drawer animation.
+  if((page.viewportSize()?.width??1440)<1024){
+    await expect(page.getByRole('button',{name:'Navigation öffnen',exact:true})).toHaveAttribute('aria-expanded','false');
+    await expect.poll(async()=>{const box=await page.locator('aside.sidebar').boundingBox();return box?box.x+box.width:0}).toBeLessThanOrEqual(1);
+  }
+  await page.screenshot({path:`qa-evidence/screenshots/${name}.png`,fullPage:true,animations:'disabled'});
+}
 test.beforeAll(async()=>{await mkdir('qa-evidence/screenshots',{recursive:true})});
 
 test('actual React dashboard has official branding and fits the viewport',async({page},info)=>{
@@ -15,7 +23,7 @@ test('actual React dashboard has official branding and fits the viewport',async(
   await expect(page.getByText('Interaktiver Demo-Modus.',{exact:false})).toBeVisible();
   await expect(page.locator('body')).not.toContainText(/kompass/i);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
-  await page.screenshot({path:`qa-evidence/screenshots/${info.project.name}-dashboard.png`,fullPage:true});
+  await capture(page,`${info.project.name}-dashboard`);
   await menu(page);
   await expect(page.getByRole('complementary',{name:'Hauptnavigation'})).toContainText('Klare KI');
   await expect(page.getByRole('complementary',{name:'Hauptnavigation'})).toContainText('KI PROJECT STUDIO');
@@ -27,12 +35,12 @@ test('preserves board, planning, review, approval, activity and settings routes'
   await expect(page.getByRole('heading',{name:'Projekte klar steuern. Menschen entscheiden.'})).toBeVisible();
   await (await menu(page)).getByRole('link',{name:'Projektaufgaben',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Projekt-Workspace',exact:true})).toBeVisible();
-  await page.screenshot({path:`qa-evidence/screenshots/${info.project.name}-board.png`,fullPage:true});
+  await capture(page,`${info.project.name}-board`);
   await page.getByRole('button',{name:'Liste',exact:true}).click();await expect(page.getByRole('table')).toBeVisible();
   await page.getByRole('button',{name:'Kanban',exact:true}).click();
   await (await menu(page)).getByRole('link',{name:'AI Planungsstudio',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Von Gedanken zu Aufgaben.'})).toBeVisible();
-  await page.screenshot({path:`qa-evidence/screenshots/${info.project.name}-planning.png`,fullPage:true});
+  await capture(page,`${info.project.name}-planning`);
   await (await menu(page)).getByRole('link',{name:'Plan prüfen',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Änderungen bewusst prüfen.'})).toBeVisible();
   await page.getByRole('link',{name:'Planversion entscheiden',exact:true}).click();
