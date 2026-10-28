@@ -1,3 +1,4 @@
+import LiveApp from './live/LiveApp';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Layout } from './components/Layout';
@@ -10,7 +11,7 @@ import Board from './pages/Board';
 import Settings from './pages/Settings';
 import Activity from './pages/Activity';
 import Assistant from './pages/Assistant';
-export function App(){return <BrowserRouter><AppProvider><Routes><Route element={<Layout/>}>
+export function App(){if(import.meta.env.VITE_DATA_MODE === 'live')return <LiveApp/>;return <BrowserRouter><AppProvider><Routes><Route element={<Layout/>}>
   <Route path="/" element={<Dashboard/>}/><Route path="/projects/new" element={<NewProject/>}/>
   <Route path="/projects/:projectId/board" element={<Board/>}/><Route path="/projects/:projectId/workspace" element={<Workspace/>}/>
   <Route path="/projects/:projectId/review" element={<Review/>}/><Route path="/projects/:projectId/approval" element={<Approval/>}/>
