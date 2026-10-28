@@ -1,0 +1,92 @@
+name: Frontend build and security gate
+on:
+  push:
+    branches: [feat/frontend]
+    paths: ['apps/frontend/**', '.github/workflows/frontend-qa.yml']
+  pull_request:
+    branches: [main]
+    paths: ['apps/frontend/**', '.github/workflows/frontend-qa.yml']
+permissions:
+  contents: read
+concurrency:
+  group: frontend-qa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/frontend
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+      - name: Toolchain and checkout evidence
+        run: |
+          mkdir -p qa-evidence
+          { node --version; npm --version; git status --short --branch; git rev-parse HEAD; } | tee qa-evidence/environment.log
+          npm install --global npm@11.12.1
+          npm --version | tee -a qa-evidence/environment.log
+      - name: Generate missing lockfile (bootstrap only; never bypass npm ci)
+        run: |
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only --ignore-scripts 2>&1 | tee qa-evidence/lock-generation.log
+          fi
+      - name: Clean install
+        run: npm ci 2>&1 | tee qa-evidence/npm-ci.log
+      - name: Dependency graph
+        run: npm ls vite vitest @vitejs/plugin-react esbuild react-router-dom --all 2>&1 | tee qa-evidence/dependency-tree.log
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck 2>&1 | tee qa-evidence/typecheck.log
+      - name: Unit and integration regression tests
+        id: unit
+        continue-on-error: true
+        run: npm test -- --reporter=default --reporter=json --outputFile=qa-evidence/vitest.json 2>&1 | tee qa-evidence/vitest.log
+      - name: Domain smoke tests
+        id: smoke
+        continue-on-error: true
+        run: npm run test:smoke 2>&1 | tee qa-evidence/smoke.log
+      - name: Production build
+        id: build
+        continue-on-error: true
+        run: npm run build 2>&1 | tee qa-evidence/build.log
+      - name: Full dependency audit
+        id: audit
+        continue-on-error: true
+        run: npm audit --json > qa-evidence/audit-all.json
+      - name: Runtime dependency audit
+        id: runtime
+        continue-on-error: true
+        run: npm audit --omit=dev --json > qa-evidence/audit-runtime.json
+      - name: Upload logs and generated lockfile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-qa-${{ github.sha }}
+          path: |
+            apps/frontend/qa-evidence/
+            apps/frontend/package-lock.json
+          retention-days: 14
+      - name: Enforce all gates
+        if: always()
+        env:
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          UNIT: ${{ steps.unit.outcome }}
+          SMOKE: ${{ steps.smoke.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          AUDIT: ${{ steps.audit.outcome }}
+          RUNTIME: ${{ steps.runtime.outcome }}
+        run: |
+          test "$TYPECHECK" = success
+          test "$UNIT" = success
+          test "$SMOKE" = success
+          test "$BUILD" = success
+          test "$AUDIT" = success
+          test "$RUNTIME" = success

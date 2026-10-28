@@ -2,10 +2,14 @@ import { isDemoMode } from '../api';
 import { auth } from '../api/liveApi';
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Activity, ArrowRight, Blocks, Bot, CheckCheck, ChevronDown, FolderKanban, LayoutDashboard, Menu, MessageCircleMore, Plus, Settings2, Sparkles, X } from 'lucide-react';
+import { Activity, ArrowRight, Blocks, Bot, CheckCheck, ChevronDown, FolderKanban, LayoutDashboard, Menu, MessageCircleMore, Plus, Settings2, Sparkles, X, type LucideIcon } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { de } from '../i18n/de';
 import { DemoNotice, ErrorState, Loading } from './UI';
+
+// All groups use a shared shape, rather than the literal labels inferred from global.
+interface NavigationItem { label: string; path: string; Icon: LucideIcon; }
+
 function Logo() { return <div className="flex items-center gap-3"><span className="brand-mark"><Blocks size={25}/></span><div><div className="font-brand text-[25px] font-extrabold leading-7 tracking-[-1.3px]">{de.brand}<span className="text-[#6bdfba]"></span></div><p className="text-[9px] font-bold tracking-[.24em] text-slate-400">{de.brandTagline}</p></div></div>; }
 export function Layout() {
   const { projects, loading, error, refresh, selectedProjectId, setSelectedProjectId }=useApp();
@@ -14,15 +18,15 @@ export function Layout() {
   useEffect(()=>setOpen(false),[loc.pathname]);
   useEffect(()=>{if(!open)return;const listener=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false);};document.addEventListener('keydown',listener);return()=>document.removeEventListener('keydown',listener);},[open]);
   useEffect(()=>{if(params.projectId)setSelectedProjectId(params.projectId);},[params.projectId,setSelectedProjectId]);
-  const global=[{label:de.nav.dashboard,path:'/',Icon:LayoutDashboard},{label:de.nav.newProject,path:'/projects/new',Icon:Plus}];
-  const local=projectId?[
+  const global: readonly NavigationItem[]=[{label:de.nav.dashboard,path:'/',Icon:LayoutDashboard},{label:de.nav.newProject,path:'/projects/new',Icon:Plus}];
+  const local: readonly NavigationItem[]=projectId?[
     {label:de.v2.navigation.workspace,path:`/projects/${projectId}/board`,Icon:FolderKanban},
     {label:de.nav.workspace,path:`/projects/${projectId}/workspace`,Icon:MessageCircleMore},
     {label:de.nav.review,path:`/projects/${projectId}/review`,Icon:CheckCheck},
     {label:de.v2.navigation.assistant,path:`/projects/${projectId}/assistant`,Icon:Bot},
   ]:[];
-  const system=[{label:de.nav.activity,path:'/activity',Icon:Activity},{label:de.v2.navigation.settings,path:'/settings',Icon:Settings2}];
-  const entries=(items:typeof global)=>items.map(({label,path,Icon})=><NavLink key={path} to={path} end={path==='/'} className={({isActive})=>`nav-link ${isActive?'nav-active':''}`}><Icon size={18} aria-hidden="true"/><span>{label}</span>{path==='/projects/new'&&<ArrowRight size={14} className="ml-auto opacity-40"/>}</NavLink>);
+  const system: readonly NavigationItem[]=[{label:de.nav.activity,path:'/activity',Icon:Activity},{label:de.v2.navigation.settings,path:'/settings',Icon:Settings2}];
+  const entries=(items:readonly NavigationItem[])=>items.map(({label,path,Icon})=><NavLink key={path} to={path} end={path==='/'} className={({isActive})=>`nav-link ${isActive?'nav-active':''}`}><Icon size={18} aria-hidden="true"/><span>{label}</span>{path==='/projects/new'&&<ArrowRight size={14} className="ml-auto opacity-40"/>}</NavLink>);
   return <div className="min-h-screen bg-[#f5f7fa]"><a href="#main-content" className="skip-link">Zum Hauptinhalt springen</a>
     {open&&<button className="fixed inset-0 z-30 bg-slate-950/60 lg:hidden" aria-label="Navigation schließen" onClick={()=>setOpen(false)}/>}
     <aside className={`sidebar ${open?'translate-x-0':'-translate-x-full'} lg:translate-x-0`} aria-label="Hauptnavigation"><div className="mb-12 flex items-start justify-between px-6 pt-8"><Logo/><button className="text-white lg:hidden" aria-label="Menü schließen" onClick={()=>setOpen(false)}><X size={23}/></button></div>
