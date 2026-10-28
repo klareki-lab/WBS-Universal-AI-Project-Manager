@@ -1,5 +1,5 @@
-/** Runs runtime domain smoke tests without dependency downloads; NOT a substitute for a Vite build. */
-const fs=require('fs'),ts=(()=>{try{return require('typescript')}catch{return require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}})();
+/** Runtime demo-domain smoke checks. Install the declared local dependencies with npm ci first. */
+const fs=require('node:fs'),ts=require('typescript');
 require.extensions['.ts']=function(m,file){const source=fs.readFileSync(file,'utf8');m._compile(ts.transpileModule(source,{fileName:file,compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText,file);};
 const {mockApi,resetMockData}=require('../src/api/mockApi.ts');
 const assert=require('node:assert/strict');

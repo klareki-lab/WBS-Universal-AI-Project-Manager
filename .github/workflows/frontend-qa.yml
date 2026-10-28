@@ -15,15 +15,18 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      lock_created: ${{ steps.lock.outputs.created }}
     defaults:
       run:
         working-directory: apps/frontend
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24.15.0'
       - name: Toolchain and checkout evidence
@@ -32,10 +35,25 @@ jobs:
           { node --version; npm --version; git status --short --branch; git rev-parse HEAD; } | tee qa-evidence/environment.log
           npm install --global npm@11.12.1
           npm --version | tee -a qa-evidence/environment.log
-      - name: Generate missing lockfile (bootstrap only; never bypass npm ci)
+      - name: Re-resolved original dependency audit (not the unavailable Mac lockfile)
+        run: |
+          baseline=$(mktemp -d)
+          git show 091e37d6df5214c1ec91ccc50edb45d3002f563c:apps/frontend/package.json > "$baseline/package.json"
+          npm install --prefix "$baseline" --package-lock-only --ignore-scripts > qa-evidence/baseline-resolution.log 2>&1
+          set +e
+          npm audit --prefix "$baseline" --json > qa-evidence/audit-baseline.json
+          result=$?
+          set -e
+          echo "Baseline audit exit: $result (findings expected)"
+          node -e "const a=require('./qa-evidence/audit-baseline.json'); if(!a.metadata || a.error)process.exit(1); console.log(a.metadata.vulnerabilities)"
+      - name: Generate missing lockfile (one-time bootstrap)
+        id: lock
         run: |
           if [ ! -f package-lock.json ]; then
             npm install --package-lock-only --ignore-scripts 2>&1 | tee qa-evidence/lock-generation.log
+            echo 'created=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'created=false' >> "$GITHUB_OUTPUT"
           fi
       - name: Clean install
         run: npm ci 2>&1 | tee qa-evidence/npm-ci.log
@@ -45,7 +63,7 @@ jobs:
         id: typecheck
         continue-on-error: true
         run: npm run typecheck 2>&1 | tee qa-evidence/typecheck.log
-      - name: Unit and integration regression tests
+      - name: Unit and HTTP regression tests
         id: unit
         continue-on-error: true
         run: npm test -- --reporter=default --reporter=json --outputFile=qa-evidence/vitest.json 2>&1 | tee qa-evidence/vitest.log
@@ -53,10 +71,17 @@ jobs:
         id: smoke
         continue-on-error: true
         run: npm run test:smoke 2>&1 | tee qa-evidence/smoke.log
-      - name: Production build
+      - name: Production build (demo)
         id: build
         continue-on-error: true
         run: npm run build 2>&1 | tee qa-evidence/build.log
+      - name: Production build (live)
+        id: livebuild
+        continue-on-error: true
+        env:
+          VITE_DATA_MODE: live
+          VITE_API_BASE_URL: http://127.0.0.1:13081
+        run: npm run build 2>&1 | tee qa-evidence/build-live.log
       - name: Full dependency audit
         id: audit
         continue-on-error: true
@@ -65,9 +90,15 @@ jobs:
         id: runtime
         continue-on-error: true
         run: npm audit --omit=dev --json > qa-evidence/audit-runtime.json
-      - name: Upload logs and generated lockfile
+      - name: Install Chromium for isolated UI tests
+        run: npx playwright install --with-deps chromium > qa-evidence/browser-install.log 2>&1
+      - name: Actual React browser tests and screenshots (demo and explicit HTTP fixtures)
+        id: browser
+        continue-on-error: true
+        run: npm run test:browser 2>&1 | tee qa-evidence/browser.log
+      - name: Upload logs, screenshots and lockfile
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: frontend-qa-${{ github.sha }}
           path: |
@@ -81,12 +112,41 @@ jobs:
           UNIT: ${{ steps.unit.outcome }}
           SMOKE: ${{ steps.smoke.outcome }}
           BUILD: ${{ steps.build.outcome }}
+          LIVEBUILD: ${{ steps.livebuild.outcome }}
           AUDIT: ${{ steps.audit.outcome }}
           RUNTIME: ${{ steps.runtime.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
         run: |
-          test "$TYPECHECK" = success
-          test "$UNIT" = success
-          test "$SMOKE" = success
-          test "$BUILD" = success
-          test "$AUDIT" = success
-          test "$RUNTIME" = success
+          for value in "$TYPECHECK" "$UNIT" "$SMOKE" "$BUILD" "$LIVEBUILD" "$AUDIT" "$RUNTIME" "$BROWSER"; do
+            test "$value" = success
+          done
+  commit-verified-lock:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/frontend' && needs.verify.outputs.lock_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-qa-${{ github.sha }}
+          path: /tmp/frontend-verified-lock
+      - name: Commit only the tested npm lockfile without overwriting concurrent changes
+        env:
+          TESTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current=$(git ls-remote origin refs/heads/feat/frontend | cut -f1)
+          test "$current" = "$TESTED_SHA"
+          cp /tmp/frontend-verified-lock/package-lock.json apps/frontend/package-lock.json
+          git add -- apps/frontend/package-lock.json
+          test "$(git diff --cached --name-only)" = apps/frontend/package-lock.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(frontend): lock verified patched dependency tree'
+          git push origin HEAD:refs/heads/feat/frontend

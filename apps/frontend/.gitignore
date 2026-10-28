@@ -1,7 +1,9 @@
 node_modules/
 dist/
-coverage/
-.vite/
+.env*
+!.env.example
 *.local
-.DS_Store
 *.tsbuildinfo
+qa-evidence/
+playwright-report/
+test-results/
