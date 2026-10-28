@@ -1,0 +1,35 @@
+{"name":"Independent password encoding authenticates human and sets hardened cookie","status":"PASS","duration_ms":251}
+{"name":"Unrelated owners and projects cannot enumerate each other","status":"PASS","duration_ms":115}
+{"name":"Viewer cannot mutate, approve, publish or elevate role","status":"PASS","duration_ms":112}
+{"name":"Nested task plan and operation UUID substitution is isolated","status":"PASS","duration_ms":206}
+{"name":"SQL composite FK blocks cross-project dependencies","status":"PASS","duration_ms":147}
+{"name":"CSRF missing forged foreign-session and hostile Origin all fail","status":"PASS","duration_ms":51}
+{"name":"Expired session and disabled human cannot authenticate","status":"PASS","duration_ms":11}
+{"name":"Scoped service cannot approve even with explicit approval scope","status":"PASS","duration_ms":54}
+{"name":"Expired service token and missing scopes are rejected","status":"PASS","duration_ms":17}
+{"name":"Saved plan hash independently recomputes; SQL content and history immutable","status":"PASS","duration_ms":79}
+{"name":"Forged and other-version hashes rejected; unauthorized publication has no effects","status":"PASS","duration_ms":467}
+{"name":"Approved content has immutable exact-hash approval; rejected plans cannot publish","status":"PASS","duration_ms":306}
+{"name":"Self cycles multi-task cycles duplicate IDs and unknown keys fail safely","status":"PASS","duration_ms":116}
+{"name":"Concurrent publication with same and different keys creates one materialization","status":"PASS","duration_ms":220}
+{"name":"Changed payload method and resource with reused idempotency key conflict","status":"PASS","duration_ms":18}
+{"name":"Stale task and project writes produce exactly one winner","status":"PASS","duration_ms":118}
+{"name":"Intervening mutation invalidates previously approved base version","status":"PASS","duration_ms":63}
+{"name":"Metadata edit remains proposal until approval and publication","status":"PASS","duration_ms":169}
+{"name":"Progress and audit actor/request correlation match database after lifecycle","status":"PASS","duration_ms":832}
+{"name":"Invalid oversized payload and manipulated identifiers return safe errors","status":"PASS","duration_ms":55}
+{"name":"Lost committed HTTP response is recovered after application restart without duplicate","status":"PASS","duration_ms":217}
+{"name":"Injected publication SQL failure rolls back phases tasks events operation and retry key","status":"PASS","duration_ms":120}
+{"name":"Actual cancelled transaction rolls back and same key safely retries","status":"PASS","duration_ms":132}
+{"name":"Independent worker reclaim and duplicate callbacks commit one draft","status":"PASS","duration_ms":55}
+{"name":"20 bounded concurrent GETs are successful with measured latency","status":"PASS","duration_ms":102}
+{"name":"Pagination bounds and distinct stable pages","status":"PASS","duration_ms":103}
+{"name":"Contract-valid 200-character phase key can be published","status":"PASS","duration_ms":80}
+{"name":"Schema-valid PostgreSQL text NUL returns client validation error","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: {\"error\":{\"code\":\"internal_error\",\"message\":\"Internal server error\",\"request_id\":\"b010892e-728b-4d09-abfd-d226422d6e1c\"}}\n\n500 !== 400\n\n    at <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:77:173)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async test (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:38:100)\n    at async <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:77:1)","duration_ms":10}
+{"name":"Client out-of-range integer version returns client validation error","status":"PASS","duration_ms":17}
+{"name":"Planning callback is bound to original requested base version","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: old job relabeled as current base\n\n200 !== 409\n\n    at <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:79:450)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async test (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:38:100)\n    at async <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:79:1)","duration_ms":46}
+{"name":"Publication rejects approval whose approving human was disabled before publish","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: disabled approver still authorizes publication\n\n200 !== 409\n\n    at <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:80:297)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async test (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:38:100)\n    at async <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:80:1)","duration_ms":90}
+{"name":"Generated contract constrains result/error exclusivity","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: schema permits neither or both result and error\n    at <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:81:190)\n    at async test (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:38:100)\n    at async <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:81:1)","duration_ms":5}
+{"name":"CORS preflight response includes DELETE only when implemented and request ID always exists","status":"PASS","duration_ms":1}
+{"name":"Idempotency replay after creation membership revocation must recheck authorization","status":"FAIL","error":"AssertionError [ERR_ASSERTION]: replayed project creation leaks revoked project\n\n201 !== 404\n\n    at <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:83:480)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async test (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:38:100)\n    at async <anonymous> (/Users/admin/Projects/uapm-codex/apps/backend/audit/independent.ts:83:1)","duration_ms":22}
+{"name":"Maximum 500-task chain publishes atomically with bounded concurrency","status":"PASS","duration_ms":2058}

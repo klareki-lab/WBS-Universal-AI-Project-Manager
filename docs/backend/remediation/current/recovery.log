@@ -1,0 +1,29 @@
+{"event":"postgres.client_error","code":"57P01"}
+{"event":"postgres.client_error","code":"connection_lost"}
+[
+  {
+    "name": "Checked-out client asynchronous termination is handled and discarded",
+    "status": "PASS"
+  },
+  {
+    "name": "Built API survives idle connection termination and reconnects",
+    "status": "PASS",
+    "process_id": 20380
+  },
+  {
+    "name": "Terminated active publication rolls back, returns sanitized 503, and same-key retry commits once",
+    "status": "PASS",
+    "operation_id": "65c6809e-3b45-47c4-9054-a0d32fa8fd96"
+  },
+  {
+    "name": "PostgreSQL stop leaves API alive, health 200/readiness 503 and bounded sanitized mutation failure",
+    "status": "PASS",
+    "process_id": 20380
+  },
+  {
+    "name": "Same API process recovers after DB restart with session and exactly one idempotent resource",
+    "status": "PASS",
+    "process_id": 20380,
+    "project_id": "2956fa8c-cbf0-4133-82b7-0ede54d1aeeb"
+  }
+]

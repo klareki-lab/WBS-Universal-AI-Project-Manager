@@ -1,0 +1,45 @@
+{
+  "name": "@uapm/backend",
+  "private": true,
+  "version": "1.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/apps/backend/src/server.js",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-migrations.mjs",
+    "typecheck": "tsc --noEmit",
+    "migrate": "tsx src/migrate.ts",
+    "admin": "tsx src/admin.ts",
+    "worker": "tsx src/worker-main.ts",
+    "test": "vitest run",
+    "contracts": "tsx src/contracts.ts && openapi-typescript ../../packages/contracts/openapi.yaml -o ../../packages/contracts/types.ts",
+    "verify": "npm run typecheck && npm run contracts && npm test",
+    "smoke": "tsx src/smoke.ts",
+    "format:check": "prettier --check src tests scripts *.json vitest.config.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.0",
+    "@fastify/helmet": "^13.0.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "fastify": "^5.6.0",
+    "pg": "^8.16.0",
+    "yaml": "^2.8.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^12.0.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "openapi-typescript": "^7.10.0",
+    "playwright": "^1.64.1",
+    "prettier": "^3.9.10",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
+  }
+}

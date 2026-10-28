@@ -1,0 +1,123 @@
+{
+  "status": "PASS",
+  "executed_at": "2026-10-28T19:23:39.931Z",
+  "base_url": "http://localhost:13081",
+  "user_id": "2346bb03-7faa-4e39-ab05-4be826138faf",
+  "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+  "second_project_id": "72c6118e-2bd8-49d2-b2b4-d6d34e2183d5",
+  "plan_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9",
+  "approval_id": "72e9cbde-1119-4a14-891d-2d0be36617ff",
+  "content_hash": "0e68ea316f374163c0a04801cf4ead75d14d4fc0d82d8c7d452d8dd5faec58ef",
+  "operation_id": "65e5e2ee-1ae6-482b-94f2-43e5fc12e68f",
+  "database_counts": {
+    "tasks": 12,
+    "phases": 3,
+    "dependencies": 11,
+    "approvals": 1,
+    "publish_operations": 1,
+    "other_project_tasks": 0
+  },
+  "dashboard": {
+    "total": 12,
+    "by_status": {
+      "todo": 11,
+      "in_progress": 0,
+      "blocked": 0,
+      "done": 1,
+      "cancelled": 0
+    },
+    "progress_percent": 8
+  },
+  "http": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "request_id": "81f131e7-894f-429c-a965-d0126ad381df"
+    },
+    {
+      "method": "GET",
+      "path": "/ready",
+      "status": 200,
+      "request_id": "df16d869-e059-475b-b1fd-b5346c875b66"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "request_id": "4ec8e946-a7fd-4dac-8822-c3d5fa921880"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "b96cb1d9-2117-45ed-bad6-573d3e8c9ab6"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "request_id": "bf9ef661-6991-4737-956a-c7c866071779"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/plans",
+      "status": 201,
+      "request_id": "8e51896e-fb79-46b0-8606-90aa9f8ea4a0"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/plans/f614849f-6f70-4a19-844d-8c560ff5d5e9",
+      "status": 200,
+      "request_id": "07195241-a137-4bd2-b648-f0e7b179fae6"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/plans/f614849f-6f70-4a19-844d-8c560ff5d5e9/submit-review",
+      "status": 200,
+      "request_id": "c84e3238-5ea6-4058-b43f-718b18cac3a2"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/plans/f614849f-6f70-4a19-844d-8c560ff5d5e9/approvals",
+      "status": 201,
+      "request_id": "5720f3a8-cc02-4817-8022-20b0a3aecdbf"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/plans/f614849f-6f70-4a19-844d-8c560ff5d5e9/publish",
+      "status": 200,
+      "request_id": "3c8b6a38-49fe-48ad-bd38-0907ccba11b5"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/plans/f614849f-6f70-4a19-844d-8c560ff5d5e9/publish",
+      "status": 200,
+      "request_id": "b995c520-01a6-463f-b2b5-d382e1c0594e"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/tasks/dd144041-0d07-488b-b885-e1f3beeb5161/status",
+      "status": 200,
+      "request_id": "79423b9d-7eaa-48c9-8ff3-a0f08375b8b9"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/tasks/dd144041-0d07-488b-b885-e1f3beeb5161/status",
+      "status": 200,
+      "request_id": "3885e9e1-c31c-435f-b3a4-3cb97e1eea17"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/dashboard",
+      "status": 200,
+      "request_id": "8949ca73-2abe-4232-9693-e2e8d8a61d9a"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/049cc89f-ec3c-4f06-b429-946b59910e42/activity",
+      "status": 200,
+      "request_id": "cdb7ee0c-5c5f-4dad-b06b-cb55193eb157"
+    }
+  ]
+}

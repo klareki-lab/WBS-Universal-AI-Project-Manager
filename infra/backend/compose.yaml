@@ -1,0 +1,49 @@
+name: uapm-dev
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: uapm
+      POSTGRES_USER: uapm
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in ignored .env}
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-15439}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks: [backend]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U uapm -d uapm']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  backend:
+    build:
+      context: ../../apps/backend
+      dockerfile: ../../infra/backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://uapm:${POSTGRES_PASSWORD}@postgres:5432/uapm
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-http://localhost:5173}
+      N8N_ENDPOINT: ${N8N_ENDPOINT:-}
+      N8N_TOKEN: ${N8N_TOKEN:-}
+      HOST: 0.0.0.0
+      PORT: 3001
+    ports: ['127.0.0.1:${BACKEND_PORT:-13081}:3001']
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [backend]
+    restart: "on-failure:3"
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3001/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+volumes:
+  postgres-data:
+networks:
+  backend:
