@@ -59,3 +59,15 @@ at 42475b7bdefdc77305b4b4e96091ca8d45ed3431. Preserve its concurrent plan-state
 labels/guidance when applying the small LivePlanWorkspace query-selection
 change. Do not copy the entire frontend tree over newer integration changes.
 The approved source of truth remains Backend/OpenAPI 1.1.0 and P1 approval.
+
+## Owner follow-up: planning screen after saving task changes
+
+A manual task metadata PATCH returns a persisted draft, not a new AI planning job.
+The Planning/Review page now places the selected exact plan version and its
+human-controlled next action **above** the AI prompt and older operations on
+narrow layouts. Historical failed AI jobs remain inspectable in a collapsed
+`Backend-Vorgänge` section and cannot be mistaken for a failure of the
+persisted manual draft. `Review einreichen` is presented once for the selected
+version, with unchanged exact-hash human approval and publication. Direct
+status saves are already permanent and do not require a planning/review step.
+No API/contract or security policy change and no paid AI request.
