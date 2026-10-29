@@ -28,9 +28,9 @@ At the [official GPT-4.1 mini rates](https://developers.openai.com/api/docs/mode
 
 The installed n8n 1.74.0 code was checked as well as the [model-node documentation](https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.lmchatopenai/). Model-node version **1** is deliberate: version 1.1 hides its per-invocation Base URL option. The credential helper sets its fallback URL to local `/DENY` so configuration drift cannot silently send requests around the guard. The [webhook](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/) uses the version-2 nested custom-code format for HTTP 202, avoiding the existing backend adapter's 15-second deadline.
 
-## Single owner action to supply the missing credential
+## Credential configuration — provisioning completed
 
-From this worktree, run:
+The owner has completed this step, and the continuation metadata-only check confirms `uapm-openai` in the isolated G3 store. Do not reconfigure or test it merely to confirm presence. The original secure setup procedure is retained for reproducibility. From this worktree:
 
 ```sh
 node scripts/integration-g3/ai/configure-credential.mjs

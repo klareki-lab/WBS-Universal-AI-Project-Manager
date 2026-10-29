@@ -1,6 +1,6 @@
 # G3 full-system acceptance report
 
-**Current verdict: CONDITIONAL PASS — external owner actions remain; final release acceptance is withheld.** The deterministic product integration passes. Genuine AI execution is **NOT VERIFIED** because no authorized sandbox OpenAI credential or expense authorization is available. Time-based approval expiry is **out of scope for the G3 MVP**, subject to Product Owner ratification. See [G3-FINAL acceptance and blockers](FINAL.md). This is not a PASS of the real-AI gate.
+**Current verdict: CONDITIONAL PASS — external owner actions remain; final release acceptance is withheld.** The deterministic product integration passes. Genuine AI execution is **NOT VERIFIED** because explicit owner expense authorization and P1 ratification remain unrecorded. The sandbox credential has since been supplied and confirmed by metadata-only check; no provider request was made. Time-based approval expiry is **out of scope for the G3 MVP**, subject to Product Owner ratification. See [G3-FINAL acceptance and blockers](FINAL.md). This is not a PASS of the real-AI gate.
 
 The results below are the preserved baseline at `7beaf1ca91396e63ca6b9645a736f994c14c0379`; new profile evidence is reported separately in FINAL.md.
 
