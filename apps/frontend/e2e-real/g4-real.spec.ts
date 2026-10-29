@@ -64,3 +64,22 @@ test('unknown real project-write outcome retains durable key and creates exactly
  const projects=await (await page.request.get('/api/v1/projects?limit=100&offset=0')).json();expect(projects.items.filter((p:{name:string})=>p.name===name)).toHaveLength(1);
  await page.context().clearCookies();await page.reload();await expect(page.getByRole('button',{name:'Anmelden',exact:true})).toBeVisible();evidence.checks.push('Response lost after real commit: explicit replay after reload recovered original project; one row; 401 session loss distinct');
 });
+
+test('real unmodified rate limiter exposes Retry-After and the current view recovers automatically',async({page})=>{
+ await login(page);const list=await (await page.request.get('/api/v1/projects?limit=100&offset=0')).json();const id=list.items[0].id;
+ await page.goto(`/projects/${id}/board`);await expect(page.getByRole('heading',{name:'Projekt-Workspace'})).toBeVisible();
+ let seconds:number|undefined;let probes=0;
+ // Only harmless GETs in this ephemeral runner, same identity, same unchanged 120/min policy.
+ for(;probes<125;probes++){
+  const response=await page.request.get('/api/v1/projects?limit=100&offset=0');
+  if(response.status()===429){seconds=Number(response.headers()['retry-after']);break;}
+  expect(response.status()).toBe(200);
+ }
+ expect(seconds).toBeDefined();expect(Number.isFinite(seconds)).toBe(true);expect(seconds!).toBeGreaterThan(0);expect(seconds!).toBeLessThanOrEqual(60);
+ const writes:string[]=[];page.on('request',request=>{if(request.url().includes('/api/v1/')&&request.method()!=='GET')writes.push(request.method())});
+ await page.getByRole('link',{name:'Aktivit\u00e4t & Betrieb',exact:true}).click();
+ await expect(page.getByTestId('rate-limit-notice')).toBeVisible();await expect(page.getByRole('link',{name:'Dashboard',exact:true})).toBeVisible();await expect(page.getByLabel('Passwort')).toHaveCount(0);
+ await page.screenshot({path:'qa-evidence/screenshots/g4-429-real-backend.png',fullPage:true});
+ await expect(page.getByTestId('rate-limit-notice')).toHaveCount(0,{timeout:70_000});await expect(page.getByText('Projekt erstellt',{exact:true})).toBeVisible();await expect(page).toHaveURL(/\/activity$/);await expect(page.getByLabel('Projekt ausw\u00e4hlen')).toHaveValue(id);expect(writes).toEqual([]);
+ evidence.checks.push(`Real 429 recovery: Retry-After ${seconds}s; same project/route; GET probes ${probes+1}; no automatic mutation`);
+});
