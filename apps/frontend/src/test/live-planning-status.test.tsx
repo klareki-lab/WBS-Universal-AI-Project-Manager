@@ -7,7 +7,7 @@ import {MemoryRouter,Route,Routes} from 'react-router-dom';
 import LivePlanWorkspace from '../pages/LivePlanWorkspace';
 
 const state=vi.hoisted(()=>({failed:false,draft:false,reviewed:false,published:false}));
-beforeEach(()=>{state.failed=false;state.draft=false;state.reviewed=false;state.published=false;});
+beforeEach(()=>{vi.clearAllMocks();state.failed=false;state.draft=false;state.reviewed=false;state.published=false;});
 vi.mock('../live/client',()=>({api:{
  project:vi.fn(async()=>({id:'p1',name:'Synthetic project',version:1})),
  plans:vi.fn(async()=>({items:state.draft?[{id:'manual-v2',project_id:'p1',number:2,base_project_version:1,status:state.published?'published':state.reviewed?'in_review':'draft',content_hash:'a'.repeat(64),created_at:'2026-10-29T10:00:00Z',snapshot:{phases:[{key:'phase',name:'Phase',description:''}],tasks:[{key:'task',phase_key:'phase',title:'Manuell geändert',description:'No AI',priority:'medium',due_date:null,assignee_id:null,depends_on:[]}]}}]:[]})),
