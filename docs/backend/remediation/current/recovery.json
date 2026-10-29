@@ -1,0 +1,228 @@
+{
+  "records": [
+    {
+      "name": "Checked-out client asynchronous termination is handled and discarded",
+      "status": "PASS"
+    },
+    {
+      "name": "Built API survives idle connection termination and reconnects",
+      "status": "PASS",
+      "process_id": 20380
+    },
+    {
+      "name": "Terminated active publication rolls back, returns sanitized 503, and same-key retry commits once",
+      "status": "PASS",
+      "operation_id": "65c6809e-3b45-47c4-9054-a0d32fa8fd96"
+    },
+    {
+      "name": "PostgreSQL stop leaves API alive, health 200/readiness 503 and bounded sanitized mutation failure",
+      "status": "PASS",
+      "process_id": 20380
+    },
+    {
+      "name": "Same API process recovers after DB restart with session and exactly one idempotent resource",
+      "status": "PASS",
+      "process_id": 20380,
+      "project_id": "2956fa8c-cbf0-4133-82b7-0ede54d1aeeb"
+    }
+  ],
+  "http": [
+    {
+      "path": "/ready",
+      "method": "GET",
+      "status": 200,
+      "request_id": "69fc78b0-34f0-4cea-89fa-0a19440a15b8",
+      "duration_ms": 16
+    },
+    {
+      "path": "/api/v1/auth/login",
+      "method": "POST",
+      "status": 200,
+      "request_id": "9f2529c4-3127-4c71-aa1a-d43144643db6",
+      "duration_ms": 87
+    },
+    {
+      "path": "/api/v1/auth/me",
+      "method": "GET",
+      "status": 200,
+      "request_id": "badd0ac4-7d6e-49cd-9027-9cdbd8cf4deb",
+      "duration_ms": 5
+    },
+    {
+      "path": "/api/v1/auth/me",
+      "method": "GET",
+      "status": 200,
+      "request_id": "b8078ca9-fb72-4b98-b6fe-2e3aefd00bfd",
+      "duration_ms": 13
+    },
+    {
+      "path": "/api/v1/projects",
+      "method": "POST",
+      "status": 201,
+      "request_id": "f96dd2a0-4fec-4267-9303-f3e8470d2e89",
+      "duration_ms": 15
+    },
+    {
+      "path": "/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans",
+      "method": "POST",
+      "status": 201,
+      "request_id": "cc022392-84dc-4ddf-8a24-61160b28235e",
+      "duration_ms": 21
+    },
+    {
+      "path": "/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/submit-review",
+      "method": "POST",
+      "status": 200,
+      "request_id": "348a94d9-5147-48cb-a2d7-420d3cad6dd7",
+      "duration_ms": 13
+    },
+    {
+      "path": "/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/approvals",
+      "method": "POST",
+      "status": 201,
+      "request_id": "d0e6b7d0-e918-4eb5-ab61-3d0ca25dc6ae",
+      "duration_ms": 12
+    },
+    {
+      "path": "/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/publish",
+      "method": "POST",
+      "status": 503,
+      "request_id": "77ea7b45-dd8a-44f6-a9df-21a110a4e9ac",
+      "duration_ms": 22
+    },
+    {
+      "path": "/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/publish",
+      "method": "POST",
+      "status": 200,
+      "request_id": "d90e7fb5-8361-4978-bdd2-930a973432c8",
+      "duration_ms": 50
+    },
+    {
+      "path": "/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/publish",
+      "method": "POST",
+      "status": 200,
+      "request_id": "a9c0c2ba-97e2-4721-a4fb-8235c7848a42",
+      "duration_ms": 8
+    },
+    {
+      "path": "/health",
+      "method": "GET",
+      "status": 200,
+      "request_id": "d8649e1a-e545-49ee-85bf-610e67f4ac17",
+      "duration_ms": 14
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "status": 503,
+      "request_id": "3263dfca-3c5d-494f-b728-9ce5a319f764",
+      "duration_ms": 4
+    },
+    {
+      "path": "/api/v1/projects",
+      "method": "POST",
+      "status": 503,
+      "request_id": "443f2319-5a53-476a-a702-9553c870e356",
+      "duration_ms": 4
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "status": 503,
+      "request_id": "23e13a21-bcde-486f-95ee-580777084d7a",
+      "duration_ms": 6
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "status": 503,
+      "request_id": "36b69937-a23e-41b4-826b-619e1dfc9251",
+      "duration_ms": 2
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "status": 503,
+      "request_id": "d06dc09e-ea37-424f-9536-909850ca3802",
+      "duration_ms": 4
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "status": 503,
+      "request_id": "86c1fb36-5520-4743-907b-6ee5250cadb3",
+      "duration_ms": 4
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "status": 503,
+      "request_id": "77afbf7d-5013-44b0-9548-e1e0c80e08b5",
+      "duration_ms": 11
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "status": 200,
+      "request_id": "f3260034-fdce-4dc2-8317-204de1c62b57",
+      "duration_ms": 22
+    },
+    {
+      "path": "/api/v1/projects",
+      "method": "POST",
+      "status": 201,
+      "request_id": "5627a3b7-a710-4179-a3e2-24834df51a6f",
+      "duration_ms": 23
+    }
+  ],
+  "logs": [
+    "{\"level\":30,\"time\":1793215617890,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"msg\":\"Server listening at http://127.0.0.1:26481\"}\n",
+    "{\"level\":30,\"time\":1793215617940,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"69fc78b0-34f0-4cea-89fa-0a19440a15b8\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215617947,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"69fc78b0-34f0-4cea-89fa-0a19440a15b8\",\"res\":{\"statusCode\":200},\"responseTime\":7.309584000000029,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215617955,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"9f2529c4-3127-4c71-aa1a-d43144643db6\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/auth/login\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49821},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618038,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"9f2529c4-3127-4c71-aa1a-d43144643db6\",\"res\":{\"statusCode\":200},\"responseTime\":83.07437500000003,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215618157,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"badd0ac4-7d6e-49cd-9027-9cdbd8cf4deb\",\"req\":{\"method\":\"GET\",\"url\":\"/api/v1/auth/me\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618161,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"badd0ac4-7d6e-49cd-9027-9cdbd8cf4deb\",\"res\":{\"statusCode\":200},\"responseTime\":3.5080410000000484,\"msg\":\"request completed\"}\n",
+    "{\"event\":\"postgres.client_error\",\"code\":\"57P01\"}\n",
+    "{\"event\":\"postgres.idle_error\",\"code\":\"57P01\"}\n",
+    "{\"level\":30,\"time\":1793215618269,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"b8078ca9-fb72-4b98-b6fe-2e3aefd00bfd\",\"req\":{\"method\":\"GET\",\"url\":\"/api/v1/auth/me\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618280,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"b8078ca9-fb72-4b98-b6fe-2e3aefd00bfd\",\"res\":{\"statusCode\":200},\"responseTime\":11.105457999999999,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215618282,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"f96dd2a0-4fec-4267-9303-f3e8470d2e89\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49821},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618296,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"f96dd2a0-4fec-4267-9303-f3e8470d2e89\",\"res\":{\"statusCode\":201},\"responseTime\":13.99045799999999,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215618297,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"cc022392-84dc-4ddf-8a24-61160b28235e\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618317,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"cc022392-84dc-4ddf-8a24-61160b28235e\",\"res\":{\"statusCode\":201},\"responseTime\":19.906417000000033,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215618318,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"348a94d9-5147-48cb-a2d7-420d3cad6dd7\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/submit-review\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49821},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618331,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"348a94d9-5147-48cb-a2d7-420d3cad6dd7\",\"res\":{\"statusCode\":200},\"responseTime\":12.288125000000036,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215618331,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"d0e6b7d0-e918-4eb5-ab61-3d0ca25dc6ae\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/approvals\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618343,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"d0e6b7d0-e918-4eb5-ab61-3d0ca25dc6ae\",\"res\":{\"statusCode\":201},\"responseTime\":11.071833999999967,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215618345,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"77ea7b45-dd8a-44f6-a9df-21a110a4e9ac\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/publish\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":50,\"time\":1793215618364,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"77ea7b45-dd8a-44f6-a9df-21a110a4e9ac\",\"err\":{\"type\":\"DatabaseError\",\"message\":\"terminating connection due to administrator command\",\"stack\":\"error: terminating connection due to administrator command\\n    at /Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg/lib/client.js:694:17\\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\\n    at async Module.publish (file:///Users/admin/Projects/uapm-codex/apps/backend/dist/apps/backend/src/domain.js:135:23)\\n    at async file:///Users/admin/Projects/uapm-codex/apps/backend/dist/apps/backend/src/app.js:425:36\\n    at async transaction (file:///Users/admin/Projects/uapm-codex/apps/backend/dist/apps/backend/src/db.js:55:24)\\n    at async Object.handler (file:///Users/admin/Projects/uapm-codex/apps/backend/dist/apps/backend/src/app.js:399:32)\",\"length\":120,\"name\":\"error\",\"severity\":\"FATAL\",\"code\":\"57P01\",\"position\":\"13\",\"file\":\"postgres.c\",\"line\":\"3316\",\"routine\":\"ProcessInterrupts\"},\"msg\":\"Request failed\"}\n",
+    "{\"level\":30,\"time\":1793215618365,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"77ea7b45-dd8a-44f6-a9df-21a110a4e9ac\",\"res\":{\"statusCode\":503},\"responseTime\":19.972167000000013,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215618374,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"d90e7fb5-8361-4978-bdd2-930a973432c8\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/publish\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618423,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"d90e7fb5-8361-4978-bdd2-930a973432c8\",\"res\":{\"statusCode\":200},\"responseTime\":49.035499999999956,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215618424,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"a9c0c2ba-97e2-4721-a4fb-8235c7848a42\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects/2956fa8c-cbf0-4133-82b7-0ede54d1aeeb/plans/4daa3524-da84-42cf-8c28-7e3df6c9f159/publish\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49821},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215618431,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"a9c0c2ba-97e2-4721-a4fb-8235c7848a42\",\"res\":{\"statusCode\":200},\"responseTime\":6.87033299999996,\"msg\":\"request completed\"}\n",
+    "{\"event\":\"postgres.client_error\",\"code\":\"57P01\"}\n{\"event\":\"postgres.idle_error\",\"code\":\"57P01\"}\n",
+    "{\"level\":30,\"time\":1793215620321,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"d8649e1a-e545-49ee-85bf-610e67f4ac17\",\"req\":{\"method\":\"GET\",\"url\":\"/health\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215620323,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"d8649e1a-e545-49ee-85bf-610e67f4ac17\",\"res\":{\"statusCode\":200},\"responseTime\":1.6452500000000327,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215620327,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"3263dfca-3c5d-494f-b728-9ce5a319f764\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49821},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215620330,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"3263dfca-3c5d-494f-b728-9ce5a319f764\",\"res\":{\"statusCode\":503},\"responseTime\":2.71683400000029,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215620332,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"443f2319-5a53-476a-a702-9553c870e356\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":50,\"time\":1793215620334,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"443f2319-5a53-476a-a702-9553c870e356\",\"err\":{\"type\":\"Error\",\"message\":\"connect ECONNREFUSED 127.0.0.1:26439\",\"stack\":\"Error: connect ECONNREFUSED 127.0.0.1:26439\\n    at /Users/admin/Projects/uapm-codex/apps/backend/node_modules/pg-pool/index.js:45:11\\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\\n    at async authenticate (file:///Users/admin/Projects/uapm-codex/apps/backend/dist/apps/backend/src/app.js:112:19)\\n    at async Object.handler (file:///Users/admin/Projects/uapm-codex/apps/backend/dist/apps/backend/src/app.js:368:62)\",\"errno\":-61,\"code\":\"ECONNREFUSED\",\"syscall\":\"connect\",\"address\":\"127.0.0.1\",\"port\":26439},\"msg\":\"Request failed\"}\n",
+    "{\"level\":30,\"time\":1793215620334,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"443f2319-5a53-476a-a702-9553c870e356\",\"res\":{\"statusCode\":503},\"responseTime\":2.2530409999999392,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215620699,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"23e13a21-bcde-486f-95ee-580777084d7a\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49821},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215620703,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"23e13a21-bcde-486f-95ee-580777084d7a\",\"res\":{\"statusCode\":503},\"responseTime\":4.668874999999844,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215620805,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"36b69937-a23e-41b4-826b-619e1dfc9251\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215620806,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"36b69937-a23e-41b4-826b-619e1dfc9251\",\"res\":{\"statusCode\":503},\"responseTime\":1.6014169999998558,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215620909,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"d06dc09e-ea37-424f-9536-909850ca3802\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215620911,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"d06dc09e-ea37-424f-9536-909850ca3802\",\"res\":{\"statusCode\":503},\"responseTime\":2.264541999999892,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215621014,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"86c1fb36-5520-4743-907b-6ee5250cadb3\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215621016,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"86c1fb36-5520-4743-907b-6ee5250cadb3\",\"res\":{\"statusCode\":503},\"responseTime\":2.428041000000121,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215621120,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"77afbf7d-5013-44b0-9548-e1e0c80e08b5\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215621129,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"77afbf7d-5013-44b0-9548-e1e0c80e08b5\",\"res\":{\"statusCode\":503},\"responseTime\":8.98712499999965,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215621231,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"f3260034-fdce-4dc2-8317-204de1c62b57\",\"req\":{\"method\":\"GET\",\"url\":\"/ready\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49820},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215621252,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"f3260034-fdce-4dc2-8317-204de1c62b57\",\"res\":{\"statusCode\":200},\"responseTime\":20.583082999999988,\"msg\":\"request completed\"}\n",
+    "{\"level\":30,\"time\":1793215621254,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"5627a3b7-a710-4179-a3e2-24834df51a6f\",\"req\":{\"method\":\"POST\",\"url\":\"/api/v1/projects\",\"host\":\"127.0.0.1:26481\",\"remoteAddress\":\"127.0.0.1\",\"remotePort\":49821},\"msg\":\"incoming request\"}\n",
+    "{\"level\":30,\"time\":1793215621275,\"pid\":20380,\"hostname\":\"iMac.fritz.box\",\"reqId\":\"5627a3b7-a710-4179-a3e2-24834df51a6f\",\"res\":{\"statusCode\":201},\"responseTime\":21.109249999999975,\"msg\":\"request completed\"}\n"
+  ]
+}

@@ -1,0 +1,320 @@
+{
+  "project": {
+    "id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+    "owner_id": "2346bb03-7faa-4e39-ab05-4be826138faf",
+    "name": "Backend E2E — release workspace",
+    "description": "Twelve realistic tasks over Discovery, Delivery and Launch.",
+    "status": "draft",
+    "version": 1,
+    "published_plan_id": null,
+    "created_at": "2026-10-28T19:23:39.695Z",
+    "updated_at": "2026-10-28T19:23:39.695Z"
+  },
+  "plan": {
+    "origin_operation_id": null,
+    "id": "f614849f-6f70-4a19-844d-8c560ff5d5e9",
+    "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+    "number": 1,
+    "base_project_version": 1,
+    "status": "draft",
+    "snapshot": {
+      "phases": [
+        {
+          "key": "discovery",
+          "name": "Discovery",
+          "description": "Validate the scope and acceptance criteria"
+        },
+        {
+          "key": "delivery",
+          "name": "Delivery",
+          "description": "Build and verify the release"
+        },
+        {
+          "key": "launch",
+          "name": "Launch",
+          "description": "Prepare a controlled handover"
+        }
+      ],
+      "tasks": [
+        {
+          "key": "task-1",
+          "phase_key": "discovery",
+          "title": "Collect stakeholder requirements",
+          "description": "Produce and review the evidence for: collect stakeholder requirements.",
+          "priority": "high",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": []
+        },
+        {
+          "key": "task-2",
+          "phase_key": "discovery",
+          "title": "Map existing workflows",
+          "description": "Produce and review the evidence for: map existing workflows.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-1"
+          ]
+        },
+        {
+          "key": "task-3",
+          "phase_key": "discovery",
+          "title": "Agree acceptance criteria",
+          "description": "Produce and review the evidence for: agree acceptance criteria.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-2"
+          ]
+        },
+        {
+          "key": "task-4",
+          "phase_key": "discovery",
+          "title": "Review scope",
+          "description": "Produce and review the evidence for: review scope.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-3"
+          ]
+        },
+        {
+          "key": "task-5",
+          "phase_key": "delivery",
+          "title": "Design API and data model",
+          "description": "Produce and review the evidence for: design api and data model.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-4"
+          ]
+        },
+        {
+          "key": "task-6",
+          "phase_key": "delivery",
+          "title": "Implement core workflows",
+          "description": "Produce and review the evidence for: implement core workflows.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-5"
+          ]
+        },
+        {
+          "key": "task-7",
+          "phase_key": "delivery",
+          "title": "Run integration tests",
+          "description": "Produce and review the evidence for: run integration tests.",
+          "priority": "high",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-6"
+          ]
+        },
+        {
+          "key": "task-8",
+          "phase_key": "delivery",
+          "title": "Complete security review",
+          "description": "Produce and review the evidence for: complete security review.",
+          "priority": "high",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-7"
+          ]
+        },
+        {
+          "key": "task-9",
+          "phase_key": "launch",
+          "title": "Prepare operating guide",
+          "description": "Produce and review the evidence for: prepare operating guide.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-8"
+          ]
+        },
+        {
+          "key": "task-10",
+          "phase_key": "launch",
+          "title": "Rehearse release",
+          "description": "Produce and review the evidence for: rehearse release.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-9"
+          ]
+        },
+        {
+          "key": "task-11",
+          "phase_key": "launch",
+          "title": "Run acceptance session",
+          "description": "Produce and review the evidence for: run acceptance session.",
+          "priority": "high",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-10"
+          ]
+        },
+        {
+          "key": "task-12",
+          "phase_key": "launch",
+          "title": "Record handover",
+          "description": "Produce and review the evidence for: record handover.",
+          "priority": "medium",
+          "assignee_id": null,
+          "start_date": null,
+          "due_date": null,
+          "estimated_effort": null,
+          "definition_of_done": "Evidence is saved and acceptance criteria are met.",
+          "depends_on": [
+            "task-11"
+          ]
+        }
+      ]
+    },
+    "content_hash": "0e68ea316f374163c0a04801cf4ead75d14d4fc0d82d8c7d452d8dd5faec58ef",
+    "created_by": "2346bb03-7faa-4e39-ab05-4be826138faf",
+    "created_at": "2026-10-28T19:23:39.736Z",
+    "published_at": null
+  },
+  "approval": {
+    "id": "72e9cbde-1119-4a14-891d-2d0be36617ff",
+    "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+    "plan_version_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9",
+    "user_id": "2346bb03-7faa-4e39-ab05-4be826138faf",
+    "content_hash": "0e68ea316f374163c0a04801cf4ead75d14d4fc0d82d8c7d452d8dd5faec58ef",
+    "decision": "approved",
+    "comment": "",
+    "created_at": "2026-10-28T19:23:39.828Z"
+  },
+  "operation": {
+    "request_id": "2424a6c2-b09b-4cd6-9756-5be67e405ffd",
+    "context_hash": null,
+    "id": "65e5e2ee-1ae6-482b-94f2-43e5fc12e68f",
+    "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+    "created_by": "2346bb03-7faa-4e39-ab05-4be826138faf",
+    "kind": "publish",
+    "status": "succeeded",
+    "input": {
+      "plan_version_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9"
+    },
+    "result": {
+      "task_ids": {
+        "task-1": "dd144041-0d07-488b-b885-e1f3beeb5161",
+        "task-2": "80d7a6f3-292c-44a8-bf0e-074eadd2265c",
+        "task-3": "f4569cb5-256a-4e88-a73c-0c2390962581",
+        "task-4": "155c5d51-54b9-4da3-aa5f-79ce0c408c2f",
+        "task-5": "ee5e6847-0f4e-4c75-b07c-66232b2907bf",
+        "task-6": "e06dd265-ebd4-4d23-bcaa-033bd7c16433",
+        "task-7": "f2f98f31-14e0-4726-a3c5-aaca922865e7",
+        "task-8": "549cdc86-0362-48ef-aac4-72ddbc91511c",
+        "task-9": "b2c6334e-c814-426c-9c46-e71820a70470",
+        "task-10": "8df1e3ac-e682-43a2-817e-daa6bb427efa",
+        "task-11": "c65e83e4-b817-4373-8a43-2e8922c361e1",
+        "task-12": "ed7551f5-2c8c-4ff8-ac91-0cc9d0460b1c"
+      },
+      "task_count": 12,
+      "plan_version_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9"
+    },
+    "error": null,
+    "attempts": 1,
+    "max_attempts": 3,
+    "next_attempt_at": "2026-10-28T19:23:39.844Z",
+    "lease_until": null,
+    "conversation_session_id": null,
+    "created_at": "2026-10-28T19:23:39.844Z",
+    "updated_at": "2026-10-28T19:23:39.844Z"
+  },
+  "dashboard": {
+    "project": {
+      "id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+      "owner_id": "2346bb03-7faa-4e39-ab05-4be826138faf",
+      "name": "Backend E2E — release workspace",
+      "description": "Twelve realistic tasks over Discovery, Delivery and Launch.",
+      "status": "active",
+      "version": 4,
+      "published_plan_id": "f614849f-6f70-4a19-844d-8c560ff5d5e9",
+      "created_at": "2026-10-28T19:23:39.695Z",
+      "updated_at": "2026-10-28T19:23:39.896Z"
+    },
+    "phases": [
+      {
+        "id": "cadd1c41-e0e5-48bd-8ecd-66f3f1a82075",
+        "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+        "key": "discovery",
+        "name": "Discovery",
+        "description": "Validate the scope and acceptance criteria",
+        "position": 0
+      },
+      {
+        "id": "438fba18-be6e-494b-8cad-9c598812475c",
+        "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+        "key": "delivery",
+        "name": "Delivery",
+        "description": "Build and verify the release",
+        "position": 1
+      },
+      {
+        "id": "b257bd02-247f-4759-b70a-45b1636517cc",
+        "project_id": "049cc89f-ec3c-4f06-b429-946b59910e42",
+        "key": "launch",
+        "name": "Launch",
+        "description": "Prepare a controlled handover",
+        "position": 2
+      }
+    ],
+    "total": 12,
+    "by_status": {
+      "todo": 11,
+      "in_progress": 0,
+      "blocked": 0,
+      "done": 1,
+      "cancelled": 0
+    },
+    "progress_percent": 8
+  }
+}

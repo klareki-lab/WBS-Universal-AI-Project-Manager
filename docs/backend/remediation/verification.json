@@ -1,0 +1,98 @@
+{
+  "status": "CONDITIONAL PASS",
+  "backend_remediation": "PASS",
+  "verified_commit": "c7107d6d7644e9926b128a0df078b6a03566ff3e",
+  "verified_source_trees": {
+    "apps/backend": "7f3050faf830972debeccaf747322fc7a63864ab",
+    "packages/contracts": "cc8158f38ab3bf90900eedee28461ce55bdae41d",
+    "infra/backend": "97f5ab78bd6bd5df5e24537cbf94fcda1c55fec4"
+  },
+  "generated_at": "2026-10-28T19:32:21.660284+00:00",
+  "original_audit_inputs_unchanged": true,
+  "confirmed_audit_findings_open": [],
+  "open_critical": 0,
+  "open_high": 0,
+  "automated_tests": {
+    "total": 46,
+    "passed": 46,
+    "failed": 0
+  },
+  "original_independent_suite": {
+    "total": 35,
+    "pass": 35,
+    "fail": 0
+  },
+  "response_schema_checks": {
+    "checked": 214,
+    "violations": 0
+  },
+  "additional_groups": {
+    "recovery.json": {
+      "pass": 5,
+      "fail": 0
+    },
+    "browser.json": {
+      "pass": 4,
+      "fail": 0
+    },
+    "worker-restart.json": {
+      "pass": 1,
+      "fail": 0
+    },
+    "upgrade.json": {
+      "pass": 2,
+      "fail": 0
+    }
+  },
+  "actual_default_browser": "PASS",
+  "original_differential_probes": {
+    "passed": 2,
+    "failed": 0
+  },
+  "docker_smoke": "PASS",
+  "docker_image": "sha256:b394cc624de3d16bb22def88262abc950312b148c1c51778817f1c5dcead4d81",
+  "npm_vulnerabilities": 0,
+  "gates": {
+    "typecheck": "PASS",
+    "build": "PASS",
+    "format": "PASS",
+    "contract_validation": "PASS",
+    "contract_regeneration_no_diff": "PASS"
+  },
+  "excluded_harness_attempts": [
+    "current/tests-interleaved.json: invalid simultaneous outage/suite run; authoritative suite rerun sequentially",
+    "current/upgrade-initial.json: case-sensitive direct fixture email; corrected fixture and fresh DB"
+  ],
+  "remaining_conditions": [
+    "actual Astra UI and Claude Code MCP/live n8n integration not exercised",
+    "external independent reviewer sign-off pending",
+    "explicit conservative P1 policy requires product-owner ratification",
+    "production operational prerequisites remain outside local RC"
+  ],
+  "artifact_sha256": {
+    "current/browser.json": "2e3f2e6b9c3a25e43acf574b514df2ee0ca9b9658107be4dfd00be7df3005107",
+    "current/browser.log": "bee917c1062aee9afb9f0722e9d38085130bb75f97b852dc1422b4a704c8c24e",
+    "current/contract-differential.json": "f8cb90168009a3c78e30e62ee2ecd6b400dba6e2cacedcb6d61177953f5a1b78",
+    "current/contract-inventory.json": "dba592b81d4cb851312b1a44cb1bc9e2466fcc180890e9397a536794099c810d",
+    "current/default-browser.json": "bdda05cc7462145a9473535668c70fe4ce6d6fc5a3b6966e7d90b05f47ab6f2a",
+    "current/default-browser.log": "bdda05cc7462145a9473535668c70fe4ce6d6fc5a3b6966e7d90b05f47ab6f2a",
+    "current/gates.log": "9334e1e5deda501d1c744afa89974bc46206e4304526c7b3b4bdf59de925a88e",
+    "current/independent-progress.json": "3962b75a3196b1aeccf8763c820b5692a39953dda20b820b1f4112dad5da2dcf",
+    "current/independent-results.json": "31ba975a99c7c92811bbf66ce4173c1a5bf7874d9ad8bdd32708da727ce05e61",
+    "current/independent.log": "b6e58c77966d4ac6640c7a12e04ff2b8e26106d871f85374baf507a51669c941",
+    "current/npm-audit.json": "b6a297ff4e73abc7bd92cebe3b59fb09173356040616dd2aaa5324a2d7287fee",
+    "current/recovery.json": "2f015e71df3fec5175df1e691807d069352905d4006ef4ff03830282fde3b587",
+    "current/recovery.log": "c287a51c6a3ddfaa61fdd6014e5e4ff5f5994b7e76573256e1f2dc66f9838cb8",
+    "current/smoke.json": "81fd4a279e0cd62a4d699e034354870ee1864d721624b3d5b9ea65cfbe44fdf7",
+    "current/smoke.log": "81fd4a279e0cd62a4d699e034354870ee1864d721624b3d5b9ea65cfbe44fdf7",
+    "current/tests-interleaved.json": "32645bdd88252f628e36f12eab0bf90776342da9c7cde687b152a0570ca23468",
+    "current/tests-interleaved.log": "c3d31aed4e64d4afb6e7d36156c241a5bdf792c10cc117d76d39711b05a04134",
+    "current/tests.json": "b1cce7b0fa5c66cff94d588bf5ba7116837acce4d9f5d74f6544b6ff916bf70e",
+    "current/tests.log": "ce285abab28fb51759cae3bfd4b274681fea21fea1160ee16d4b2599e4b8af37",
+    "current/upgrade-initial.json": "d8e42e7f4851d8af73ee4a7f5edf824887cbef8a2b3a15eb1cd09fcacf5fe5e1",
+    "current/upgrade.json": "ea3396762d1c7364432f91af06a324bc91aa33c62fcd08ee29df54aeb857df7e",
+    "current/upgrade.log": "f2e496569c5f1c09806d629dd50ec31b0e4a6b082bd8954c964c1e25ac6e46f1",
+    "current/worker-restart.json": "9b7b6f7078e4307258bab90721915b3e485ecbf7237376226a8a0eff4d056c6f",
+    "current/worker-restart.log": "883dff05071be9fecf281e314d09cb67c3d61ecdc22c1f03fc3c5d484cec733b"
+  }
+}
