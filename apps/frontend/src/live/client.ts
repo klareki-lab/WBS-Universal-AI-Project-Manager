@@ -4,7 +4,7 @@ export type TaskStatus='todo'|'in_progress'|'blocked'|'done'|'cancelled';
 export type PlanStatus='draft'|'in_review'|'approved'|'published'|'superseded'|'rejected';
 export type JobStatus='queued'|'running'|'succeeded'|'failed';
 export interface Project {id:string;name:string;description:string;status:ProjectStatus;version:number;published_plan_id:string|null;created_at:string;updated_at:string}
-export interface Task {id:string;project_id:string;title:string;description:string;status:TaskStatus;priority:'low'|'medium'|'high'|'urgent';version:number;due_date:string|null;assignee_id:string|null;phase_id:string}
+export interface Task {id:string;project_id:string;title:string;description:string;status:TaskStatus;priority:'low'|'medium'|'high'|'urgent';version:number;due_date:string|null;assignee_id:string|null;phase_id:string;source_key:string;source_plan_id:string}
 export interface Phase {key:string;name:string;description:string}
 export interface PlanTask {key:string;phase_key:string;title:string;description:string;priority:'low'|'medium'|'high'|'urgent';depends_on:string[];due_date:string|null;assignee_id:string|null}
 export interface Plan {id:string;project_id:string;number:number;base_project_version:number;status:PlanStatus;content_hash:string;created_at:string;snapshot:{phases:Phase[];tasks:PlanTask[]}}
@@ -48,15 +48,23 @@ export async function request<T>(path:string,method:'GET'|'POST'|'PATCH'='GET',b
   if(write){
     if(!activeSession())throw new ApiError(401,'authentication_required','Bitte erneut anmelden, damit ein CSRF-Token verfügbar ist.','');
     headers['X-CSRF-Token']=csrf!;
-    headers['Idempotency-Key']=key??crypto.randomUUID();
+    const fingerprint=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([method,path,body]))))).map(x=>x.toString(16).padStart(2,'0')).join('');
+    const slot='uapm.pending.'+fingerprint;
+    key=key??sessionStorage.getItem(slot)??crypto.randomUUID();
+    sessionStorage.setItem(slot,key);
+    headers['Idempotency-Key']=key;
   }
   let response:Response;
   try{response=await fetch(base+path,{method,headers,credentials:'include',body:body===undefined?undefined:JSON.stringify(body)})}
   catch{throw new ApiError(0,'network_unknown',write
-    ?'Verbindung unterbrochen. Ergebnis unbekannt; Aktion nicht erneut ausführen, bevor der Serverzustand geprüft wurde.'
+    ?'Verbindung unterbrochen. Ergebnis unbekannt. Identische Eingabe erneut senden: Der ursprüngliche Idempotenzschlüssel bleibt erhalten.'
     :'Netzwerkfehler. Laden ist erneut möglich.','')}
   // No automatic retry: a mutation may have committed before the response was lost.
-  return await decode(response,write) as T;
+  const result=await decode(response,write) as T;
+  // Retain the key after network/5xx/unreadable responses. An explicit retry of
+  // identical input (including after reload) recovers the original transaction.
+  if(write){for(let i=sessionStorage.length-1;i>=0;i--){const slot=sessionStorage.key(i)!;if(slot.startsWith('uapm.pending.')&&sessionStorage.getItem(slot)===key)sessionStorage.removeItem(slot)}}
+  return result;
 }
 export async function login(email:string,password:string){
   clearSession();
@@ -71,7 +79,12 @@ export async function login(email:string,password:string){
   csrf=data.csrf_token;
   return {id:data.user.id,display_name:data.user.display_name};
 }
-export async function session(){return request<{id:string;display_name:string}>('/api/v1/auth/session')}
+export async function session(){
+ const user=await request<{id:string;display_name:string}>('/api/v1/auth/session');
+ const token=await request<{csrf_token:string}>('/api/v1/auth/csrf');
+ if(!token.csrf_token)throw new ApiError(200,'invalid_response','CSRF-Bootstrap fehlgeschlagen','');
+ csrf=token.csrf_token;return user;
+}
 export async function logout(){await request<unknown>('/api/v1/auth/logout','POST');clearSession()}
 const p=(id:string)=>'/api/v1/projects/'+encodeURIComponent(id);
 const one=(id:string)=>'/api/v1/operations/'+encodeURIComponent(id);
@@ -92,5 +105,7 @@ export const api={
  planning:(id:string,prompt:string,key?:string)=>request<Operation>(p(id)+'/agent/planning-requests','POST',{prompt},key),
  operations:(id:string)=>request<Page<Operation>>(p(id)+'/operations?limit=100&offset=0'),
  operation:(id:string)=>request<Operation>(one(id)),
+ approvalHistory:(id:string,planId:string)=>request<{items:Array<{id:string;plan_version_id:string;user_id:string;decision:string;created_at:string}>;revocations:Array<{approval_id:string;reason:string;source:string}>}>(p(id)+'/plans/'+encodeURIComponent(planId)+'/approvals'),
+ revoke:(id:string,planId:string,reason:string)=>request(p(id)+'/plans/'+encodeURIComponent(planId)+'/revoke-approval','POST',{reason}),
  activity:(id:string)=>request<Page<Activity>>(p(id)+'/activity?limit=100&offset=0')
 };

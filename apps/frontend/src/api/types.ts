@@ -20,9 +20,9 @@ export interface PlanChange { taskId: string; action: 'added' | 'modified' | 're
 export interface PlanDiff { projectId: string; baseVersionId?: string; candidateVersionId: string; changes: PlanChange[]; }
 export interface ChangeProposal { id: string; projectId: string; basePlanVersionId: string; summary: string; suggestedTaskTitle: string; status: ProposalStatus; createdAt: string; source: 'local-demo-rule'; }
 export interface ActivityEvent { id: string; projectId?: string; at: string; category: 'project' | 'task' | 'plan' | 'approval' | 'proposal' | 'operation'; title: string; detail: string; level: 'info' | 'success' | 'warning' | 'error'; simulated: boolean; }
-export interface OperationJob { id: string; projectId: string; type: 'plan-analysis' | 'proposal-validation' | 'report-generation'; state: OperationState; createdAt: string; retrySafe: boolean; retryReason: string; simulated: true; detail: string; }
+export interface OperationJob { id: string; projectId: string; type: 'plan-analysis' | 'proposal-validation' | 'report-generation'; state: OperationState; createdAt: string; retrySafe: boolean; retryReason: string; simulated: boolean; detail: string; }
 export interface AgentConversation { id: string; projectId: string; createdAt: string; messages: AgentMessage[]; }
-export interface AgentMessage { id: string; role: 'user' | 'assistant'; text: string; kind: 'question' | 'read_only' | 'proposal'; createdAt: string; proposalId?: string; simulated: true; }
+export interface AgentMessage { id: string; role: 'user' | 'assistant'; text: string; kind: 'question' | 'read_only' | 'proposal'; createdAt: string; proposalId?: string; simulated: boolean; }
 export interface AppCapabilities { mode: 'mock' | 'live'; persistence: boolean; aiAvailable: boolean; integrations: { name: string; connected: boolean; optional: true }[]; }
 export interface NewProjectInput { name: string; description: string; type: ProjectType; targetDate: string; budget?: number; constraints: string[]; }
 export type TaskEdit = Pick<Task, 'title' | 'description' | 'priority' | 'status' | 'estimateDays' | 'dueDate' | 'dependsOn'>;

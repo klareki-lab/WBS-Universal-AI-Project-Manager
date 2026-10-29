@@ -1,0 +1,36 @@
+name: Frontend G4 isolated QA
+on:
+  push:
+    branches: [feat/frontend]
+permissions:
+  contents: read
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.15.0
+      - name: Record pinned baseline and prepare isolated QA dependencies
+        run: |
+          mkdir -p "$RUNNER_TEMP/g4-reference"
+          git status --short --branch > "$RUNNER_TEMP/g4-reference/git-status.txt"
+          git rev-parse HEAD >> "$RUNNER_TEMP/g4-reference/git-status.txt"
+          git branch -f feat/frontend HEAD
+          git bundle create "$RUNNER_TEMP/g4-reference/frontend.bundle" refs/heads/feat/frontend
+          git archive 0ba4899a3130a8663a719f4856d4b463e5b976a3 apps/backend packages/contracts docs/backend apps/mcp-server/src automation > "$RUNNER_TEMP/g4-reference/g3-reference.tar"
+          cd apps/frontend
+          npm ci
+          npm run typecheck
+          tar -czf "$RUNNER_TEMP/g4-reference/dependencies.tar.gz" node_modules
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: g4-pinned-reference-${{ github.sha }}
+          path: ${{ runner.temp }}/g4-reference/
+          retention-days: 3

@@ -15,10 +15,21 @@ describe('human session and CSRF transport',()=>{
     fetchMock.mockResolvedValueOnce(ok({id:'project'}));await api.createProject('Project','Description','command-001');
     expect(fetchMock).toHaveBeenCalledWith('/api/v1/projects',expect.objectContaining({credentials:'include',method:'POST',headers:expect.objectContaining({'X-CSRF-Token':'test-csrf','Idempotency-Key':'command-001'})}));
   });
-  it('allows a cookie-backed session read after reload but prevents writes without CSRF',async()=>{
-    fetchMock.mockResolvedValueOnce(ok(user));expect(await session()).toEqual(user);expect(activeSession()).toBe(false);
-    await expect(api.createProject('Project','')).rejects.toMatchObject({status:401,code:'authentication_required'});expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0][1]?.headers).not.toHaveProperty('X-CSRF-Token');
+  it('bootstraps CSRF from a cookie-backed session after reload',async()=>{
+    fetchMock.mockResolvedValueOnce(ok(user)).mockResolvedValueOnce(ok({csrf_token:'restored-csrf'}));
+    expect(await session()).toEqual(user);expect(activeSession()).toBe(true);
+    fetchMock.mockResolvedValueOnce(ok({id:'project'}));await api.createProject('Project','');
+    expect(fetchMock.mock.calls[2][1]?.headers).toMatchObject({'X-CSRF-Token':'restored-csrf'});
+    expect(localStorage.length).toBe(0);
+  });
+  it('retains the original idempotency key after an ambiguous write and CSRF restoration',async()=>{
+    await authenticate();fetchMock.mockRejectedValueOnce(new TypeError('connection lost'));
+    await expect(api.createProject('Synthetic','')).rejects.toMatchObject({code:'network_unknown'});
+    const key=(fetchMock.mock.calls[0][1]?.headers as Record<string,string>)['Idempotency-Key'];
+    clearSession();fetchMock.mockResolvedValueOnce(ok(user)).mockResolvedValueOnce(ok({csrf_token:'restored'}));await session();
+    fetchMock.mockResolvedValueOnce(ok({id:'original'}));await api.createProject('Synthetic','');
+    expect((fetchMock.mock.calls[fetchMock.mock.calls.length-1]?.[1]?.headers as Record<string,string>)['Idempotency-Key']).toBe(key);
+    expect(sessionStorage.length).toBe(0);
   });
   it('does not authenticate a malformed successful login response',async()=>{
     fetchMock.mockResolvedValueOnce(ok({user}));await expect(login('qa@example.invalid','test-only-password')).rejects.toMatchObject({code:'invalid_response'});expect(activeSession()).toBe(false);
@@ -60,7 +71,7 @@ describe('errors, optimistic versions and uncertain outcomes',()=>{
     await expect(api.createProject('Project','')).rejects.toMatchObject({code:'invalid_response'});expect(fetchMock).toHaveBeenCalledTimes(1);
   });
   it('sends the displayed version on status updates and preserves conflict evidence',async()=>{
-    await authenticate();const task:Task={id:'task-1',project_id:'project-1',phase_id:'phase-1',title:'Task',description:'',priority:'urgent',status:'todo',version:7,due_date:null,assignee_id:null};
+    await authenticate();const task:Task={id:'task-1',project_id:'project-1',phase_id:'phase-1',source_key:'task',source_plan_id:'plan',title:'Task',description:'',priority:'urgent',status:'todo',version:7,due_date:null,assignee_id:null};
     fetchMock.mockResolvedValueOnce(denied(409,'stale_task_version'));
     const error=await api.status('project-1',task,'in_progress','status-key').catch((e:unknown)=>e);
     expect(error).toMatchObject({status:409,code:'stale_task_version',requestId:'req-test'});
