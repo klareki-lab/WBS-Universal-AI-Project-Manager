@@ -14,7 +14,7 @@ describe("MCP initialization and discovery", () => {
     assert.equal(res.status, 401);
   });
 
-  it("initializes and lists 16 tools", async () => {
+  it("initializes and lists the v1.1 scoped tools", async () => {
     const client = await makeClient(h.baseUrl, { userId: "user_demo" });
     const tools = await client.listTools();
     const names = tools.tools.map((t) => t.name).sort();
@@ -35,8 +35,10 @@ describe("MCP initialization and discovery", () => {
       "request_plan_approval",
       "update_task",
       "update_task_status",
+      "submit_review",
+      "store_agent_result",
     ];
-    assert.deepEqual(names, expected);
+    assert.deepEqual(names, expected.sort());
     for (const t of tools.tools) {
       assert.ok(t.inputSchema, `tool ${t.name} missing inputSchema`);
       assert.ok(t.description && t.description.length > 0, `tool ${t.name} missing description`);

@@ -26,9 +26,9 @@ test('invalid credentials never expose an authenticated dashboard',async({page})
   await expect(page.getByRole('heading',{name:'Projekte klar steuern. Menschen entscheiden.'})).toHaveCount(0);
 });
 
-test('cookie session without CSRF requests reauthentication instead of issuing writes',async({page})=>{
+test('malformed CSRF bootstrap fails closed instead of issuing writes',async({page})=>{
   let writes=0;await page.route('**/api/v1/**',async route=>{if(route.request().method()!=='GET')writes++;await route.fulfill({json:user})});
-  await page.goto('/');await expect(page.getByText(/Sitzung erneut bestätigen/)).toBeVisible();
+  await page.goto('/');await expect(page.getByRole('button',{name:'Anmelden',exact:true})).toBeVisible();
   expect(writes).toBe(0);
 });
 

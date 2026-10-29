@@ -39,10 +39,10 @@ export class BackendError extends Error {
 
 export function errorToToolPayload(err: unknown): { error: { code: string; message: string } } {
   if (err instanceof BackendError) {
-    return { error: { code: err.code, message: err.message } };
+    return { error: { code: err.code, message: err.message, ...(err.details as object ?? {}) } };
   }
   if (err instanceof Error) {
-    return { error: { code: "internal_error", message: err.message } };
+    return { error: { code: "internal_error", message: "MCP operation failed" } };
   }
   return { error: { code: "internal_error", message: "Unknown error" } };
 }

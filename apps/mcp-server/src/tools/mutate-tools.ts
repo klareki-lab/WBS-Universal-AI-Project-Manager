@@ -26,6 +26,9 @@ function errText(err: unknown) {
 
 const IdempotencyKey = z.string().min(8).max(128).describe("Caller-supplied unique key for idempotency.");
 
+const phase=z.object({key:z.string().min(1),name:z.string().min(1),description:z.string().optional()}).strict();
+const task=z.object({key:z.string().min(1),phase_key:z.string().min(1),title:z.string().min(1),description:z.string().optional(),priority:z.enum(['low','medium','high','urgent']).optional(),assignee_id:z.string().uuid().nullable().optional(),start_date:z.string().nullable().optional(),due_date:z.string().nullable().optional(),estimated_effort:z.number().nullable().optional(),definition_of_done:z.string().optional(),depends_on:z.array(z.string())}).strict();
+const planCreate=z.object({base_project_version:z.number().int().positive(),snapshot:z.object({phases:z.array(phase).min(1),tasks:z.array(task).min(1)}).strict()}).strict();
 export function registerMutateTools(server: McpServer, ctx: Ctx): void {
   server.registerTool(
     "create_project",
@@ -60,6 +63,7 @@ export function registerMutateTools(server: McpServer, ctx: Ctx): void {
       description: "Save a structured draft plan. Does not publish live tasks and does not request approval.",
       inputSchema: {
         projectId: StableIdSchema,
+        baseProjectVersion: z.number().int().positive(),
         plan: PlanDraftSchema,
         idempotencyKey: IdempotencyKey,
       },
@@ -84,6 +88,7 @@ export function registerMutateTools(server: McpServer, ctx: Ctx): void {
       description: "Create a new plan proposal/version. Never mutates an already approved plan snapshot.",
       inputSchema: {
         projectId: StableIdSchema,
+        baseProjectVersion: z.number().int().positive(),
         basePlanVersionId: StableIdSchema.nullable().describe("Prior plan version this proposal is based on, if any."),
         plan: PlanDraftSchema,
         rationale: z.string().max(5000).optional(),
@@ -109,6 +114,7 @@ export function registerMutateTools(server: McpServer, ctx: Ctx): void {
       title: "Request plan approval",
       description: "Create a pending human approval request for a saved plan version. Does NOT approve the plan.",
       inputSchema: {
+        projectId: StableIdSchema,
         planVersionId: StableIdSchema,
         note: z.string().max(2000).optional(),
         idempotencyKey: IdempotencyKey,
@@ -134,6 +140,8 @@ export function registerMutateTools(server: McpServer, ctx: Ctx): void {
       description:
         "Publish an existing approved plan version. The backend independently validates human approval, version hash, authorization and idempotency.",
       inputSchema: {
+        contentHash: z.string().regex(/^[a-f0-9]{64}$/),
+        projectId: StableIdSchema,
         planVersionId: StableIdSchema,
         idempotencyKey: IdempotencyKey,
       },
@@ -181,10 +189,11 @@ export function registerMutateTools(server: McpServer, ctx: Ctx): void {
   server.registerTool(
     "update_task",
     {
-      title: "Update task",
+      title: "Propose task metadata",
       description:
-        "Propose or apply allowed task field changes according to backend policy. High-impact changes (priority, assigneeId, dueDate) require a separate approved plan proposal.",
+        "Create a new immutable draft proposal. Never modifies the published task; human approval and publication are required.",
       inputSchema: {
+        projectId: StableIdSchema,
         taskId: StableIdSchema,
         expectedVersion: z.number().int().nonnegative(),
         changes: z
@@ -202,17 +211,20 @@ export function registerMutateTools(server: McpServer, ctx: Ctx): void {
         idempotencyKey: IdempotencyKey,
       },
       outputSchema: {
-        task: TaskDetailSchema,
+        planVersion: PlanVersionSchema,
         operationId: z.string(),
         requiresApproval: z.boolean(),
       },
     },
     async (args) => {
       try {
-        return okText(await ctx.backend.updateTask(ctx.getPrincipal(), args));
+        return okText(await ctx.backend.proposeTaskMetadata!(ctx.getPrincipal(), args));
       } catch (e) {
         return errText(e);
       }
     },
   );
+  server.registerTool("submit_review",{description:"Submit an immutable draft for review before requesting approval",inputSchema:{projectId:StableIdSchema,planVersionId:StableIdSchema,idempotencyKey:IdempotencyKey}},async a=>{try{return okText(await ctx.backend.submitReview!(ctx.getPrincipal(),a.projectId,a.planVersionId,a.idempotencyKey))}catch(e){return errText(e)}});
+  server.registerTool("store_agent_result",{description:"Complete an existing planning operation using its original provenance and base; strict success/error union",inputSchema:{operationId:StableIdSchema,projectId:StableIdSchema,requestId:z.string().min(1),baseProjectVersion:z.number().int().positive(),idempotencyKey:IdempotencyKey,payload:z.union([z.object({result:planCreate}).strict(),z.object({error:z.string().min(1).max(2000)}).strict()])}},async a=>{try{return okText(await ctx.backend.storeAgentResult!(ctx.getPrincipal(),a))}catch(e){return errText(e)}});
+
 }

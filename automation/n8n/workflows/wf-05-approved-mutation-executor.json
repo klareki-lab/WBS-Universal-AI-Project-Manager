@@ -2,7 +2,9 @@
   "name": "UAPM WF-05 — Approved Mutation Executor",
   "nodes": [
     {
-      "parameters": {},
+      "parameters": {
+        "inputSource": "passthrough"
+      },
       "id": "sub-input",
       "name": "Sub-workflow input",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
@@ -14,7 +16,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Validate the structured mutation request. No LLM is allowed to synthesize this freely.\nconst r = $input.first().json;\nconst req = r.request || {};\nconst d = r.decision || {};\nconst op = r.operation || d.operation || {};\nconst allowed = new Set(['publish_approved_plan','update_task_status','update_task']);\nif (!allowed.has(op.name)) return [{ json: { error: { code: 'invalid_operation', message: `Not an allowed mutation: ${op.name}` } } }];\nif (!op.arguments || typeof op.arguments !== 'object') return [{ json: { error: { code: 'invalid_arguments', message: 'Missing arguments' } } }];\nif (!op.arguments.idempotencyKey) return [{ json: { error: { code: 'missing_idempotency_key', message: 'idempotencyKey required' } } }];\n// For publish_approved_plan, we MUST verify approval status first.\nreturn [{ json: { request: req, op } }];"
+        "jsCode": "// Validate the structured mutation request. No LLM is allowed to synthesize this freely.\nconst r = $input.first().json;\nconst req = r.request || {};\nconst d = r.decision || {};\nconst op = r.operation || d.operation || {};\nconst allowed = new Set(['publish_approved_plan','update_task_status','update_task']);\nif (!allowed.has(op.name)) (()=>{throw new Error('Invalid operation')})();\nif (!op.arguments || typeof op.arguments !== 'object') (()=>{throw new Error('Missing arguments')})();\nif (!op.arguments.idempotencyKey) (()=>{throw new Error('Missing idempotency key')})();\n// For publish_approved_plan, we MUST verify approval status first.\nreturn [{ json: { request: req, op } }];"
       },
       "id": "validate-op",
       "name": "Validate mutation",
@@ -67,17 +69,13 @@
               "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
             },
             {
-              "name": "x-on-behalf-of",
-              "value": "={{ $json.request.principal.userId }}"
-            },
-            {
               "name": "x-correlation-id",
               "value": "={{ $json.request.principal.correlationId }}"
             }
           ]
         },
         "sendBody": true,
-        "jsonBody": "={\n  \"tool\": \"get_approval_status\",\n  \"arguments\": { \"planVersionId\": \"{{ $json.op.arguments.planVersionId }}\" }\n}",
+        "jsonBody": "={{ JSON.stringify({tool:'get_approval_status',arguments:{projectId:$json.op.arguments.projectId,planVersionId:$json.op.arguments.planVersionId} }) }}",
         "options": {
           "timeout": 10000,
           "response": {
@@ -85,7 +83,8 @@
               "neverError": true
             }
           }
-        }
+        },
+        "specifyBody": "json"
       },
       "id": "fetch-approval",
       "name": "Fetch approval status",
@@ -98,7 +97,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const prev = $('Validate mutation').item.json;\nconst approval = $json;\nif (approval.state !== 'approved') return [{ json: { error: { code: 'approval_required', message: 'Plan not approved by a human' } } }];\nreturn [{ json: prev }];"
+        "jsCode": "if($json.state!=='approved')throw new Error('Human approval required');return [{json:$('Validate mutation').first().json}];"
       },
       "id": "enforce-approval",
       "name": "Enforce human approval",
@@ -121,10 +120,6 @@
               "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
             },
             {
-              "name": "x-on-behalf-of",
-              "value": "={{ $json.request.principal.userId }}"
-            },
-            {
               "name": "x-correlation-id",
               "value": "={{ $json.request.principal.correlationId }}"
             }
@@ -142,7 +137,8 @@
               "neverError": true
             }
           }
-        }
+        },
+        "specifyBody": "json"
       },
       "id": "exec-mutation",
       "name": "Execute mutation",
@@ -165,6 +161,43 @@
         800,
         320
       ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "g3/wf-05",
+        "responseMode": "lastNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "id": "g3-webhook-5",
+      "name": "G3 service webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        600
+      ],
+      "webhookId": "g3-wf-05",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "G3WebhookAuth001",
+          "name": "G3 isolated webhook bearer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw=$input.first().json;\nif(raw.headers){if(raw.headers.authorization!=='Bearer '+$env.UAPM_WEBHOOK_TOKEN)throw new Error('Unauthorized G3 webhook');return [{json:raw.body}];}\nreturn [{json:raw}];"
+      },
+      "id": "entry-packet",
+      "name": "Entry packet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
     }
   ],
   "connections": {
@@ -172,7 +205,7 @@
       "main": [
         [
           {
-            "node": "Validate mutation",
+            "node": "Entry packet",
             "type": "main",
             "index": 0
           }
@@ -240,14 +273,39 @@
           }
         ]
       ]
+    },
+    "G3 service webhook": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry packet": {
+      "main": [
+        [
+          {
+            "node": "Validate mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
   },
   "staticData": null,
   "pinData": {},
   "versionId": "wf-05-approved-mutation-executor-v1",
   "triggerCount": 0,
-  "active": false
+  "active": true,
+  "id": "G3Workflow0000005"
 }

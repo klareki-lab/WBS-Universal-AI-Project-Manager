@@ -44,6 +44,7 @@ export interface CreateProjectInput {
 export interface CreatePlanDraftInput {
   projectId: string;
   plan: PlanDraft;
+  baseProjectVersion?: number;
   idempotencyKey: string;
 }
 
@@ -51,17 +52,21 @@ export interface ProposePlanChangesInput {
   projectId: string;
   basePlanVersionId: string | null;
   plan: PlanDraft;
+  baseProjectVersion?: number;
   rationale?: string;
   idempotencyKey: string;
 }
 
 export interface RequestApprovalInput {
+  projectId?: string;
   planVersionId: string;
   note?: string;
   idempotencyKey: string;
 }
 
 export interface PublishApprovedPlanInput {
+  projectId?: string;
+  contentHash?: string;
   planVersionId: string;
   idempotencyKey: string;
 }
@@ -75,6 +80,7 @@ export interface UpdateTaskStatusInput {
 }
 
 export interface UpdateTaskInput {
+  projectId?: string;
   taskId: string;
   expectedVersion: number;
   changes: Partial<{
@@ -91,14 +97,18 @@ export interface UpdateTaskInput {
 }
 
 export interface BackendClient {
+  submitReview?(principal: Principal, projectId: string, planId: string, key: string): Promise<unknown>;
+  storeAgentResult?(principal: Principal, input: {operationId:string;projectId:string;requestId:string;baseProjectVersion:number;payload:unknown;idempotencyKey:string}): Promise<unknown>;
+  proposeTaskMetadata?(principal: Principal, input: UpdateTaskInput): Promise<{planVersion:PlanVersion;operationId:string;requiresApproval:boolean}>;
+  listPlans?(principal: Principal, projectId: string): Promise<PlanVersion[]>;
   listProjects(principal: Principal, filter: ListProjectsFilter): Promise<PageResult<ProjectSummary>>;
   getProject(principal: Principal, id: string): Promise<ProjectDetail>;
   listProjectTasks(principal: Principal, projectId: string, filter: ListTasksFilter): Promise<PageResult<TaskSummary>>;
-  getTask(principal: Principal, taskId: string): Promise<TaskDetail>;
-  getPlanVersion(principal: Principal, planVersionId: string): Promise<PlanVersion>;
+  getTask(principal: Principal, taskId: string, projectId?: string): Promise<TaskDetail>;
+  getPlanVersion(principal: Principal, planVersionId: string, projectId?: string): Promise<PlanVersion>;
   getCurrentPublishedPlan(principal: Principal, projectId: string): Promise<PlanVersion | null>;
   getProjectProgress(principal: Principal, projectId: string): Promise<ProjectProgress>;
-  getApprovalStatus(principal: Principal, planVersionId: string): Promise<ApprovalStatus>;
+  getApprovalStatus(principal: Principal, planVersionId: string, projectId?: string): Promise<ApprovalStatus>;
   listActivityHistory(principal: Principal, projectId: string, cursor?: string, limit?: number): Promise<PageResult<ActivityEntry>>;
   getOperationStatus(principal: Principal, operationId: string): Promise<OperationStatus>;
   createProject(principal: Principal, input: CreateProjectInput): Promise<{ project: ProjectDetail; operationId: string }>;

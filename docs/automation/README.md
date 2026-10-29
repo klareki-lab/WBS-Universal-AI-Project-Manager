@@ -1,3 +1,5 @@
+> G3 integration supersedes the original component wiring below. See [G3 setup](../integration-g3/README.md) and [contract reconciliation](../integration-g3/COMPATIBILITY.md). Historical component evidence is retained.
+
 # UAPM Automation — n8n multi-agent orchestration
 
 Six workflows live under `automation/n8n/workflows/`:

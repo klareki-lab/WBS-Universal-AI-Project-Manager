@@ -12,6 +12,7 @@ try {
     secureCookies: c.COOKIE_SECURE === "true",
     allowedOrigin: c.ALLOWED_ORIGIN,
     logger: true,
+    automationServiceId: c.AUTOMATION_SERVICE_ID,
   });
   const stop = c.N8N_ENDPOINT
     ? startWorker(pool, httpAdapter(c.N8N_ENDPOINT, c.N8N_TOKEN))

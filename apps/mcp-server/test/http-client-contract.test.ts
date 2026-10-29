@@ -109,7 +109,7 @@ describe("HttpBackendClient against canonical OpenAPI contract", () => {
         path: /^\/api\/v1\/projects\/[^/]+\/dashboard$/,
         handler: () => ({
           status: 200,
-          body: { project: { id: demoProjectId, status: "active", version: 1 }, task_counts_by_status: { todo: 2, done: 1 }, overdue_count: 0, blockers: [], updated_at: "2026-10-28T20:00:00Z" },
+          body: { project: { id: demoProjectId, status: "active", version: 1 }, by_status: { todo: 2, done: 1 }, overdue_count: 0, blockers: [], updated_at: "2026-10-28T20:00:00Z" },
         }),
       },
       {
@@ -149,7 +149,7 @@ describe("HttpBackendClient against canonical OpenAPI contract", () => {
               kind: "publish",
               status: "succeeded",
               input: {},
-              result: { task_ids: ["t_1", "t_2"], plan_version_id: demoPlanId },
+              result: { task_ids: {first:"t_1", second:"t_2"}, plan_version_id: demoPlanId },
               error: null,
               created_at: "2026-10-28T20:00:00Z",
             },
@@ -247,6 +247,12 @@ describe("HttpBackendClient against canonical OpenAPI contract", () => {
       client.createProject(principal, { name: "n", idempotencyKey: "idem-create-1" }),
       (e: unknown) => e instanceof BackendError && e.code === "human_only",
     );
+  });
+
+  it("bodyless request-approval omits JSON content-type",async()=>{
+    const client=new HttpBackendClient(loadConfig());
+    await client.requestPlanApprovalScoped(principal,demoProjectId,demoPlanId,'g3-bodyless-key');
+    const call=captured.at(-1);assert.equal(call.body,null);assert.equal(call.headers['content-type'],undefined);
   });
 
   it("updateTaskStatus refuses — human-only policy guard", async () => {

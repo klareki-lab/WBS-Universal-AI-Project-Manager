@@ -6,6 +6,7 @@ const env = z.object({
   COOKIE_SECURE: z.enum(["true", "false"]).default("true"),
   ALLOWED_ORIGIN: z.url(),
   N8N_ENDPOINT: z.union([z.literal(""), z.url()]).default(""),
+  AUTOMATION_SERVICE_ID: z.uuid().optional(),
   N8N_TOKEN: z.string().default(""),
 });
 export function configuration() {

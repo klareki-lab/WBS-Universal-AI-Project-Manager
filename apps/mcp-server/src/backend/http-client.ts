@@ -276,7 +276,7 @@ function fromContractOperation(c: any): OperationStatus {
     action: c.kind ?? "unknown",
     projectId: c.project_id ?? null,
     idempotencyKey: null,
-    attempts: 0,
+    attempts: c.attempts ?? 0,
     lastError: c.error ? { code: "backend_error", message: String(c.error) } : null,
     resultRef: c.result ? JSON.stringify(c.result).slice(0, 1024) : null,
     createdAt: c.created_at ?? new Date().toISOString(),
@@ -310,9 +310,9 @@ export class HttpBackendClient implements BackendClient {
       }
     }
     const headers = new Headers({
-      "content-type": "application/json",
       accept: "application/json",
     });
+    if(opts.body !== undefined) headers.set("content-type","application/json");
     if (this.cfg.backendServiceToken) {
       headers.set("authorization", `Bearer ${this.cfg.backendServiceToken}`);
     }
@@ -358,7 +358,7 @@ export class HttpBackendClient implements BackendClient {
           await new Promise((r) => setTimeout(r, retryAfter));
           continue;
         }
-        throw new BackendError(code, message, res.status, { backendRequestId: parsed.error?.request_id });
+        throw new BackendError(code, message, res.status, { backendRequestId: parsed.error?.request_id, backendCode: contractCode });
       } catch (err: any) {
         clearTimeout(timeout);
         lastErr = err;
@@ -370,7 +370,7 @@ export class HttpBackendClient implements BackendClient {
           throw new BackendError("timeout", `Backend request timed out after ${this.cfg.requestTimeoutMs}ms`, 504);
         }
         if (err instanceof BackendError) throw err;
-        throw new BackendError("backend_unavailable", `Backend request failed: ${err?.message ?? err}`, 503);
+        throw new BackendError("backend_unavailable", "Backend connection failed", 503);
       }
     }
     throw lastErr instanceof BackendError
@@ -432,7 +432,8 @@ export class HttpBackendClient implements BackendClient {
     };
   }
 
-  async getTask(_p: Principal, _taskId: string): Promise<TaskDetail> {
+  async getTask(_p: Principal, _taskId: string, projectId?:string): Promise<TaskDetail> {
+    if(projectId) return this.getTaskScoped(_p, projectId, _taskId);
     // The contract requires projectId in the path. We expect taskId to be a UUID;
     // callers must supply projectId separately via list_project_tasks → get_task flow.
     // If a caller sends a bare UUID, we return not_found to force the correct flow.
@@ -450,13 +451,15 @@ export class HttpBackendClient implements BackendClient {
       path: `/api/v1/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}`,
       principal: p,
     });
-    return fromContractTask(c, projectId);
+    const dependencies=await this.request<{items:Array<{depends_on_id:string}>}>({method:"GET",path:`/api/v1/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/dependencies`,principal:p});
+    return {...fromContractTask(c, projectId),dependencies:dependencies.items.map(d=>d.depends_on_id)};
   }
 
-  async getPlanVersion(p: Principal, planVersionId: string): Promise<PlanVersion> {
+  async getPlanVersion(p: Principal, planVersionId: string, projectId?:string): Promise<PlanVersion> {
+    if(projectId) return this.getPlanScoped(p, projectId, planVersionId);
     throw new BackendError(
       "validation_error",
-      "get_plan_version requires both projectId and planId in the contract: GET /api/v1/projects/{projectId}/plans/{planId}. Use get_plan_scoped(projectId, planId).",
+      "get_plan_version requires both projectId and planId in the contract: GET /api/v1/projects/{projectId}/plans/{planId}. Use get_plan_version(projectId, planVersionId).",
       400,
     );
   }
@@ -482,7 +485,7 @@ export class HttpBackendClient implements BackendClient {
       path: `/api/v1/projects/${encodeURIComponent(projectId)}/dashboard`,
       principal: p,
     });
-    const byStatus: Record<string, number> = c.task_counts_by_status ?? c.counts_by_status ?? {};
+    const byStatus: Record<string, number> = c.by_status ?? c.task_counts_by_status ?? c.counts_by_status ?? {};
     const total = Object.values(byStatus).reduce((a, b) => a + (b as number), 0);
     const done = (byStatus["done"] as number) ?? 0;
     return {
@@ -495,7 +498,8 @@ export class HttpBackendClient implements BackendClient {
     };
   }
 
-  async getApprovalStatus(p: Principal, planVersionId: string): Promise<ApprovalStatus> {
+  async getApprovalStatus(p: Principal, planVersionId: string, projectId?:string): Promise<ApprovalStatus> {
+    if(projectId) return this.getApprovalScoped(p, projectId, planVersionId);
     throw new BackendError(
       "validation_error",
       "Approval status is derived from GET /api/v1/projects/{projectId}/plans/{planId}; use get_plan_scoped and read planVersion.status. No dedicated backend operationId exists.",
@@ -505,22 +509,10 @@ export class HttpBackendClient implements BackendClient {
 
   async getApprovalScoped(p: Principal, projectId: string, planId: string): Promise<ApprovalStatus> {
     const pv = await this.getPlanScoped(p, projectId, planId);
-    return {
-      planVersionId: pv.id,
-      state:
-        pv.status === "approved"
-          ? "approved"
-          : pv.status === "rejected"
-          ? "rejected"
-          : pv.status === "pending_approval"
-          ? "pending"
-          : "none",
-      requestedBy: pv.createdBy,
-      requestedAt: pv.createdAt,
-      decidedBy: null,
-      decidedAt: null,
-      reason: null,
-    };
+    const history = await this.request<any>({method:"GET",path:`/api/v1/projects/${encodeURIComponent(projectId)}/plans/${encodeURIComponent(planId)}/approvals`,principal:p});
+    const approval = history.items.find((a:any)=>a.decision==='approved');
+    const revoked = approval && history.revocations.some((r:any)=>r.approval_id===approval.id);
+    return {planVersionId:pv.id,state:revoked?'expired':(pv.status==='approved'||pv.status==='published')&&approval?'approved':pv.status==='rejected'?'rejected':pv.status==='pending_approval'?'pending':'none',requestedBy:pv.createdBy,requestedAt:pv.createdAt,decidedBy:approval?.user_id??null,decidedAt:approval?.created_at??null,reason:revoked?'Approval permanently revoked':null};
   }
 
   async listActivityHistory(p: Principal, projectId: string, cursor?: string, limit?: number): Promise<PageResult<ActivityEntry>> {
@@ -571,7 +563,7 @@ export class HttpBackendClient implements BackendClient {
   }
 
   async createPlanDraft(p: Principal, input: CreatePlanDraftInput) {
-    const base_project_version = await this.currentProjectVersion(p, input.projectId);
+    const base_project_version = input.baseProjectVersion ?? await this.currentProjectVersion(p, input.projectId);
     const c = await this.request<ContractPlanResponse>({
       method: "POST",
       path: `/api/v1/projects/${encodeURIComponent(input.projectId)}/plans`,
@@ -589,14 +581,14 @@ export class HttpBackendClient implements BackendClient {
   }
 
   async proposePlanChanges(p: Principal, input: ProposePlanChangesInput) {
-    const base_project_version = await this.currentProjectVersion(p, input.projectId);
+    const base_project_version = input.baseProjectVersion ?? await this.currentProjectVersion(p, input.projectId);
     const c = await this.request<ContractPlanResponse>({
       method: "POST",
       path: `/api/v1/projects/${encodeURIComponent(input.projectId)}/change-proposals`,
       body: {
         base_project_version,
         snapshot: toContractSnapshot(input.plan),
-        rationale: input.rationale ?? undefined,
+        reason: input.rationale || "MCP plan revision",
       },
       principal: p,
       idempotencyKey: input.idempotencyKey,
@@ -607,10 +599,11 @@ export class HttpBackendClient implements BackendClient {
     };
   }
 
-  async requestPlanApproval(_p: Principal, _input: RequestApprovalInput): Promise<never> {
+  async requestPlanApproval(_p: Principal, _input: RequestApprovalInput) {
+    if(_input.projectId) return this.requestPlanApprovalScoped(_p,_input.projectId,_input.planVersionId,_input.idempotencyKey);
     throw new BackendError(
       "validation_error",
-      "requestApproval requires both projectId and planVersionId. Use request_plan_approval_scoped(projectId, planVersionId).",
+      "requestApproval requires both projectId and planVersionId. Use request_plan_approval(projectId, planVersionId).",
       400,
     );
   }
@@ -637,10 +630,11 @@ export class HttpBackendClient implements BackendClient {
     };
   }
 
-  async publishApprovedPlan(_p: Principal, _input: PublishApprovedPlanInput): Promise<never> {
+  async publishApprovedPlan(_p: Principal, _input: PublishApprovedPlanInput) {
+    if(_input.projectId && _input.contentHash) return this.publishApprovedPlanScoped(_p,_input.projectId,_input.planVersionId,_input.contentHash,_input.idempotencyKey);
     throw new BackendError(
       "validation_error",
-      "publishPlan requires projectId, planId and content_hash. Use publish_approved_plan_scoped(projectId, planId, contentHash).",
+      "publishPlan requires projectId, planId and content_hash. Use publish_approved_plan(projectId, planVersionId, contentHash).",
       400,
     );
   }
@@ -656,8 +650,8 @@ export class HttpBackendClient implements BackendClient {
     // publishPlan returns an Operation shape (publish kind). The task IDs land in operation.result.task_ids once succeeded.
     const op = fromContractOperation(c);
     return {
-      planVersion: null as unknown as PlanVersion,
-      publishedTaskIds: (c.result?.task_ids as string[]) ?? [],
+      planVersion: await this.getPlanScoped(p, projectId, planId),
+      publishedTaskIds: Array.isArray(c.result?.task_ids) ? c.result.task_ids : Object.values(c.result?.task_ids ?? {}) as string[],
       operationId: op.operationId,
     };
   }
@@ -666,6 +660,29 @@ export class HttpBackendClient implements BackendClient {
     return this.humanOnly("update_task_status");
   }
 
+  async listPlans(p:Principal,projectId:string) {
+    const page=await this.request<{items:ContractPlanResponse[]}>({method:"GET",path:`/api/v1/projects/${encodeURIComponent(projectId)}/plans`,query:{limit:100,offset:0},principal:p});
+    return page.items.map(fromContractPlan);
+  }
+  async submitReview(p:Principal,projectId:string,planId:string,key:string) {
+    return this.request({method:"POST",path:`/api/v1/projects/${encodeURIComponent(projectId)}/plans/${encodeURIComponent(planId)}/submit-review`,principal:p,idempotencyKey:key});
+  }
+  async storeAgentResult(p:Principal,input:{operationId:string;projectId:string;requestId:string;baseProjectVersion:number;payload:unknown;idempotencyKey:string}) {
+    const op=await this.request<any>({method:"GET",path:`/api/v1/operations/${encodeURIComponent(input.operationId)}`,principal:p});
+    if(op.project_id!==input.projectId || op.input.base_project_version!==input.baseProjectVersion) throw new BackendError("conflict","Operation provenance or original base mismatch",409);
+    return this.request({method:"POST",path:`/api/v1/operations/${encodeURIComponent(input.operationId)}/result`,principal:{...p,correlationId:input.requestId},body:input.payload,idempotencyKey:input.idempotencyKey});
+  }
+  async proposeTaskMetadata(p:Principal,input:UpdateTaskInput) {
+    if(!input.projectId) throw new BackendError("validation_error","projectId is required",400);
+    const map:Record<string,string>={title:'title',description:'description',priority:'priority',assigneeId:'assignee_id',dueDate:'due_date',definitionOfDone:'definition_of_done',estimateHours:'estimated_effort'};
+    const body:Record<string,unknown>={version:input.expectedVersion};
+    for(const [key,value] of Object.entries(input.changes)) {
+      if(!map[key]) throw new BackendError("validation_error",`Unsupported task proposal field: ${key}`,400);
+      body[map[key]]=key==='priority'?toContractPriority(value as string):value;
+    }
+    const plan=await this.request<ContractPlanResponse>({method:"PATCH",path:`/api/v1/projects/${encodeURIComponent(input.projectId)}/tasks/${encodeURIComponent(input.taskId)}`,body,principal:p,idempotencyKey:input.idempotencyKey});
+    return {planVersion:fromContractPlan(plan),operationId:plan.id,requiresApproval:true};
+  }
   async updateTask(_p: Principal, _input: UpdateTaskInput): Promise<never> {
     // taskMetadata is service-callable but it returns a new DRAFT PlanVersion.
     // Services MUST NOT treat the response as an applied edit — it still needs
@@ -673,7 +690,7 @@ export class HttpBackendClient implements BackendClient {
     // `propose_task_metadata` tool in a follow-up.
     throw new BackendError(
       "validation_error",
-      "update_task is deprecated: the taskMetadata endpoint returns a new draft PlanVersion that still requires human review and publication. Use propose_task_metadata (follow-up tool) via the backend's `/plans/{planId}/submit-review` → `/request-approval` → human approval → `/publish` flow.",
+      "update_task is deprecated: the taskMetadata endpoint returns a new draft PlanVersion that still requires human review and publication. Use the scoped update_task tool via the backend's `/plans/{planId}/submit-review` → `/request-approval` → human approval → `/publish` flow.",
       400,
     );
   }

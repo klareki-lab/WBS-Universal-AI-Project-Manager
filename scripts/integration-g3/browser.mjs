@@ -1,0 +1,52 @@
+import {chromium} from '../../apps/backend/node_modules/playwright/index.mjs';
+import {secrets,root,database} from './runtime.mjs';
+import {writeFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+const {default:pg}=await import(root+'/apps/backend/node_modules/pg/lib/index.js');
+const pool=new pg.Pool({connectionString:database});
+const browser=await chromium.launch({headless:true});
+const context=await browser.newContext({viewport:{width:1440,height:1000}});
+const page=await context.newPage();
+let second;
+const evidence={started:new Date().toISOString(),checks:[],http:[],errors:[]};
+page.on('pageerror',e=>evidence.errors.push(e.message));
+page.on('response',async r=>{if(r.url().startsWith('http://localhost:23081'))evidence.http.push({method:r.request().method(),path:new URL(r.url()).pathname,status:r.status(),requestId:r.headers()['x-request-id']})});
+const check=(name,data={})=>{evidence.checks.push({name,result:'PASS',...data});console.log('PASS',name)};
+try {
+ const email='g3-run-'+Date.now()+'@example.invalid';const {passwordHash}=await import(root+'/apps/backend/dist/apps/backend/src/security.js');await pool.query("INSERT INTO users(email,display_name,kind,password_hash) VALUES($1,'SYNTHETISCH G3 Browser','human',$2)",[email,await passwordHash(secrets.G3_HUMAN_PASSWORD)]);
+ await page.goto('http://localhost:25173');await page.getByLabel('E-Mail').fill(email);await page.getByLabel('Passwort').fill(secrets.G3_HUMAN_PASSWORD);await page.getByRole('button',{name:'Anmelden',exact:true}).click();
+ await page.getByRole('heading',{name:'Projekte klar steuern. Menschen entscheiden.'}).waitFor();check('Human login');
+ await page.reload();await page.getByRole('heading',{name:'Projekte klar steuern. Menschen entscheiden.'}).waitFor();assert.equal(await page.getByRole('button',{name:'Anmelden',exact:true}).count(),0);check('Reload session and CSRF restoration');
+ await page.goto('http://localhost:25173/projects/new');
+ const name='SYNTHETISCH G3 '+Date.now();
+ await page.locator('textarea').first().fill(name+'. Lokales synthetisches Akzeptanzprojekt ohne Kundendaten.');
+ await page.locator('button[type=submit]').click();await page.waitForURL(/\/projects\/[^/]+\/board/);
+ const projectId=page.url().split('/')[4];evidence.projectId=projectId;check('Project created through React with canonical payload');
+ assert.equal((await pool.query("SELECT count(*)::int n FROM project_members m JOIN users u ON u.id=m.user_id WHERE m.project_id=$1 AND u.email='g3-planner@service.invalid'",[projectId])).rows[0].n,1);check('Configured service assignment is atomic; no fixture intervention after project creation');
+ await page.goto(`http://localhost:25173/projects/${projectId}/workspace`);
+ await page.getByLabel('Planungsziel').fill('SYNTHETISCH: Plane ein kleines Testprojekt mit zwei Phasen.');await page.getByRole('button',{name:'Planung anfordern',exact:true}).click();
+ await page.getByTestId('plan-version-id').waitFor({timeout:90000});
+ const planId=await page.getByTestId('plan-version-id').textContent();evidence.planId=planId;
+ check('React → backend operation → n8n Coordinator/Planner/Reviewer → MCP → immutable draft');
+ await page.screenshot({path:root+'/docs/integration-g3/evidence/draft.png',fullPage:true});
+ await page.getByRole('button',{name:'Review einreichen',exact:true}).click();await page.getByRole('button',{name:'Version freigeben',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Version freigeben',exact:true}).isDisabled(),true);
+ await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Version freigeben',exact:true}).click();await page.getByRole('button',{name:'Plan veröffentlichen',exact:true}).waitFor();check('Explicit human approval of displayed version and hash');
+ await page.screenshot({path:root+'/docs/integration-g3/evidence/approved.png',fullPage:true});
+ await page.getByRole('button',{name:'Plan veröffentlichen',exact:true}).click();await page.getByText('Plan veröffentlicht. Aufgaben sind im Kanban gespeichert.',{exact:true}).waitFor();
+ check('Approved plan publication');await page.goto(`http://localhost:25173/projects/${projectId}/board`);await page.getByRole('button',{name:'Aufgabe öffnen: SYNTHETISCH: Briefing prüfen',exact:true}).waitFor();
+ await page.reload();await page.getByRole('button',{name:'Aufgabe öffnen: SYNTHETISCH: Briefing prüfen',exact:true}).waitFor();
+ await page.screenshot({path:root+'/docs/integration-g3/evidence/kanban.png',fullPage:true});check('Persisted Kanban after reload');
+ await page.getByRole('button',{name:'Liste',exact:true}).click();await page.getByRole('cell',{name:'SYNTHETISCH: Briefing prüfen',exact:true}).waitFor();check('Persisted list rendering');
+ const db=await pool.query('SELECT p.status,p.origin_operation_id,o.status operation_status,o.request_id,o.context_hash,o.input->>\'base_project_version\' original_base,(SELECT count(*)::int FROM tasks WHERE project_id=p.project_id) tasks FROM plan_versions p JOIN operation_jobs o ON o.id=p.origin_operation_id WHERE p.id=$1',[planId]);
+ assert.equal(db.rows[0].tasks,2);assert.equal(db.rows[0].operation_status,'succeeded');assert.ok(db.rows[0].context_hash);evidence.trace=db.rows[0];check('PostgreSQL tasks and durable operation provenance verified');
+ await page.goto('http://localhost:25173/activity');await page.getByText('plan.published',{exact:true}).first().waitFor();await page.screenshot({path:root+'/docs/integration-g3/evidence/activity.png',fullPage:true});check('Frontend activity reflects backend publication');
+ await page.goto('http://localhost:25173');await page.getByText('SYNTHETISCH: Ergebnis validieren',{exact:true}).first().waitFor();check('Dashboard reflects persisted tasks');
+ console.log('Waiting for the unchanged backend rate window before independent-browser checks');await new Promise(r=>setTimeout(r,60000));
+ // Independent storage and actor, through a second Chromium browser process.
+ second=await chromium.launch({headless:true});const isolated=await second.newContext({viewport:{width:390,height:844}});const p2=await isolated.newPage();await p2.goto('http://localhost:25173');await p2.getByLabel('E-Mail').fill('g3-outsider@example.invalid');await p2.getByLabel('Passwort').fill(secrets.G3_HUMAN_PASSWORD);await p2.getByRole('button',{name:'Anmelden',exact:true}).click();await p2.getByRole('heading',{name:'Projekte klar steuern. Menschen entscheiden.'}).waitFor();
+ await p2.goto(`http://localhost:25173/projects/${projectId}/workspace`);await p2.getByRole('alert').waitFor();assert.equal(await p2.getByTestId('plan-version-id').count(),0);check('Independent mobile browser denies cross-project access');await second.close();
+ evidence.result='PASS';
+}catch(e){evidence.result='FAIL';evidence.failure=e.stack;await page.screenshot({path:root+'/.g3/browser-failure.png',fullPage:true});console.error(e.message);process.exitCode=1;}
+finally{await writeFile(root+'/docs/integration-g3/evidence/browser.json',JSON.stringify(evidence,null,2));await second?.close().catch(()=>{});await browser.close();await pool.end()}

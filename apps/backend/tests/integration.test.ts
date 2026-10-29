@@ -1539,3 +1539,110 @@ describe("real HTTP + PostgreSQL backend", () => {
     }
   });
 });
+
+describe("configured automation project assignment", () => {
+  it("atomically assigns only the configured service and records an audit event", async () => {
+    const secret = token();
+    const serviceId = randomUUID();
+    await pool.query(
+      "INSERT INTO users(id,email,display_name,kind,token_hash,token_expires_at,scopes) VALUES($1,$2,'Synthetic automation','service',$3,now()+interval '1 day',$4)",
+      [
+        serviceId,
+        serviceId + "@service.invalid",
+        hash(secret),
+        ["read", "plans:write", "operations:write"],
+      ],
+    );
+    const isolated = await buildApp({
+      pool,
+      secureCookies: false,
+      allowedOrigin: "http://localhost:25173",
+      automationServiceId: serviceId,
+    });
+    try {
+      const created = await isolated.inject({
+        method: "POST",
+        url: "/api/v1/projects",
+        headers: {
+          cookie,
+          "x-csrf-token": csrf,
+          "idempotency-key": randomUUID(),
+        },
+        payload: { name: "SYNTHETIC configured automation" },
+      });
+      expect(created.statusCode).toBe(201);
+      const id = created.json().id;
+      expect(
+        (
+          await pool.query(
+            "SELECT role FROM project_members WHERE project_id=$1 AND user_id=$2",
+            [id, serviceId],
+          )
+        ).rows[0].role,
+      ).toBe("editor");
+      expect(
+        (
+          await pool.query(
+            "SELECT actor_id FROM activity_events WHERE project_id=$1 AND type='automation.member_assigned'",
+            [id],
+          )
+        ).rows[0].actor_id,
+      ).toBe(owner);
+      expect(
+        (
+          await isolated.inject({
+            method: "GET",
+            url: pp(id),
+            headers: { authorization: "Bearer " + secret },
+          })
+        ).statusCode,
+      ).toBe(200);
+      const unrelated = await project();
+      expect(
+        (
+          await isolated.inject({
+            method: "GET",
+            url: pp(unrelated.id),
+            headers: { authorization: "Bearer " + secret },
+          })
+        ).statusCode,
+      ).toBe(404);
+    } finally {
+      await isolated.close();
+    }
+  });
+  it.each(["missing", "human"])(
+    "fails atomically when the configured identity is %s",
+    async (kind) => {
+      const isolated = await buildApp({
+        pool,
+        secureCookies: false,
+        allowedOrigin: "http://localhost:25173",
+        automationServiceId: kind === "human" ? owner : randomUUID(),
+      });
+      try {
+        const response = await isolated.inject({
+          method: "POST",
+          url: "/api/v1/projects",
+          headers: {
+            cookie,
+            "x-csrf-token": csrf,
+            "idempotency-key": randomUUID(),
+          },
+          payload: { name: "SYNTHETIC unavailable automation" },
+        });
+        expect(response.statusCode).toBe(503);
+        expect(response.json().error.code).toBe("internal_error");
+        expect(
+          (await pool.query("SELECT count(*)::int n FROM projects")).rows[0].n,
+        ).toBe(0);
+        expect(
+          (await pool.query("SELECT count(*)::int n FROM activity_events"))
+            .rows[0].n,
+        ).toBe(0);
+      } finally {
+        await isolated.close();
+      }
+    },
+  );
+});

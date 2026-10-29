@@ -1,0 +1,60 @@
+name: uapm-g3
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: uapm_g3
+      POSTGRES_USER: uapm
+      POSTGRES_PASSWORD: ${G3_DB_PASSWORD:?Run bootstrap first}
+    ports: ["127.0.0.1:25439:5432"]
+    volumes: ["g3-postgres:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uapm -d uapm_g3"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  n8n:
+    image: n8nio/n8n:1.74.0
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_SECURE_COOKIE: "false"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      N8N_ENCRYPTION_KEY: ${G3_N8N_KEY:?Run bootstrap first}
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_TEMPLATES_ENABLED: "false"
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: all
+      EXECUTIONS_DATA_SAVE_ON_ERROR: all
+      MCP_UAPM_URL: http://host.docker.internal:23082/mcp
+      MCP_UAPM_SERVICE_TOKEN: ${G3_MCP_TOKEN:?Run bootstrap first}
+      UAPM_WEBHOOK_TOKEN: ${G3_WEBHOOK_TOKEN:?Run bootstrap first}
+      UAPM_PLANNING_MODE: ${G3_PLANNING_MODE:-fixture}
+      UAPM_MODEL: gpt-4.1-mini
+    ports: ["127.0.0.1:25682:5678"]
+    volumes: ["g3-n8n:/home/node/.n8n"]
+  backend-check:
+    profiles: [container-check]
+    image: uapm-g3-backend:local
+    build:
+      context: ../../apps/backend
+      dockerfile: ../../infra/backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://uapm:${G3_DB_PASSWORD}@postgres:5432/uapm_g3
+      HOST: 0.0.0.0
+      PORT: 3001
+      COOKIE_SECURE: "false"
+      ALLOWED_ORIGIN: http://localhost:25173
+    ports: ["127.0.0.1:23084:3001"]
+    depends_on:
+      postgres: {condition: service_healthy}
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  g3-postgres:
+  g3-n8n:

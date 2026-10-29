@@ -2,7 +2,9 @@
   "name": "UAPM WF-04 — MCP Read Operations",
   "nodes": [
     {
-      "parameters": {},
+      "parameters": {
+        "inputSource": "passthrough"
+      },
       "id": "sub-input",
       "name": "Sub-workflow input",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
@@ -37,10 +39,6 @@
               "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
             },
             {
-              "name": "x-on-behalf-of",
-              "value": "={{ $json.request.principal.userId }}"
-            },
-            {
               "name": "x-correlation-id",
               "value": "={{ $json.request.principal.correlationId }}"
             }
@@ -55,7 +53,8 @@
               "neverError": true
             }
           }
-        }
+        },
+        "specifyBody": "json"
       },
       "id": "get-project",
       "name": "Get project",
@@ -78,10 +77,6 @@
               "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
             },
             {
-              "name": "x-on-behalf-of",
-              "value": "={{ $('Resolve read intent').item.json.request.principal.userId }}"
-            },
-            {
               "name": "x-correlation-id",
               "value": "={{ $('Resolve read intent').item.json.request.principal.correlationId }}"
             }
@@ -96,7 +91,8 @@
               "neverError": true
             }
           }
-        }
+        },
+        "specifyBody": "json"
       },
       "id": "get-progress",
       "name": "Get progress",
@@ -119,10 +115,6 @@
               "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
             },
             {
-              "name": "x-on-behalf-of",
-              "value": "={{ $('Resolve read intent').item.json.request.principal.userId }}"
-            },
-            {
               "name": "x-correlation-id",
               "value": "={{ $('Resolve read intent').item.json.request.principal.correlationId }}"
             }
@@ -137,7 +129,8 @@
               "neverError": true
             }
           }
-        }
+        },
+        "specifyBody": "json"
       },
       "id": "list-tasks",
       "name": "List tasks",
@@ -160,6 +153,43 @@
         680,
         320
       ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "g3/wf-04",
+        "responseMode": "lastNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "id": "g3-webhook-4",
+      "name": "G3 service webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        600
+      ],
+      "webhookId": "g3-wf-04",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "G3WebhookAuth001",
+          "name": "G3 isolated webhook bearer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw=$input.first().json;\nif(raw.headers){if(raw.headers.authorization!=='Bearer '+$env.UAPM_WEBHOOK_TOKEN)throw new Error('Unauthorized G3 webhook');return [{json:raw.body}];}\nreturn [{json:raw}];"
+      },
+      "id": "entry-packet",
+      "name": "Entry packet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
     }
   ],
   "connections": {
@@ -167,7 +197,7 @@
       "main": [
         [
           {
-            "node": "Resolve read intent",
+            "node": "Entry packet",
             "type": "main",
             "index": 0
           }
@@ -217,14 +247,39 @@
           }
         ]
       ]
+    },
+    "G3 service webhook": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry packet": {
+      "main": [
+        [
+          {
+            "node": "Resolve read intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
   },
   "staticData": null,
   "pinData": {},
   "versionId": "wf-04-mcp-read-ops-v1",
   "triggerCount": 0,
-  "active": false
+  "active": true,
+  "id": "G3Workflow0000004"
 }

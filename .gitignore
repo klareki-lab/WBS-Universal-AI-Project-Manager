@@ -7,3 +7,6 @@ dist/
 .DS_Store
 coverage/
 .tsbuildinfo
+
+# Isolated G3 runtime state and credentials
+.g3/

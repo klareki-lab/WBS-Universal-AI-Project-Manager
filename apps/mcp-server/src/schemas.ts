@@ -127,7 +127,7 @@ export const ProjectProgressSchema = z.object({
   projectId: StableIdSchema,
   counts: z.object({
     total: z.number().int().nonnegative(),
-    byStatus: z.record(TaskStatusSchema, z.number().int().nonnegative()),
+    byStatus: z.partialRecord(TaskStatusSchema, z.number().int().nonnegative()),
   }),
   overdue: z.number().int().nonnegative(),
   blockers: z.array(z.object({ taskId: StableIdSchema, reason: z.string() })).default([]),
@@ -153,7 +153,7 @@ export const ActivityEntrySchema = z.object({
   entityType: z.string(),
   entityId: StableIdSchema.nullable(),
   createdAt: z.string(),
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const OperationStatusSchema = z.object({

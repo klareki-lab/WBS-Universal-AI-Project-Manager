@@ -104,12 +104,12 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     {
       title: "Get task",
       description: "Return task details by stable ID.",
-      inputSchema: { id: StableIdSchema },
+      inputSchema: { projectId: StableIdSchema, taskId: StableIdSchema },
       outputSchema: TaskDetailSchema.shape,
     },
-    async ({ id }) => {
+    async ({ projectId, taskId }) => {
       try {
-        return okText(await ctx.backend.getTask(ctx.getPrincipal(), id));
+        return okText(await ctx.backend.getTask(ctx.getPrincipal(), taskId, projectId));
       } catch (e) {
         return errText(e);
       }
@@ -121,12 +121,12 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     {
       title: "Get plan version",
       description: "Return a stored plan version with its ID, status and content hash.",
-      inputSchema: { id: StableIdSchema },
+      inputSchema: { projectId: StableIdSchema, planVersionId: StableIdSchema },
       outputSchema: PlanVersionSchema.shape,
     },
-    async ({ id }) => {
+    async ({ projectId, planVersionId }) => {
       try {
-        return okText(await ctx.backend.getPlanVersion(ctx.getPrincipal(), id));
+        return okText(await ctx.backend.getPlanVersion(ctx.getPrincipal(), planVersionId, projectId));
       } catch (e) {
         return errText(e);
       }
@@ -155,12 +155,12 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     {
       title: "Get approval status",
       description: "Return the current approval state of a specific plan version.",
-      inputSchema: { planVersionId: StableIdSchema },
+      inputSchema: { projectId: StableIdSchema, planVersionId: StableIdSchema },
       outputSchema: ApprovalStatusSchema.shape,
     },
-    async ({ planVersionId }) => {
+    async ({ projectId, planVersionId }) => {
       try {
-        return okText(await ctx.backend.getApprovalStatus(ctx.getPrincipal(), planVersionId));
+        return okText(await ctx.backend.getApprovalStatus(ctx.getPrincipal(), planVersionId, projectId));
       } catch (e) {
         return errText(e);
       }

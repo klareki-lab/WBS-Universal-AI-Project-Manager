@@ -1,3 +1,5 @@
+> G3 integration supersedes the original component wiring below. See [G3 setup](../integration-g3/README.md) and [contract reconciliation](../integration-g3/COMPATIBILITY.md). Historical component evidence is retained.
+
 # uapm-mcp — Universal AI Project Manager MCP Server
 
 Custom Model Context Protocol server for the Universal AI Project Manager (UAPM).

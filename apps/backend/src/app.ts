@@ -29,6 +29,7 @@ export type Config = {
   secureCookies: boolean;
   allowedOrigin: string;
   logger?: boolean;
+  automationServiceId?: string;
 };
 export async function buildApp(config: Config) {
   const app = Fastify({
@@ -257,6 +258,23 @@ export async function buildApp(config: Config) {
         "INSERT INTO project_members(project_id,user_id,role) VALUES($1,$2,'owner')",
         [p.id, c.actor.id],
       );
+      if (config.automationServiceId) {
+        const service = await c.db.query(
+          "SELECT id FROM users WHERE id=$1 AND kind='service' AND NOT disabled AND token_expires_at>now() AND scopes @> ARRAY['read','plans:write','operations:write']::text[] FOR SHARE",
+          [config.automationServiceId],
+        );
+        ensure(service.rowCount, 503, "automation_unavailable");
+        await c.db.query(
+          "INSERT INTO project_members(project_id,user_id,role) VALUES($1,$2,'editor')",
+          [p.id, config.automationServiceId],
+        );
+        await d.event(
+          c,
+          p.id,
+          "automation.member_assigned",
+          config.automationServiceId,
+        );
+      }
       await d.event(c, p.id, "project.created", p.id);
       return p;
     },

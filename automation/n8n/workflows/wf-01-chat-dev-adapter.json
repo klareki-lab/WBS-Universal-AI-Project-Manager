@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Normalize incoming chat message into a request packet.\nconst input = $input.first().json;\nconst text = (input.chatInput || input.message || input.text || '').toString();\nconst sessionId = input.sessionId || input.session || 'chat-dev';\nreturn [{\n  json: {\n    request: {\n      text,\n      sessionId,\n      principal: {\n        userId: input.userId || 'user_demo',\n        correlationId: input.correlationId || crypto.randomUUID()\n      },\n      channel: 'chat-dev'\n    }\n  }\n}];"
+        "jsCode": "const input=$input.first().json;\nif(input.operation_id){\n if(!input.project_id||!input.request_id||!input.context_hash||!input.input?.base_project_version)throw new Error('Missing durable provenance');\n return [{json:{request:{text:input.input.prompt,projectId:input.project_id,sessionId:input.conversation_session_id,principal:{correlationId:input.request_id},channel:'backend-worker'},operation:input}}];\n}\nif(!input.request?.projectId)throw new Error('projectId required');\nreturn [{json:input}];"
       },
       "id": "normalize-session",
       "name": "Normalize session",
@@ -30,19 +30,16 @@
     },
     {
       "parameters": {
-        "workflowId": "={{ $env.UAPM_WF_MULTI_AGENT_CORE_ID }}",
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "request": "={{ $json.request }}"
-          }
-        },
-        "options": {}
+        "source": "database",
+        "workflowId": "G3Workflow0000002",
+        "options": {
+          "waitForSubWorkflow": true
+        }
       },
       "id": "invoke-core",
       "name": "Invoke WF-02 Multi-Agent Core",
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.2,
+      "typeVersion": 1,
       "position": [
         40,
         240
@@ -50,7 +47,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const r = $input.first().json;\nreturn [{ json: { chatResponse: r.response || r.error?.message || 'No response', meta: { correlationId: r.correlationId, operationIds: r.operationIds || [] } } }];"
+        "jsCode": "const r=$input.first().json;if(r.error)throw new Error('Planning failed');return [{json:{accepted:true,...r}}];"
       },
       "id": "shape-response",
       "name": "Shape chat response",
@@ -59,6 +56,43 @@
       "position": [
         280,
         240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "g3/wf-01",
+        "responseMode": "lastNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "id": "g3-webhook-1",
+      "name": "G3 service webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        600
+      ],
+      "webhookId": "g3-wf-01",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "G3WebhookAuth001",
+          "name": "G3 isolated webhook bearer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw=$input.first().json;\nif(raw.headers){if(raw.headers.authorization!=='Bearer '+$env.UAPM_WEBHOOK_TOKEN)throw new Error('Unauthorized G3 webhook');return [{json:raw.body}];}\nreturn [{json:raw}];"
+      },
+      "id": "entry-packet",
+      "name": "Entry packet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
       ]
     }
   ],
@@ -95,14 +129,39 @@
           }
         ]
       ]
+    },
+    "G3 service webhook": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry packet": {
+      "main": [
+        [
+          {
+            "node": "Normalize session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
   },
   "staticData": null,
   "pinData": {},
   "versionId": "wf-01-chat-dev-adapter-v1",
   "triggerCount": 1,
-  "active": false
+  "active": true,
+  "id": "G3Workflow0000001"
 }
