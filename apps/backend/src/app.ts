@@ -550,7 +550,15 @@ export async function buildApp(config: Config) {
           result
             ? { plan_version_id: result.id, content_hash: result.content_hash }
             : null,
-          b.error ? "Automation failed" : null,
+          b.error
+            ? [
+                "AI_BUDGET_EXHAUSTED",
+                "AI_CONCURRENCY_LIMIT",
+                "AI_PLANNING_FAILED",
+              ].includes(b.error)
+              ? b.error
+              : "Automation failed"
+            : null,
         ],
       );
       await d.event(c, job.project_id, "operation." + r.rows[0].status, job.id);

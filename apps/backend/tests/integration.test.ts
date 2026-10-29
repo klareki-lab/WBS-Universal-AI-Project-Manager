@@ -1184,6 +1184,28 @@ describe("real HTTP + PostgreSQL backend", () => {
       (await request("POST", path, { result: fresh() }, svc, key)).status,
     ).toBe(403);
   });
+  it("preserves allowlisted AI failure codes and scrubs arbitrary callback errors", async () => {
+    const p = await project(),
+      svc = await service(p.id);
+    for (const [error, expected] of [
+      ["AI_BUDGET_EXHAUSTED", "AI_BUDGET_EXHAUSTED"],
+      ["AI_PLANNING_FAILED", "AI_PLANNING_FAILED"],
+      ["provider secret", "Automation failed"],
+    ]) {
+      const op = await request("POST", pp(p.id) + "/agent/planning-requests", {
+        prompt: "Synthetic goal",
+      });
+      const result = await request(
+        "POST",
+        `/api/v1/operations/${op.body.id}/result`,
+        { error },
+        svc,
+      );
+      expect(result.status).toBe(200);
+      expect(result.body.status).toBe("failed");
+      expect(result.body.error).toBe(expected);
+    }
+  });
   it("F5 published callback schema and real HTTP agree for neither, either, both, empty error and unknown fields", async () => {
     const schema = JSON.parse(
       await readFile(

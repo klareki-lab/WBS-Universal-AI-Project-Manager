@@ -44,6 +44,7 @@ export async function compile() {
       // Acknowledge durable work before the backend's 15-second HTTP deadline.
       node('G3 service webhook').parameters.responseMode = 'onReceived';
       node('G3 service webhook').parameters.options = {responseCode: {values: {responseCode:'customCode', customCode:202}}};
+      node('Shape chat response').parameters.jsCode = "const r=$input.first().json;return [{json:r.error?{accepted:true,planningStatus:'failed'}:{accepted:true,...r}}];";
       node('Normalize session').parameters.jsCode = "const input=$input.first().json; if(!input.operation_id||!input.project_id||!input.request_id||!input.context_hash||!Number.isInteger(input.input?.base_project_version)||input.input.base_project_version<1||typeof input.input?.prompt!=='string'||input.input.prompt.length>1500)throw new Error('AI_PROVENANCE_OR_INPUT_INVALID'); return [{json:{request:{text:input.input.prompt,projectId:input.project_id,principal:{correlationId:input.request_id},channel:'backend-worker'},operation:input}}];";
     }
     if (i === 2) {
@@ -60,7 +61,7 @@ export async function compile() {
       node('Validate plan').parameters.jsCode = validation + 'v.plan($json.plan);\n' + node('Validate plan').parameters.jsCode;
       // Any model/schema/provider failure makes the original operation fail, never a fixture success.
       w.nodes.push({name:'Report AI failure via MCP',id:'ai-failure',type:'n8n-nodes-base.httpRequest',typeVersion:4.2,position:[1200,600],retryOnFail:false,parameters: structuredClone(node('Save draft via MCP').parameters)});
-      node('Report AI failure via MCP').parameters.jsonBody = "={{ JSON.stringify({tool:'store_agent_result',arguments:{projectId:$('Entry packet').first().json.operation.project_id,operationId:$('Entry packet').first().json.operation.operation_id,requestId:$('Entry packet').first().json.operation.request_id,baseProjectVersion:$('Entry packet').first().json.operation.input.base_project_version,payload:{error:'Bounded AI planning failed; inspect redacted acceptance evidence'},idempotencyKey:'g3-ai-failure-'+$('Entry packet').first().json.operation.operation_id} }) }}";
+      node('Report AI failure via MCP').parameters.jsonBody = "={{ JSON.stringify({tool:'store_agent_result',arguments:{projectId:$('Entry packet').first().json.operation.project_id,operationId:$('Entry packet').first().json.operation.operation_id,requestId:$('Entry packet').first().json.operation.request_id,baseProjectVersion:$('Entry packet').first().json.operation.input.base_project_version,payload:{error:(JSON.stringify($json).includes('AI_BUDGET_EXHAUSTED')?'AI_BUDGET_EXHAUSTED':JSON.stringify($json).includes('AI_CONCURRENCY_LIMIT')?'AI_CONCURRENCY_LIMIT':'AI_PLANNING_FAILED')},idempotencyKey:'g3-ai-failure-'+$('Entry packet').first().json.operation.operation_id} }) }}";
       node('Report AI failure via MCP').parameters.headerParameters.parameters[1].value = "={{ $('Entry packet').first().json.operation.request_id }}";
     }
     // Error-output branches preserve original packet using named nodes, never model-returned IDs.
@@ -69,7 +70,7 @@ export async function compile() {
       const original = JSON.parse(await readFile(`${root}/automation/n8n/workflows/wf-03-planning-review.json`, 'utf8'));
       const n = structuredClone(original.nodes.find(n => n.name === 'Save draft via MCP'));
       n.name = 'Report AI failure via MCP'; n.id = 'ai-failure'; n.retryOnFail = false;
-      n.parameters.jsonBody = "={{ JSON.stringify({tool:'store_agent_result',arguments:{projectId:$('Prepare request').first().json.operation.project_id,operationId:$('Prepare request').first().json.operation.operation_id,requestId:$('Prepare request').first().json.operation.request_id,baseProjectVersion:$('Prepare request').first().json.operation.input.base_project_version,payload:{error:'Bounded AI coordination failed'},idempotencyKey:'g3-ai-failure-'+$('Prepare request').first().json.operation.operation_id} }) }}";
+      n.parameters.jsonBody = "={{ JSON.stringify({tool:'store_agent_result',arguments:{projectId:$('Prepare request').first().json.operation.project_id,operationId:$('Prepare request').first().json.operation.operation_id,requestId:$('Prepare request').first().json.operation.request_id,baseProjectVersion:$('Prepare request').first().json.operation.input.base_project_version,payload:{error:(JSON.stringify($json).includes('AI_BUDGET_EXHAUSTED')?'AI_BUDGET_EXHAUSTED':JSON.stringify($json).includes('AI_CONCURRENCY_LIMIT')?'AI_CONCURRENCY_LIMIT':'AI_PLANNING_FAILED')},idempotencyKey:'g3-ai-failure-'+$('Prepare request').first().json.operation.operation_id} }) }}";
       n.parameters.headerParameters.parameters[1].value = "={{ $('Prepare request').first().json.operation.request_id }}";
       w.nodes.push(n);
     }

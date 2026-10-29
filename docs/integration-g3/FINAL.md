@@ -13,3 +13,7 @@ MCP commit `32b80d5a6646a84b79ec25b9a2cf42710b611eff` was reconciled in merge `8
 P1 remains unchanged: loss of authority and explicit human revocation invalidate unconsumed approvals, and expired credentials are rejected. Time-based approval expiry is excluded from the MVP by the owner decision; no TTL or migration was added. Synthetic data only was used. Credential metadata was checked without displaying its value. Existing G3 volumes were preserved. No main merge or production change occurred.
 
 Remaining limitations: this is an isolated acceptance run using a synthetic human-role browser session; production security, privacy, deployment and operations reviews remain outside this acceptance. Actual provider-account billing may differ from the usage-based estimate. The authorized three-call budget is exhausted.
+
+## G4 development follow-up
+
+G4 adds opt-in development accounting and preserves the historical acceptance budget and its evidence. See [development mode](DEVELOPMENT_MODE.md) for owner setup, mock verification and limitations. No G4 paid call or live rollout has been performed; the historical G3 acceptance verdict above does not verify the new mode.

@@ -4,7 +4,7 @@ import {mkdtemp,rm,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {compile} from './compile.mjs';
 import {validators} from './validation.mjs';
-import {ledger,budgetServer,limits,reserve} from './budget.mjs';
+import {ledger,budgetServer,limits,reserve,authorizationValid} from './budget.mjs';
 const operation='11111111-1111-4111-8111-111111111111';
 const plan={summary:'Synthetic test',assumptions:[],risks:[],phases:[{name:'A',order:0},{name:'B',order:1}],tasks:[{tempId:'a',phaseName:'A',title:'Brief',priority:'medium',dependsOn:[],definitionOfDone:'Brief recorded'},{tempId:'b',phaseName:'B',title:'Verify',priority:'high',dependsOn:['a'],definitionOfDone:'Checks recorded'}]};
 const validRequest={model:limits.model,max_tokens:1200,response_format:{type:'json_object'},messages:[{role:'user',content:'Return JSON for synthetic test'}]};
@@ -71,3 +71,37 @@ test('Invalid provider response is rejected; oversized/token/tool/model changes 
 test('Stale or unauthorized operation is rejected before any paid reservation',async t=>{
  const f=await fixture(t,{verifyOperation:async()=>{throw new Error('AI_OPERATION_INVALID')}});assert.equal((await f.request()).status,502);assert.equal(f.calls(),0);assert.equal(f.db.prepare('SELECT count(*) n FROM calls').get().n,0);
 });
+
+test('Development allows repeated distinct operations without resetting acceptance and blocks cross-mode replay',async t=>{
+ const dir=await mkdtemp(tmpdir()+'/g4-mode-');t.after(()=>rm(dir,{recursive:true,force:true}));const a=ledger(dir+'/acceptance.sqlite'),d=ledger(dir+'/development.sqlite');t.after(()=>{a.close();d.close()});
+ for(const stage of ['coordinator','planner','reviewer']){const id=reserve(a,operation,stage,'{}');a.prepare("UPDATE calls SET status='success' WHERE id=?").run(id)}
+ assert.throws(()=>reserve(d,operation,'coordinator','{}',{mode:'development',otherDb:a}),/AI_REPLAY_OR_STAGE_ORDER/);
+ for(let i=0;i<4;i++){const op=`22222222-2222-4222-8222-${String(i).padStart(12,'0')}`;for(const stage of ['coordinator','planner','reviewer']){const id=reserve(d,op,stage,'{}',{mode:'development',otherDb:a});d.prepare("UPDATE calls SET status='success' WHERE id=?").run(id)}}
+ assert.equal(a.prepare('SELECT count(*) n FROM calls').get().n,3);assert.equal(d.prepare('SELECT count(*) n FROM calls').get().n,12);
+ assert.throws(()=>reserve(a,'33333333-3333-4333-8333-333333333333','coordinator','{}',{otherDb:d}),/AI_BUDGET_EXHAUSTED/);
+});
+test('Development concurrency cap blocks excess calls without provider I/O',async t=>{
+ let release;const hold=new Promise(r=>release=r);const f=await fixture(t,{mode:'development',maxConcurrency:1,upstream:async()=>{await hold;return provider()}});
+ const pending=f.request();while(f.db.prepare('SELECT count(*) n FROM calls').get().n===0) await new Promise(r=>setTimeout(r,5));const rejected=await f.request();assert.equal((await rejected.json()).error.message,'AI_CONCURRENCY_LIMIT');release();assert.equal((await pending).status,200);assert.equal(f.db.prepare('SELECT count(*) n FROM calls').get().n,1);
+});
+test('Usage report estimates known token cost and warns while marking missing usage',async t=>{
+ const {summarize}=await import('./usage.mjs');const f=await fixture(t,{mode:'development'});await f.request();const summary=summarize(f.db,0.000001);assert.equal(summary.calls,1);assert.equal(summary.inputTokens,20);assert.equal(summary.outputTokens,150);assert.equal(summary.warning,true);assert.equal(summary.unknownUsage,0);reserve(f.db,'33333333-3333-4333-8333-333333333333','coordinator','{}',{mode:'development'});assert.equal(summarize(f.db).unknownUsage,1);
+});
+
+test('Development guard forwards two distinct human-authorized mock operations and accounts all stages',async t=>{
+ const dir=await mkdtemp(tmpdir()+'/g4-http-');t.after(()=>rm(dir,{recursive:true,force:true}));const a=ledger(dir+'/a.sqlite'),d=ledger(dir+'/d.sqlite');let providerCalls=0;const server=budgetServer({db:d,otherDb:a,mode:'development',authorized:async()=>true,verifyOperation:async()=>{},upstream:async()=>{providerCalls++;return provider()}});await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(async()=>{await new Promise(r=>server.close(r));a.close();d.close()});
+ for(const op of [operation,'22222222-2222-4222-8222-222222222222'])for(const stage of ['coordinator','planner','reviewer']){const r=await fetch(`http://127.0.0.1:${server.address().port}/operations/${op}/${stage}/v1/chat/completions`,{method:'POST',headers:{authorization:'Bearer mock','content-type':'application/json'},body:JSON.stringify(validRequest)});assert.equal(r.status,200)}
+ assert.equal(providerCalls,6);assert.equal(d.prepare('SELECT count(*) n FROM calls WHERE status=\'success\'').get().n,6);assert.equal(a.prepare('SELECT count(*) n FROM calls').get().n,0);
+});
+test('Workflow handles reported failure without throwing and callback error codes are allowlisted',async()=>{
+ const w=await compile();const shape=w[0].nodes.find(n=>n.name==='Shape chat response').parameters.jsCode;const run=new Function('$input',shape);assert.deepEqual(run({first:()=>({json:{error:'Automation failed'}})}),[{json:{accepted:true,planningStatus:'failed'}}]);
+ for(const i of [1,2]){const body=w[i].nodes.find(n=>n.name==='Report AI failure via MCP').parameters.jsonBody;assert.match(body,/AI_BUDGET_EXHAUSTED/);assert.match(body,/AI_PLANNING_FAILED/);assert.match(body,/operation_id/);assert.match(body,/base_project_version/)}
+});
+
+ test('Development authorization is explicit and separate from the historical acceptance receipt',()=>{
+ const acceptance={authorized:true,maxUsd:0.05,ownerDecision:'G3 acceptance'};
+ assert.equal(authorizationValid('acceptance',acceptance),true);assert.equal(authorizationValid('development',acceptance),false);
+ assert.equal(authorizationValid('development',{mode:'development',authorized:true,ownerDecision:'',warningUsd:1}),false);
+ assert.equal(authorizationValid('development',{mode:'development',authorized:true,ownerDecision:'owner decision',warningUsd:1}),true);
+ assert.equal(authorizationValid('development',{mode:'development',authorized:false,ownerDecision:'owner decision',warningUsd:1}),false);
+ });

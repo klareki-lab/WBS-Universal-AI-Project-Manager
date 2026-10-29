@@ -1,4 +1,4 @@
-> Historical preparation record. Current real-AI acceptance and owner decisions: [FINAL.md](FINAL.md).
+> Historical preparation record. Current real-AI acceptance and owner decisions: [FINAL.md](FINAL.md). For G4 execution modes and current activation instructions see [DEVELOPMENT_MODE.md](DEVELOPMENT_MODE.md).
 
 # G3 bounded native AI execution profile
 

@@ -35,7 +35,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const r=$input.first().json;if(r.error)throw new Error('Planning failed');return [{json:{accepted:true,...r}}];"
+        "jsCode": "const r=$input.first().json;return [{json:r.error?{accepted:true,planningStatus:'failed'}:{accepted:true,...r}}];"
       },
       "id": "shape-response",
       "name": "Shape chat response",

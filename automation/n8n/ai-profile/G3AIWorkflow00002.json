@@ -178,7 +178,7 @@
           ]
         },
         "sendBody": true,
-        "jsonBody": "={{ JSON.stringify({tool:'store_agent_result',arguments:{projectId:$('Prepare request').first().json.operation.project_id,operationId:$('Prepare request').first().json.operation.operation_id,requestId:$('Prepare request').first().json.operation.request_id,baseProjectVersion:$('Prepare request').first().json.operation.input.base_project_version,payload:{error:'Bounded AI coordination failed'},idempotencyKey:'g3-ai-failure-'+$('Prepare request').first().json.operation.operation_id} }) }}",
+        "jsonBody": "={{ JSON.stringify({tool:'store_agent_result',arguments:{projectId:$('Prepare request').first().json.operation.project_id,operationId:$('Prepare request').first().json.operation.operation_id,requestId:$('Prepare request').first().json.operation.request_id,baseProjectVersion:$('Prepare request').first().json.operation.input.base_project_version,payload:{error:(JSON.stringify($json).includes('AI_BUDGET_EXHAUSTED')?'AI_BUDGET_EXHAUSTED':JSON.stringify($json).includes('AI_CONCURRENCY_LIMIT')?'AI_CONCURRENCY_LIMIT':'AI_PLANNING_FAILED')},idempotencyKey:'g3-ai-failure-'+$('Prepare request').first().json.operation.operation_id} }) }}",
         "options": {
           "timeout": 15000
         },
