@@ -1,36 +1,98 @@
-name: Frontend G4 isolated QA
+name: Frontend G4 real backend (no AI)
 on:
   push:
     branches: [feat/frontend]
+    paths: ['apps/frontend/**', '.github/workflows/frontend-g4.yml']
+  pull_request:
+    branches: [main]
+    paths: ['apps/frontend/**', '.github/workflows/frontend-g4.yml']
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: frontend-g4-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  reference:
+  backend:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: g4_isolated
+          POSTGRES_USER: g4
+          POSTGRES_PASSWORD: g4_ephemeral_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U g4 -d g4_isolated"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://g4:g4_ephemeral_ci_only@127.0.0.1:5432/g4_isolated
+      HOST: 127.0.0.1
+      PORT: 13081
+      COOKIE_SECURE: 'false'
+      ALLOWED_ORIGIN: http://127.0.0.1:15175
+      N8N_ENDPOINT: ''
+      N8N_TOKEN: ''
+      ADMIN_EMAIL: g4-synthetic@example.invalid
+      ADMIN_NAME: G4 Synthetic QA
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Read-only pinned G3 backend, not the integration worktree
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 0ba4899a3130a8663a719f4856d4b463e5b976a3
+          path: .g4-backend-reference
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24.15.0
-      - name: Record pinned baseline and prepare isolated QA dependencies
+      - name: Initialize isolated test database; no worker or AI provider credentials
+        shell: bash
         run: |
-          mkdir -p "$RUNNER_TEMP/g4-reference"
-          git status --short --branch > "$RUNNER_TEMP/g4-reference/git-status.txt"
-          git rev-parse HEAD >> "$RUNNER_TEMP/g4-reference/git-status.txt"
-          git branch -f feat/frontend HEAD
-          git bundle create "$RUNNER_TEMP/g4-reference/frontend.bundle" refs/heads/feat/frontend
-          git archive 0ba4899a3130a8663a719f4856d4b463e5b976a3 apps/backend packages/contracts docs/backend apps/mcp-server/src automation > "$RUNNER_TEMP/g4-reference/g3-reference.tar"
-          cd apps/frontend
+          set -euo pipefail
+          mkdir -p apps/frontend/qa-evidence
+          { node --version; npm --version; git rev-parse HEAD; git status --short --branch; } > apps/frontend/qa-evidence/g4-environment.log
+          PASSWORD=$(node -e "console.log(require('node:crypto').randomBytes(24).toString('hex'))")
+          echo "::add-mask::$PASSWORD"
+          echo "ADMIN_PASSWORD=$PASSWORD" >> "$GITHUB_ENV"
+          echo "UAPM_G4_BACKEND_DIR=$GITHUB_WORKSPACE/.g4-backend-reference/apps/backend" >> "$GITHUB_ENV"
+          export ADMIN_PASSWORD="$PASSWORD"
+          cd .g4-backend-reference/apps/backend
+          npm ci
+          npm run migrate
+          npm run admin -- create-user
+          npm run build
+          npm start > "$GITHUB_WORKSPACE/apps/frontend/qa-evidence/g4-backend.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:13081/ready; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:13081/ready
+      - name: Clean frontend install and Chromium
+        working-directory: apps/frontend
+        run: |
           npm ci
           npm run typecheck
-          tar -czf "$RUNNER_TEMP/g4-reference/dependencies.tar.gz" node_modules
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+          npx playwright install --with-deps chromium
+      - name: Real backend browser scenarios (no AI calls)
+        working-directory: apps/frontend
+        run: npx playwright test --config playwright.g4-real.config.ts 2>&1 | tee qa-evidence/g4-real-browser.log
+      - name: Verify PostgreSQL bytes and absence of planning operations
+        working-directory: apps/frontend
+        run: node scripts/g4-verify-db.mjs | tee qa-evidence/g4-postgresql.log
+      - name: Verify backend and contracts are unchanged
+        run: git -C .g4-backend-reference diff --exit-code -- apps/backend packages/contracts
+      - name: Preserve G4 evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: g4-pinned-reference-${{ github.sha }}
-          path: ${{ runner.temp }}/g4-reference/
-          retention-days: 3
+          name: frontend-g4-real-${{ github.event.pull_request.head.sha || github.sha }}
+          path: apps/frontend/qa-evidence/
+          retention-days: 14
