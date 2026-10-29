@@ -1,3 +1,4 @@
+import {ErrorMessage} from './UI';
 import {useId,useMemo,useState,type KeyboardEvent} from 'react';
 import type {User} from '../api/types';
 import {taskEditing} from '../i18n/taskEditing';
@@ -39,7 +40,7 @@ export function ProjectMemberPicker({members,selectedId,onSelect,loaded,loading,
     onChange={e=>{setQuery(e.target.value);setHighlight(0);setOpen(true)}}
     onFocus={()=>setOpen(true)} onKeyDown={key} onBlur={()=>setTimeout(()=>setOpen(false),120)} />
   {loading&&!loaded&&<p role="status" className="text-xs text-slate-500">{taskEditing.membersLoading}</p>}
-  {error&&<div role="alert" className="text-sm text-red-700">{taskEditing.membersUnavailable} {error}
+  {error&&<div role="alert" className="text-sm text-red-700">{taskEditing.membersUnavailable} <ErrorMessage text={error}/>
     {onRetry&&<button type="button" className="ml-2 underline" onClick={onRetry}>{taskEditing.membersRetry}</button>}</div>}
   {loaded&&!error&&!eligible.length&&<p className="text-sm text-amber-800">{taskEditing.membersEmpty}</p>}
   {loaded&&!error&&open&&!blocked&&<ul id={id+'-list'} role="listbox" aria-label={taskEditing.memberResults} className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-sm">

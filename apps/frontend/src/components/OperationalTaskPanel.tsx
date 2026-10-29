@@ -14,7 +14,7 @@ import {ProjectMemberPicker} from './ProjectMemberPicker';
 import {TaskDependencyPicker} from './TaskDependencyPicker';
 import { de } from '../i18n/de';
 import type { OperationalTaskPatch, Task, TaskPriority, TaskStatus, User } from '../api/types';
-import { ErrorState } from './UI';
+import { ErrorMessage, ErrorState } from './UI';
 import { explainError } from '../api/errors';
 
 export function OperationalTaskPanel({task,tasks,members,onClose,onSave,membersLoaded=true,membersLoading=false,membersError=null,onReloadMembers}:{
@@ -86,15 +86,14 @@ export function OperationalTaskPanel({task,tasks,members,onClose,onSave,membersL
         <p>{editing?taskEditing.draftPolicy:taskEditing.policy}</p>
         {!editing&&<button type="button" className="btn-primary mt-3" disabled={saving||statusChanged||!depsLoaded} onClick={()=>{setPatch(prev=>({...prev,dependsOn:depsBase}));setEditing(true);setError(null);}}><PenLine size={16}/>{taskEditing.edit}</button>}
         {!editing&&statusChanged&&<p className="mt-2 text-xs">{taskEditing.statusFirst}</p>}
-        <p className="mt-2 break-all text-xs">Version: {task.version} - {task.id}</p>
+        <details className="mt-2 text-xs"><summary>Technische Details</summary><p className="break-all">Version: {task.version} · ID: {task.id}</p></details>
         {depsRead.loading&&!depsLoaded&&<p role="status" className="mt-2 text-xs text-slate-500">{taskEditing.depsLoading}</p>}
-        {Boolean(depsRead.error)&&<div role="alert" className="mt-2 text-sm text-red-700">{taskEditing.depsUnavailable} {explainError(depsRead.error)}
+        {Boolean(depsRead.error)&&<div role="alert" className="mt-2 text-sm text-red-700">{taskEditing.depsUnavailable} <ErrorMessage text={explainError(depsRead.error)}/>
           <button type="button" className="ml-2 underline" onClick={()=>void depsRead.reload()}>{taskEditing.membersRetry}</button></div>}
       </div>}
       {saved&&signature===savedSignature&&<section role="status" data-testid="task-draft-saved" className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
         <p className="font-semibold">{taskEditing.saved(saved.number)}</p>
-        <p className="mt-2 break-all font-mono text-xs">{saved.id}</p>
-        <p className="mt-1 break-all font-mono text-xs">SHA-256: {saved.content_hash}</p>
+        <details className="mt-2 text-xs"><summary>Technische Details</summary><p className="break-all font-mono">{saved.id}</p><p className="break-all font-mono">SHA-256: {saved.content_hash}</p></details>
         <Link className="btn-primary mt-3" to={`/projects/${task.projectId}/review?plan=${encodeURIComponent(saved.id)}`}>{taskEditing.review}</Link>
       </section>}
       <form className="mt-7 space-y-5" onSubmit={e=>void submit(e)}>
@@ -104,7 +103,7 @@ export function OperationalTaskPanel({task,tasks,members,onClose,onSave,membersL
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="field-label">{de.editor.status}<select aria-label={de.editor.status} disabled={!isDemoMode&&editing} className="field-input" value={patch.status} onChange={e=>change({...patch,status:e.target.value as TaskStatus})}>{Object.entries(de.taskStatus).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
             <label className="field-label">{de.editor.priority}<select aria-label={de.editor.priority} disabled={!editable} className="field-input" value={patch.priority} onChange={e=>change({...patch,priority:e.target.value as TaskPriority})}>{Object.entries(de.taskPriority).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
-            {isDemoMode?<label className="field-label">{de.v2.board.assignee}<select aria-label={de.v2.board.assignee} className="field-input" value={patch.assigneeId??''} onChange={e=>change({...patch,assigneeId:e.target.value||undefined})}><option value="">{de.v2.board.unassigned}</option>{task.assigneeId&&!members.some(m=>m.id===task.assigneeId)&&<option value={task.assigneeId}>{task.assigneeId}</option>}{members.map(m=><option key={m.id} value={m.id}>{m.displayName}</option>)}</select></label>:
+            {isDemoMode?<label className="field-label">{de.v2.board.assignee}<select aria-label={de.v2.board.assignee} className="field-input" value={patch.assigneeId??''} onChange={e=>change({...patch,assigneeId:e.target.value||undefined})}><option value="">{de.v2.board.unassigned}</option>{task.assigneeId&&!members.some(m=>m.id===task.assigneeId)&&<option value={task.assigneeId}>Zugewiesen (Name nicht verfügbar)</option>}{members.map(m=><option key={m.id} value={m.id}>{m.displayName}</option>)}</select></label>:
               <ProjectMemberPicker members={members} selectedId={patch.assigneeId}
                 onSelect={id=>change({...patch,assigneeId:id})}
                 loaded={membersLoaded} loading={membersLoading} error={membersError}

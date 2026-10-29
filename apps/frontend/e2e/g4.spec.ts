@@ -53,15 +53,15 @@ test('rapid navigation reuses reads, keeps one application and does not poll ter
  const state=await fixture(page);await page.goto('/');await expect(page.getByRole('heading',{name:'Projekte klar steuern. Menschen entscheiden.'})).toBeVisible();
  for(let round=0;round<2;round++){
    await nav(page,'Projektaufgaben').click();await expect(page.getByRole('button',{name:'Aufgabe \u00f6ffnen: Backend-Aufgabe'})).toBeVisible();
-   await nav(page,'AI Planungsstudio').click();await expect(page.getByText('Fixierter Snapshot v1')).toBeVisible();
-   await nav(page,'Aktivit\u00e4t & Betrieb').click();await expect(page.getByRole('heading',{name:'Projektereignisse \u00b7 Backend'})).toBeVisible();
+   await nav(page,'AI Planungsstudio').click();await expect(page.getByText('Projektplan · Version 1')).toBeVisible();
+   await nav(page,'Aktivit\u00e4t & Betrieb').click();await expect(page.getByRole('heading',{name:'Projektaktivitäten'})).toBeVisible();
    await nav(page,'Dashboard').click();await expect(page.getByRole('heading',{name:'Projekte klar steuern. Menschen entscheiden.'})).toBeVisible();
  }
  const projects=state.calls.filter(c=>c.path==='/api/v1/projects');expect(projects).toHaveLength(1);
  expect(state.calls.filter(c=>c.path==='/api/v1/projects/'+A+'/tasks').length).toBeLessThanOrEqual(2);
  expect(state.calls.filter(c=>c.path==='/api/v1/projects/'+B+'/activity')).toHaveLength(0);
  expect(state.calls.filter(c=>c.method!=='GET')).toHaveLength(0);expect(state.unexpected).toEqual([]);
- await shot(page,'live-dashboard-fixture');await nav(page,'AI Planungsstudio').click();await expect(page.getByText('Fixierter Snapshot v1')).toBeVisible();
+ await shot(page,'live-dashboard-fixture');await nav(page,'AI Planungsstudio').click();await expect(page.getByText('Projektplan · Version 1')).toBeVisible();
  const before=state.calls.length;await page.waitForTimeout(5300);expect(state.calls.length).toBe(before);
  await writeFile('qa-evidence/g4-request-trace.json',JSON.stringify({kind:'controlled-http-fixture',calls:state.calls},null,2));
 });
@@ -97,19 +97,19 @@ test('missing Retry-After exposes manual recovery and never invents a wait durat
 test('live status-only editor preserves version checks and activity is project-scoped',async({page})=>{
  const state=await fixture(page);await page.goto('/projects/'+A+'/board');await page.getByRole('button',{name:'Aufgabe \u00f6ffnen: Backend-Aufgabe'}).click();
  const dialog=page.getByRole('dialog');await expect(dialog).not.toContainText('Lokale Demo');await expect(dialog.getByLabel('Titel')).toHaveAttribute('readonly');await expect(dialog.getByLabel('Priorit\u00e4t')).toBeDisabled();await shot(page,'live-task-panel-fixture');
- state.task.version=8;await dialog.getByLabel('Status',{exact:true}).selectOption('done');await dialog.getByRole('button',{name:'Status im Backend speichern'}).click();await expect(dialog.getByRole('alert')).toContainText('Versionskonflikt');expect(state.task.status).toBe('todo');
- await page.reload();await page.getByRole('button',{name:'Aufgabe \u00f6ffnen: Backend-Aufgabe'}).click();await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('done');await page.getByRole('button',{name:'Status im Backend speichern'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);expect(state.task.status).toBe('done');
+ state.task.version=8;await dialog.getByLabel('Status',{exact:true}).selectOption('done');await dialog.getByRole('button',{name:'Status speichern'}).click();await expect(dialog.getByRole('alert')).toContainText('Versionskonflikt');expect(state.task.status).toBe('todo');
+ await page.reload();await page.getByRole('button',{name:'Aufgabe \u00f6ffnen: Backend-Aufgabe'}).click();await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('done');await page.getByRole('button',{name:'Status speichern'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);expect(state.task.status).toBe('done');
  expect(state.calls.filter(c=>c.method==='PATCH').map(c=>c.body)).toEqual([{version:7,status:'done'},{version:8,status:'done'}]);
- await nav(page,'Aktivit\u00e4t & Betrieb').click();await expect(page.getByRole('heading',{name:'Projektereignisse \u00b7 Backend'})).toBeVisible();await expect(page.locator('main')).not.toContainText('Demo-Arbeitsspeicher');await expect(page.locator('main')).toContainText('event-'+A);await shot(page,'live-activity-fixture');
+ await nav(page,'Aktivit\u00e4t & Betrieb').click();await expect(page.getByRole('heading',{name:'Projektaktivitäten'})).toBeVisible();await expect(page.locator('main')).not.toContainText('Demo-Arbeitsspeicher');await expect(page.locator('main')).toContainText('event-'+A);await shot(page,'live-activity-fixture');
  await page.getByLabel('Projekt ausw\u00e4hlen').selectOption(B);await expect(page.locator('main')).toContainText('event-'+B);await expect(page.locator('main')).not.toContainText('event-'+A);
- await nav(page,'Einstellungen').click();await expect(page.locator('main')).toContainText('PostgreSQL');await expect(page.locator('main')).not.toContainText('Nicht persistent');expect(state.unexpected).toEqual([]);
+ await nav(page,'Einstellungen').click();await expect(page.locator('main')).toContainText('Dauerhaft gespeichert');await expect(page.locator('main')).not.toContainText('Nicht persistent');expect(state.unexpected).toEqual([]);
 });
 
 test('a throttled status write is never automatically repeated and explicit retry retains its key',async({page})=>{
  let first=true;const state=await fixture(page,async(route,path)=>{if(path.endsWith('/status')&&first){first=false;await route.fulfill({...error(429,'FST_ERR_RATE_LIMIT'),headers:{'Retry-After':'1'}});return true;}return false;});
- await page.goto('/projects/'+A+'/board');await page.getByRole('button',{name:'Aufgabe \u00f6ffnen: Backend-Aufgabe'}).click();await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('done');await page.getByRole('button',{name:'Status im Backend speichern'}).click();
+ await page.goto('/projects/'+A+'/board');await page.getByRole('button',{name:'Aufgabe \u00f6ffnen: Backend-Aufgabe'}).click();await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('done');await page.getByRole('button',{name:'Status speichern'}).click();
  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('Zu viele Anfragen');await page.waitForTimeout(1200);expect(state.calls.filter(c=>c.method==='PATCH')).toHaveLength(1);
- await page.getByRole('button',{name:'Status im Backend speichern'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);const writes=state.calls.filter(c=>c.method==='PATCH');expect(writes).toHaveLength(2);expect(writes[1].key).toBe(writes[0].key);
+ await page.getByRole('button',{name:'Status speichern'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);const writes=state.calls.filter(c=>c.method==='PATCH');expect(writes).toHaveLength(2);expect(writes[1].key).toBe(writes[0].key);
 });
 
 test('authorization 403 is not treated as session loss or replaced with demo data',async({page})=>{
@@ -118,8 +118,19 @@ test('authorization 403 is not treated as session loss or replaced with demo dat
 
 test('multilingual content remains unchanged through create, reload, selector and status filters (HTTP fixture)',async({page})=>{
  const state=await fixture(page),name='\u041f\u0440\u043e\u0435\u043a\u0442 \u00ab\u041c\u043e\u0441\u0442\u00bb / Br\u00fccke / Bridge',description='\u0421\u0442\u0440\u043e\u043a\u0430 1: \u0451, \u0439; API & \u201cquotes\u201d.\nZweite Zeile: Gr\u00f6\u00dfe.\nThird line: e\u0301!';
- await page.goto('/projects/new');await page.getByLabel('Projektname',{exact:true}).fill(name);await page.getByLabel('Was m\u00f6chtest du erreichen?').fill(description);await page.getByRole('button',{name:'Projekt im Backend erstellen'}).dblclick();
+ await page.goto('/projects/new');await page.getByLabel('Projektname',{exact:true}).fill(name);await page.getByLabel('Was m\u00f6chtest du erreichen?').fill(description);await page.getByRole('button',{name:'Projekt erstellen'}).dblclick();
  await expect(page).toHaveURL(/\/board$/);expect(state.calls.filter(c=>c.method==='POST')).toHaveLength(1);const id=page.url().split('/')[4];await expect(page.getByTestId('project-description')).toHaveText(description);
  await page.reload();await expect(page.getByTestId('project-description')).toHaveText(description);expect(state.projects.find(p=>p.id===id)?.name).toBe(name);await expect(page.getByLabel('Projekt ausw\u00e4hlen')).toHaveValue(id);await expect(nav(page,'Dashboard')).toBeVisible();await shot(page,'multilingual-fixture');
  await page.getByLabel('Statusfilter').selectOption('blocked');await expect(page).toHaveURL(new RegExp(id));expect(state.calls.filter(c=>c.method==='POST')).toHaveLength(1);expect(state.unexpected).toEqual([]);
+});
+
+
+test('plan and activity keep technical identifiers collapsed until requested',async({page})=>{
+ await fixture(page);await page.goto('/projects/'+A+'/review');
+ await expect(page.getByRole('heading',{name:'Projektplan · Version 1'})).toBeVisible();
+ const id=page.getByTestId('plan-version-id'),hash=page.getByTestId('plan-hash');
+ await expect(id).toBeHidden();await expect(hash).toBeHidden();
+ await id.locator('..').locator('summary').click();await expect(id).toHaveText(V);await expect(hash).toContainText('a'.repeat(64));
+ await nav(page,'Aktivität & Betrieb').click();const event=page.getByText('project.created / event-'+A);await expect(event).toBeHidden();
+ await event.locator('..').locator('summary').click();await expect(event).toBeVisible();
 });

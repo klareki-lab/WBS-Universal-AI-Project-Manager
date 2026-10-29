@@ -19,7 +19,13 @@ export function StatusBadge({ status }: { status: ProjectStatus | TaskStatus | P
 export function PriorityBadge({ value }: { value: TaskPriority }) { return <span className={`priority-${value} text-xs font-semibold`}>{de.taskPriority[value]}</span>; }
 export function ProgressBar({ value }: { value: number }) { return <div className="progress-track" role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={100} aria-label="Projektfortschritt"><div className="progress-fill" style={{ width: `${value}%` }} /></div>; }
 export function Loading({ label = de.common.loading }: { label?: string }) { return <div className="flex min-h-52 items-center justify-center gap-3 text-slate-500" role="status"><LoaderCircle className="animate-spin" size={22} />{label}</div>; }
-export function ErrorState({ text, retry }: { text: string; retry?: () => void }) { return <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800" role="alert"><div className="mb-2 flex items-center gap-2 font-bold"><AlertTriangle size={18} />Fehler</div><p className="text-sm">{text}</p>{retry && <button className="btn-secondary mt-3" onClick={retry}>{de.common.retry}</button>}</div>; }
+export function ErrorMessage({text}:{text:string}) {
+  const match=text.match(/^(.*?)( \([a-zA-Z0-9_]+\))?( · Request-ID .+)$/);
+  const codeOnly=!match?text.match(/^(.*?)( \([a-zA-Z0-9_]+\))$/):null;
+  const parts=match??codeOnly;
+  return <>{parts?parts[1]:text}{parts&&<details className="mt-2 text-xs"><summary>Technische Details</summary><span className="break-all">{parts.slice(2).filter(Boolean).join(' ')}</span></details>}</>;
+}
+export function ErrorState({ text, retry }: { text: string; retry?: () => void }) { return <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800" role="alert"><div className="mb-2 flex items-center gap-2 font-bold"><AlertTriangle size={18} />Fehler</div><div className="text-sm"><ErrorMessage text={text}/></div>{retry && <button className="btn-secondary mt-3" onClick={retry}>{de.common.retry}</button>}</div>; }
 export function EmptyState({ text }: { text: string }) { return <div className="rounded-xl border border-dashed border-slate-200 px-5 py-10 text-center text-sm text-slate-500">{text}</div>; }
 export function SectionTitle({ title, subtitle, right }: { title: string; subtitle?: string; right?: ReactNode }) { return <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-bold text-ink">{title}</h2>{subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}</div>{right}</div>; }
 export function DueDate({ date }: { date?: string }) { return <span className="inline-flex items-center gap-1.5 text-sm text-slate-500"><Clock3 size={14} />{dateDE(date)}</span>; }

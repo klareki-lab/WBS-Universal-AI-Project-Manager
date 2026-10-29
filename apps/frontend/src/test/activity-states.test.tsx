@@ -1,5 +1,5 @@
 import {beforeEach,describe,expect,it,vi} from 'vitest';
-import {render,screen} from '@testing-library/react';
+import {fireEvent,render,screen} from '@testing-library/react';
 import Activity from '../pages/Activity';
 import {de} from '../i18n/de';
 import {g4} from '../i18n/g4';
@@ -37,7 +37,7 @@ describe('G4 recovery: activity loading is not empty demo history',()=>{
    state.error=Object.assign(new Error('Rate limited'),{status:429,requestId:'refresh-429',code:'rate_limited'});
    render(<Activity/>);
    expect(screen.getByText('Projekt erstellt')).toBeVisible();
-   expect(screen.getByText('audit-1')).toBeVisible();
+   expect(screen.getByText('audit-1')).not.toBeVisible(); fireEvent.click(screen.getByText('audit-1').closest('details')!.querySelector('summary')!); expect(screen.getByText('audit-1')).toBeVisible();
    expect(screen.getByRole('alert')).toBeVisible();
    expect(screen.queryByText(de.activity.noEvents)).not.toBeInTheDocument();
    expect(screen.queryByText(g4.eventsEmpty)).not.toBeInTheDocument();

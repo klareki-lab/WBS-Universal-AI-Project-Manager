@@ -12,7 +12,7 @@ export function RateLimitNotice({ retry }: { retry?: () => void }) {
     <p className="flex items-center gap-2 font-bold"><Clock3 size={18}/>{g4.rateTitle}</p>
     <p className="mt-2 text-sm">{seconds === null ? g4.unknown : seconds > 0 ? g4.countdown(seconds) : g4.restoring}</p>
     <p className="mt-1 text-xs">{g4.preserved}</p>
-    {rate.requestId && <p className="mt-1 break-all font-mono text-xs">Request-ID: {rate.requestId}</p>}
+    {rate.requestId && <details className="mt-1 text-xs"><summary>Technische Details</summary><p className="break-all font-mono">Request-ID: {rate.requestId}</p></details>}
     {((rate.manual && seconds === null) || seconds === 0) && <button className="btn-secondary mt-3" onClick={() => { allowManualReadRetry(); if (retry) retry(); else window.dispatchEvent(new Event('uapm-read-retry')); }}>{g4.retry}</button>}
   </div>;
 }

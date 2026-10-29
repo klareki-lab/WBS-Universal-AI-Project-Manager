@@ -32,7 +32,7 @@ describe('planning operation feedback',()=>{
   expect(step).toHaveTextContent('Planversion v2');
   expect(step).toHaveTextContent('keine AI-Planung erforderlich');
   expect(screen.getByTestId('plan-version-id')).toHaveTextContent('manual-v2');
-  expect(screen.getByText(/Backend-Vorgänge \/ frühere AI-Aufträge/).closest('details')).not.toHaveAttribute('open');
+  expect(screen.getByText(/Frühere KI-Bearbeitungen/).closest('details')).not.toHaveAttribute('open');
   expect(screen.getByRole('button',{name:'Review einreichen'})).toBeEnabled();
   fireEvent.click(screen.getByRole('button',{name:'Review einreichen'}));
   await waitFor(()=>expect(api.review).toHaveBeenCalledWith('p1','manual-v2'));

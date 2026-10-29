@@ -62,12 +62,12 @@ test('edit selected task, recover one draft, approve exact hash and publish with
  await page.getByRole('dialog').getByRole('button',{name:'Details schließen'}).click();
  await page.getByRole('button',{name:'Aufgabe öffnen: First task stays unchanged',exact:true}).click();
  await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('in_progress');
- await page.getByRole('dialog').getByRole('button',{name:'Status im Backend speichern'}).click();
+ await page.getByRole('dialog').getByRole('button',{name:'Status speichern'}).click();
  await expect(page.getByRole('dialog')).toHaveCount(0);await page.reload();
  const moved=await (await page.request.get(root+`/tasks/${other.id}`)).json();expect(moved.status).toBe('in_progress');expect(moved.title).toBe(other.title);
  await page.getByRole('button',{name:'Aufgabe öffnen: First task stays unchanged',exact:true}).click();
  await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('todo');
- await page.getByRole('dialog').getByRole('button',{name:'Status im Backend speichern'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
+ await page.getByRole('dialog').getByRole('button',{name:'Status speichern'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
  expect((await (await page.request.get(root+`/tasks/${other.id}`)).json()).status).toBe('todo');
  await page.goto(`/projects/${project.id}/review?plan=${randomUUID()}`);await expect(page.getByTestId('plan-version-id')).toHaveCount(0);await expect(page.getByRole('button',{name:'Version freigeben',exact:true})).toHaveCount(0);await expect(page.getByText(/Die angeforderte Planversion/)).toBeVisible();
  expect(aiRequests).toBe(0);

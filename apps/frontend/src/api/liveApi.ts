@@ -54,13 +54,13 @@ export const liveApi:ProjectApi={
  async rejectVersion(pid,vid,reason){const p=await api.plan(pid,vid);if(p.status==='draft')await api.review(pid,vid);await api.decision(pid,p,'rejected',reason)},
  async requestRevision(){return unsupported('Überarbeitung anfordern')},
  async listApprovals(){return []},
- async assistantMessage(pid,text,intent){if(intent!=='propose')unsupported('Konversation ohne Agent-Planung');const result=await api.planning(pid,text);return {id:result.id,role:'assistant',text:'Planungsoperation: '+result.id+' ('+result.status+'). Im Aktivitätsbereich prüfen.',kind:'proposal',createdAt:result.created_at,simulated:false as never}},
- async listConversation(pid,options){const jobs=(await api.operations(pid,options)).items.filter(o=>o.kind==='planning');return {id:pid,projectId:pid,createdAt:new Date(0).toISOString(),messages:jobs.map(o=>({id:o.id,role:'assistant' as const,text:'Planungsoperation '+o.id+': '+({queued:'Wartend',running:'In Bearbeitung',succeeded:'Erfolgreich',failed:'Fehlgeschlagen'}[o.status])+(o.error?' · '+o.error:''),kind:'proposal' as const,createdAt:o.created_at,simulated:false}))}},
+ async assistantMessage(pid,text,intent){if(intent!=='propose')unsupported('Konversation ohne Agent-Planung');const result=await api.planning(pid,text);return {id:result.id,role:'assistant',text:'Planungsauftrag erstellt. Den Bearbeitungsstand findest du unter Aktivitäten.',kind:'proposal',createdAt:result.created_at,simulated:false as never}},
+ async listConversation(pid,options){const jobs=(await api.operations(pid,options)).items.filter(o=>o.kind==='planning');return {id:pid,projectId:pid,createdAt:new Date(0).toISOString(),messages:jobs.map(o=>({id:o.id,role:'assistant' as const,text:'KI-Bearbeitung: '+({queued:'Wartend',running:'In Bearbeitung',succeeded:'Erfolgreich',failed:'Fehlgeschlagen'}[o.status]),kind:'proposal' as const,createdAt:o.created_at,simulated:false}))}},
  async listProposals(){return []},
  async applyProposal(){return unsupported('AI-Vorschlag direkt anwenden')},
  async rejectProposal(){return unsupported('Vorschlag direkt verwerfen')},
  async listOperations(pid,options){if(!pid)return [];return (await api.operations(pid,options)).items.map(op)},
- async listActivity(pid,options){if(!pid)return [];return (await api.activity(pid,options)).items.map(e=>({id:e.id,projectId:pid,at:e.created_at,category:'operation',title:activityNames[String(e.type)]??'Backend-Ereignis',detail:String(e.type)+' / '+e.id,level:'info',simulated:false} as ActivityEvent))},
+ async listActivity(pid,options){if(!pid)return [];return (await api.activity(pid,options)).items.map(e=>({id:e.id,projectId:pid,at:e.created_at,category:'operation',title:activityNames[String(e.type)]??'Projektaktivität',detail:String(e.type)+' / '+e.id,level:'info',simulated:false} as ActivityEvent))},
  async getCapabilities(){return {mode:'live',persistence:true,aiAvailable:true,integrations:[]} as AppCapabilities}
 };
 export const auth={login,logout,session,activeSession};

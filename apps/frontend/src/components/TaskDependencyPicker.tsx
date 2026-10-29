@@ -1,3 +1,4 @@
+import {ErrorMessage} from './UI';
 import {useMemo,useState} from 'react';
 import type {Task} from '../api/types';
 import {taskEditing} from '../i18n/taskEditing';
@@ -20,13 +21,13 @@ export function TaskDependencyPicker({taskId,projectId,tasks,selected,onChange,d
   <legend className="field-label">{taskEditing.depLabel}</legend>
   <p className="text-xs text-slate-500">{taskEditing.depHelp}</p>
   {loading&&<p role="status" className="text-xs">{taskEditing.depsLoading}</p>}
-  {error&&<div role="alert" className="text-sm text-red-700">{taskEditing.depsUnavailable} {error}
+  {error&&<div role="alert" className="text-sm text-red-700">{taskEditing.depsUnavailable} <ErrorMessage text={error}/>
     {onRetry&&<button type="button" className="ml-2 underline" onClick={onRetry}>{taskEditing.membersRetry}</button>}</div>}
   <ul aria-label={taskEditing.currentDeps} className="space-y-1">
    {selected.map(id=><li key={id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm">
-    <span>{byId.get(id)?.title??id}{!byId.has(id)&&<span className="ml-2 text-amber-700">{taskEditing.unknownDependency}</span>}</span>
+    <span>{byId.get(id)?.title??taskEditing.unknownDependency}{!byId.has(id)&&<details className="text-xs"><summary>Technische Details</summary><span className="break-all">{id}</span></details>}</span>
     <button type="button" className="text-emerald-800 underline disabled:text-slate-400"
-     aria-label={taskEditing.removeDependency(byId.get(id)?.title??id)}
+     aria-label={taskEditing.removeDependency(byId.get(id)?.title??taskEditing.unknownDependency)}
      disabled={disabled||Boolean(error)} onClick={()=>onChange(selected.filter(x=>x!==id))}>{taskEditing.remove}</button>
    </li>)}
    {!selected.length&&!loading&&!error&&<li className="text-sm text-slate-500">{taskEditing.noDependencies}</li>}

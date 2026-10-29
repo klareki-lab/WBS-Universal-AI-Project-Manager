@@ -13,9 +13,9 @@ vi.mock('../utils/useReadResource',()=>({useReadResource:(key:string)=>({
 beforeEach(()=>{state.assigned=true});
 const show=()=>render(<MemoryRouter initialEntries={['/projects/p/board']}><Routes><Route path="/projects/:projectId/board" element={<Board/>}/></Routes></MemoryRouter>);
 describe('persisted assignee without a directory lookup',()=>{
- it('shows the stored UUID in Kanban and List instead of falsely claiming unassigned',()=>{
-  show();expect(screen.getByRole('button',{name:'Aufgabe öffnen: Assigned task'})).toHaveTextContent(userId);expect(screen.queryByText('Nicht zugewiesen')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button',{name:'Liste'}));expect(screen.getByRole('cell',{name:userId})).toBeVisible();
+ it('shows an assigned label without exposing the UUID in Kanban and List',()=>{
+  show();expect(screen.getByRole('button',{name:'Aufgabe öffnen: Assigned task'})).toHaveTextContent('Zugewiesen (Name nicht verfügbar)');expect(screen.queryByText('Noch nicht zugewiesen')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Liste'}));expect(screen.getByRole('cell',{name:'Zugewiesen (Name nicht verfügbar)'})).toBeVisible();
  });
- it('uses unassigned only when no assignee was actually stored',()=>{state.assigned=false;show();expect(screen.getByRole('button',{name:'Aufgabe öffnen: Assigned task'})).toHaveTextContent('Nicht zugewiesen');expect(screen.queryByText(userId)).not.toBeInTheDocument()});
+ it('uses unassigned only when no assignee was actually stored',()=>{state.assigned=false;show();expect(screen.getByRole('button',{name:'Aufgabe öffnen: Assigned task'})).toHaveTextContent('Noch nicht zugewiesen');expect(screen.queryByText(userId)).not.toBeInTheDocument()});
 });
