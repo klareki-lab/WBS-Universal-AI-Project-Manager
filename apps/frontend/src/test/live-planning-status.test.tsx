@@ -16,7 +16,7 @@ describe('planning operation feedback',()=>{
   state.failed=false;render(<MemoryRouter initialEntries={['/projects/p1/plan']}><Routes><Route path="/projects/:projectId/plan" element={<LivePlanWorkspace/>}/></Routes></MemoryRouter>);
   await userEvent.type(screen.getByLabelText('Planungsziel'),'Synthetic goal');
   await userEvent.click(screen.getByRole('button',{name:'Planung anfordern'}));
-  expect(await screen.findByRole('alert')).toHaveTextContent('AI-Budget ist ausgeschöpft');
-  expect(screen.queryByText(/Planungsauftrag gespeichert/)).not.toBeInTheDocument();
+  expect(await screen.findByRole('alert')).toHaveTextContent('AI-Budget ist ausgesch\u00f6pft');
+  expect(screen.queryByText(/Planungsauftrag (im Backend )?gespeichert/)).not.toBeInTheDocument();
  });
 });

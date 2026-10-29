@@ -1,0 +1,57 @@
+/** System copy only. User-authored project content is never translated. */
+export const g4 = {
+  rateTitle: 'Anfragen kurz pausiert',
+  countdown: (seconds: number) => `Der Server begrenzt vor\u00fcbergehend Anfragen. Automatisches Laden in ${seconds} Sekunden.`,
+  restoring: 'Wartezeit beendet. Ausstehende Leseanfragen werden erneut geladen.',
+  unknown: 'Der Server hat keine lesbare Wartezeit angegeben. Bitte sp\u00e4ter erneut laden.',
+  preserved: 'Route, Projektauswahl und Eingaben bleiben erhalten. Schreibaktionen werden nicht automatisch wiederholt.',
+  retry: 'Lesedaten erneut laden',
+  live: 'LIVE \u00b7 BACKEND',
+  liveDetail: 'Daten aus dem eigenen Backend. Gespeicherte \u00c4nderungen sind persistent; Planinhalte ben\u00f6tigen eine Freigabe.',
+  taskTitle: 'Aufgabendetails',
+  taskMode: 'BACKEND \u00b7 STATUS BEARBEITBAR',
+  taskPolicy: 'Titel, Beschreibung, Priorit\u00e4t, Termine, Zust\u00e4ndigkeit und Abh\u00e4ngigkeiten sind hier schreibgesch\u00fctzt. Inhaltliche \u00c4nderungen ben\u00f6tigen eine neue Planversion, Pr\u00fcfung und menschliche Freigabe.',
+  taskSave: 'Status im Backend speichern',
+  taskSaved: 'Status vom Backend best\u00e4tigt und gespeichert.',
+  taskNoChange: 'Keine Status\u00e4nderung ausgew\u00e4hlt.',
+  planLink: 'Zum Planungsstudio',
+  tasksEmpty: 'Noch keine ver\u00f6ffentlichten Aufgaben. Erstelle einen Planentwurf und pr\u00fcfe ihn vor Freigabe und Ver\u00f6ffentlichung.',
+  events: 'Projektereignisse \u00b7 Backend',
+  eventsDetail: 'Audit-Verlauf des ausgew\u00e4hlten Projekts. Keine lokalen Demo-Eintr\u00e4ge.',
+  activitySubtitle: 'Gespeicherte \u00c4nderungen und tats\u00e4chliche Vorg\u00e4nge des ausgew\u00e4hlten Projekts.',
+  jobs: 'Backend-Vorg\u00e4nge',
+  jobsDetail: 'Die letzten bis zu 100 vom Backend gemeldeten Vorg\u00e4nge.',
+  jobsEmpty: 'Noch keine Vorg\u00e4nge f\u00fcr dieses Projekt.',
+  eventsEmpty: 'Noch keine Ereignisse f\u00fcr dieses Projekt.',
+  jobRetry: 'Vorgangsstatus kann erneut gelesen werden. Ein fehlgeschlagener Vorgang wird nicht automatisch neu gestartet.',
+  selectProject: 'Bitte ein Projekt ausw\u00e4hlen.',
+  create: 'Projekt im Backend erstellen',
+  language: 'Projektname und Beschreibung bleiben in der eingegebenen Sprache. Navigation und Systemmeldungen sind Deutsch.',
+  natural: 'Die Beschreibung wird unver\u00e4ndert gespeichert. Bitte den Projektnamen selbst angeben. Hier wird keine KI aufgerufen.',
+  unavailableFields: 'Kategorie, Zieldatum, Budget und Rahmenbedingungen haben noch keine eigenen Backend-Felder und sind deaktiviert.',
+  storage: 'PostgreSQL \u00b7 Zugriff ausschlie\u00dflich \u00fcber das eigene Backend',
+  backendSession: 'Authentifizierte Sitzung; Rechte und CSRF werden vom Backend gepr\u00fcft.',
+  ai: 'Planung \u00fcber Backend / n8n / MCP. Verf\u00fcgbarkeit und Ergebnis werden je Vorgang angezeigt.',
+  aiLanguage: 'Eine gew\u00fcnschte Ausgabesprache kann im Planungsziel stehen. Ihre Einhaltung ist nicht technisch garantiert.',
+  planningSubmitted: 'Planungsauftrag im Backend gespeichert. Noch keine Freigabe oder Ver\u00f6ffentlichung.',
+  operationRecord: 'GESPEICHERTER PLANUNGSAUFTRAG',
+  noQuestions: 'Freie Nur-Lesen-Fragen sind im aktuellen Backend nicht verf\u00fcgbar. Hier werden Planungsauftr\u00e4ge gespeichert.',
+  operationNotText: 'Dies ist der Status eines Backend-Vorgangs, keine KI-Antwort und keine Freigabe.',
+} as const;
+
+export const activityNames: Record<string,string> = {
+ 'project.created': 'Projekt erstellt', 'project.updated': 'Projekt aktualisiert',
+ 'task.status_changed': 'Aufgabenstatus ge\u00e4ndert', 'task.status_updated': 'Aufgabenstatus aktualisiert',
+ 'plan.created': 'Planentwurf gespeichert', 'plan.review_requested': 'Plan zur Pr\u00fcfung eingereicht',
+ 'plan.submitted': 'Plan eingereicht', 'plan.approved': 'Plan freigegeben', 'plan.rejected': 'Plan abgelehnt',
+ 'plan.published': 'Plan ver\u00f6ffentlicht', 'plan.approval_requested': 'Freigabe angefordert',
+ 'approval.revoked': 'Freigabe widerrufen', 'operation.queued': 'Vorgang eingereiht',
+ 'operation.running': 'Vorgang in Bearbeitung', 'operation.succeeded': 'Vorgang erfolgreich',
+ 'operation.failed': 'Vorgang fehlgeschlagen'
+};
+
+/** Preserve the integration owner's d22b0c3 safe planning-failure guidance. */
+export const planningFailureMessage = (code: string | null): string =>
+  code === 'AI_BUDGET_EXHAUSTED' ? 'Das freigegebene AI-Budget ist ausgesch\u00f6pft. Bitte die verantwortliche Person um eine Budgetentscheidung bitten.' :
+  code === 'AI_CONCURRENCY_LIMIT' ? 'Der AI-Dienst bearbeitet bereits mehrere Anfragen. Bitte sp\u00e4ter eine neue Planung anfordern.' :
+  'Die AI-Planung ist fehlgeschlagen. Dienst und Konfiguration pr\u00fcfen, dann bei Bedarf eine neue Planung anfordern.';

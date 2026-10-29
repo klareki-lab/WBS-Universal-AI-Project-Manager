@@ -12,7 +12,7 @@ export function DemoNotice({ compact = false }: { compact?: boolean }) {
   return <div className={`demo-notice ${compact ? 'py-2.5' : 'py-3.5'}`} role="note"><Info size={17} className="shrink-0 text-amber-600" aria-hidden="true" /><span><strong>{de.demo.title}.</strong> {de.demo.detail}</span></div>;
 }
 export function StatusBadge({ status }: { status: ProjectStatus | TaskStatus | PlanStatus | OperationState }) {
-  const labels: Record<string, string> = { ...de.projectStatus, ...de.taskStatus, ...de.operationStatus, draft: 'Entwurf', approved: 'Freigegeben', superseded: 'Überholt', rejected: 'Abgelehnt' };
+  const labels: Record<string, string> = { ...de.projectStatus, ...de.taskStatus, ...de.operationStatus, in_review: 'In Pr\u00fcfung', published: 'Ver\u00f6ffentlicht', draft: 'Entwurf', approved: 'Freigegeben', superseded: 'Überholt', rejected: 'Abgelehnt' };
   const style: Record<string, string> = { planning: 'slate', active: 'blue', at_risk: 'amber', completed: 'green', todo: 'slate', in_progress: 'blue', blocked: 'red', done: 'green', draft: 'amber', approved: 'green', superseded: 'slate', rejected: 'red', queued: 'slate', running: 'blue', partial: 'amber', failed: 'red' };
   return <span className={`status-badge badge-${style[status] ?? 'slate'}`}><span className="status-dot" />{labels[status]}</span>;
 }

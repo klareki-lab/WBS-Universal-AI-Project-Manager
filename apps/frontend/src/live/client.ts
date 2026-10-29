@@ -1,3 +1,4 @@
+import { coordinateRead, invalidateReads, isAbort, recordRateLimit, retryAt, getRateState, type ReadOptions } from './readCoordinator';
 /** Existing REST v1 subset. The canonical backend contract remains authoritative. */
 export type ProjectStatus='draft'|'active'|'on_hold'|'completed'|'archived';
 export type TaskStatus='todo'|'in_progress'|'blocked'|'done'|'cancelled';
@@ -12,13 +13,13 @@ export interface Operation {id:string;project_id:string;kind:'planning'|'publish
 export interface Activity {id:string;project_id:string;type?:string;event_type?:string;created_at:string;[key:string]:unknown}
 export interface Page<T>{items:T[];limit:number;offset:number}
 export class ApiError extends Error {
-  constructor(public status:number,public code:string,message:string,public requestId:string){super(message);this.name='ApiError'}
+  constructor(public status:number,public code:string,message:string,public requestId:string,public retryAt:number|null=null){super(message);this.name='ApiError'}
 }
 const base=(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/,'');
 // CSRF is tab-memory only. The HttpOnly session cookie is owned by the server.
 let csrf:string|null=null;
 export function activeSession(){return typeof csrf==='string' && csrf.length>0}
-export function clearSession(){csrf=null}
+export function clearSession(){csrf=null;invalidateReads()}
 function record(value:unknown):value is Record<string,unknown>{return typeof value==='object' && value!==null}
 async function decode(response:Response,write:boolean):Promise<unknown>{
   const requestId=response.headers.get('x-request-id')??'';
@@ -36,14 +37,26 @@ async function decode(response:Response,write:boolean):Promise<unknown>{
     const error=record(data)&&record(data.error)?data.error:{};
     const code=typeof error.code==='string'?error.code:'http_error';
     if(response.status===401 || (response.status===403 && code==='csrf_required'))clearSession();
+    if(response.status===401&&typeof window!=='undefined')window.dispatchEvent(new Event('uapm-auth-required'));
+    const retry = response.status===429 ? retryAt(response.headers) : null;
+    if(response.status===429)recordRateLimit(retry,typeof error.request_id==='string'?error.request_id:requestId);
     throw new ApiError(response.status,code,typeof error.message==='string'?error.message:'HTTP '+response.status,
-      typeof error.request_id==='string'?error.request_id:requestId);
+      typeof error.request_id==='string'?error.request_id:requestId,retry);
   }
   return data;
 }
-export async function request<T>(path:string,method:'GET'|'POST'|'PATCH'='GET',body?:unknown,key?:string):Promise<T>{
+export async function request<T>(path:string,method:'GET'|'POST'|'PATCH'='GET',body?:unknown,key?:string,options:ReadOptions={}):Promise<T>{
+  if(method==='GET')return coordinateRead(path,async signal=>{
+    let response:Response;
+    try{response=await fetch(base+path,{method:'GET',headers:{},credentials:'include',signal})}
+    catch(e){if(isAbort(e)||signal.aborted)throw new DOMException('Abgebrochen','AbortError');throw new ApiError(0,'network_unknown','Netzwerkfehler. Lesen kann erneut versucht werden.','')}
+    return await decode(response,false) as T;
+  },options,path.startsWith('/api/v1/auth/')?0:path.includes('/operations')?1000:5000);
+  const rate=getRateState();
+  if(rate.limited&&(rate.manual||(rate.until!==null&&rate.until>Date.now())))throw new ApiError(429,'rate_limited','Bitte die Wartezeit abwarten. Die Aktion wurde nicht erneut gesendet.',rate.requestId,rate.until);
+  invalidateReads();
   const headers:Record<string,string>={};
-  const write=method!=='GET';
+  const write=true;
   if(body!==undefined)headers['Content-Type']='application/json';
   if(write){
     if(!activeSession())throw new ApiError(401,'authentication_required','Bitte erneut anmelden, damit ein CSRF-Token verfügbar ist.','');
@@ -60,7 +73,8 @@ export async function request<T>(path:string,method:'GET'|'POST'|'PATCH'='GET',b
     ?'Verbindung unterbrochen. Ergebnis unbekannt. Identische Eingabe erneut senden: Der ursprüngliche Idempotenzschlüssel bleibt erhalten.'
     :'Netzwerkfehler. Laden ist erneut möglich.','')}
   // No automatic retry: a mutation may have committed before the response was lost.
-  const result=await decode(response,write) as T;
+  let result:T;
+  try{result=await decode(response,write) as T}finally{invalidateReads()}
   // Retain the key after network/5xx/unreadable responses. An explicit retry of
   // identical input (including after reload) recovers the original transaction.
   if(write){for(let i=sessionStorage.length-1;i>=0;i--){const slot=sessionStorage.key(i)!;if(slot.startsWith('uapm.pending.')&&sessionStorage.getItem(slot)===key)sessionStorage.removeItem(slot)}}
@@ -79,9 +93,9 @@ export async function login(email:string,password:string){
   csrf=data.csrf_token;
   return {id:data.user.id,display_name:data.user.display_name};
 }
-export async function session(){
- const user=await request<{id:string;display_name:string}>('/api/v1/auth/session');
- const token=await request<{csrf_token:string}>('/api/v1/auth/csrf');
+export async function session(options:ReadOptions={}){
+ const user=await request<{id:string;display_name:string}>('/api/v1/auth/session','GET',undefined,undefined,options);
+ const token=await request<{csrf_token:string}>('/api/v1/auth/csrf','GET',undefined,undefined,options);
  if(!token.csrf_token)throw new ApiError(200,'invalid_response','CSRF-Bootstrap fehlgeschlagen','');
  csrf=token.csrf_token;return user;
 }
@@ -89,23 +103,23 @@ export async function logout(){await request<unknown>('/api/v1/auth/logout','POS
 const p=(id:string)=>'/api/v1/projects/'+encodeURIComponent(id);
 const one=(id:string)=>'/api/v1/operations/'+encodeURIComponent(id);
 export const api={
- projects:()=>request<Page<Project>>('/api/v1/projects?limit=100&offset=0'),
- project:(id:string)=>request<Project>(p(id)),
+ projects:(options:ReadOptions={})=>request<Page<Project>>('/api/v1/projects?limit=100&offset=0','GET',undefined,undefined,options),
+ project:(id:string,options:ReadOptions={})=>request<Project>(p(id),'GET',undefined,undefined,options),
  createProject:(name:string,description:string,key?:string)=>request<Project>('/api/v1/projects','POST',{name,description},key),
- dashboard:(id:string)=>request<{total:number;progress_percent:number;by_status:Record<string,number>}>(p(id)+'/dashboard'),
- tasks:(id:string)=>request<Page<Task>>(p(id)+'/tasks?limit=100&offset=0'),
- status:(id:string,task:Task,status:TaskStatus,key?:string)=>request<Task>(p(id)+'/tasks/'+task.id+'/status','PATCH',{version:task.version,status},key),
- plans:(id:string)=>request<Page<Plan>>(p(id)+'/plans?limit=100&offset=0'),
- plan:(id:string,version:string)=>request<Plan>(p(id)+'/plans/'+version),
+ dashboard:(id:string,options:ReadOptions={})=>request<{total:number;progress_percent:number;by_status:Record<string,number>}>(p(id)+'/dashboard','GET',undefined,undefined,options),
+ tasks:(id:string,options:ReadOptions={})=>request<Page<Task>>(p(id)+'/tasks?limit=100&offset=0','GET',undefined,undefined,options),
+ status:(id:string,task:Pick<Task,'id'|'version'>,status:TaskStatus,key?:string)=>request<Task>(p(id)+'/tasks/'+task.id+'/status','PATCH',{version:task.version,status},key),
+ plans:(id:string,options:ReadOptions={})=>request<Page<Plan>>(p(id)+'/plans?limit=100&offset=0','GET',undefined,undefined,options),
+ plan:(id:string,version:string,options:ReadOptions={})=>request<Plan>(p(id)+'/plans/'+version,'GET',undefined,undefined,options),
  createPlan:(id:string,projectVersion:number,snapshot:Plan['snapshot'],key?:string)=>request<Plan>(p(id)+'/plans','POST',{base_project_version:projectVersion,snapshot},key),
  review:(id:string,version:string,key?:string)=>request<Plan>(p(id)+'/plans/'+version+'/submit-review','POST',undefined,key),
  requestApproval:(id:string,version:string,key?:string)=>request<Plan>(p(id)+'/plans/'+version+'/request-approval','POST',undefined,key),
  decision:(id:string,plan:Plan,decision:'approved'|'rejected',comment:string,key?:string)=>request<unknown>(p(id)+'/plans/'+plan.id+'/approvals','POST',{content_hash:plan.content_hash,decision,comment},key),
  publish:(id:string,plan:Plan,key?:string)=>request<Operation>(p(id)+'/plans/'+plan.id+'/publish','POST',{content_hash:plan.content_hash},key),
  planning:(id:string,prompt:string,key?:string)=>request<Operation>(p(id)+'/agent/planning-requests','POST',{prompt},key),
- operations:(id:string)=>request<Page<Operation>>(p(id)+'/operations?limit=100&offset=0'),
- operation:(id:string)=>request<Operation>(one(id)),
- approvalHistory:(id:string,planId:string)=>request<{items:Array<{id:string;plan_version_id:string;user_id:string;decision:string;created_at:string}>;revocations:Array<{approval_id:string;reason:string;source:string}>}>(p(id)+'/plans/'+encodeURIComponent(planId)+'/approvals'),
+ operations:(id:string,options:ReadOptions={})=>request<Page<Operation>>(p(id)+'/operations?limit=100&offset=0','GET',undefined,undefined,options),
+ operation:(id:string,options:ReadOptions={})=>request<Operation>(one(id),'GET',undefined,undefined,options),
+ approvalHistory:(id:string,planId:string,options:ReadOptions={})=>request<{items:Array<{id:string;plan_version_id:string;user_id:string;decision:'approved'|'rejected';created_at:string}>;revocations:Array<{approval_id:string;reason:string;source:string}>}>(p(id)+'/plans/'+encodeURIComponent(planId)+'/approvals','GET',undefined,undefined,options),
  revoke:(id:string,planId:string,reason:string)=>request(p(id)+'/plans/'+encodeURIComponent(planId)+'/revoke-approval','POST',{reason}),
- activity:(id:string)=>request<Page<Activity>>(p(id)+'/activity?limit=100&offset=0')
+ activity:(id:string,options:ReadOptions={})=>request<Page<Activity>>(p(id)+'/activity?limit=100&offset=0','GET',undefined,undefined,options)
 };

@@ -49,12 +49,13 @@ To use the canonical backend, create an untracked `.env.local`:
 
 ```dotenv
 VITE_DATA_MODE=live
-VITE_API_BASE_URL=http://127.0.0.1:13081
+VITE_API_BASE_URL=
+UAPM_DEV_API_TARGET=http://127.0.0.1:13081
 ```
 
-Restart Vite. A real backend must be started separately and allow origin `http://127.0.0.1:15173`. Human cookies use `credentials: include`; CSRF remains in tab memory. An existing cookie without a CSRF token requires reauthentication in the current UI. No service token, database secret, MCP credential or model key belongs in frontend environment variables.
+Restart Vite. A real backend must be started separately and allow origin `http://127.0.0.1:15173`. Human cookies use `credentials: include`; CSRF remains in tab memory. An existing human session restores its CSRF token through the canonical G3 `/auth/csrf` bootstrap; temporary read failures do not force login. No service token, database secret, MCP credential or model key belongs in frontend environment variables.
 
-Live-mode production compilation is tested. Browser authentication regression tests use explicit intercepted HTTP fixtures; **they are not proof of a running Codex backend, PostgreSQL persistence or live MCP/n8n integration**. See the remaining integration limitations before release.
+Live-mode compilation and controlled HTTP browser tests are separate from the G4 real-backend suite. The latter uses the pinned G3 backend and ephemeral PostgreSQL, with no AI worker or provider credentials. Read the G4 report and exact CI results; HTTP fixtures alone are not evidence of database persistence.
 
 ## Existing product areas
 
@@ -62,7 +63,7 @@ Dashboard; project creation; Project Workspace with list/Kanban and task panels;
 
 ## Verified evidence and limitations
 
-The remediation verification in [CI run 40752714322](https://github.com/klareki-lab/WBS-Universal-AI-Project-Manager/actions/runs/40752714322) passed **28 Vitest tests, 10 smoke checks, 8 Chromium tests**, typecheck, clean installation and both production builds. The complete npm audit and runtime-only audit each reported **zero vulnerabilities**. Later commits are checked again by the same workflow; PR #2 links the final SHA and latest run.
+The historical build/security verification in [CI run 40752714322](https://github.com/klareki-lab/WBS-Universal-AI-Project-Manager/actions/runs/40752714322) passed **28 Vitest tests, 10 smoke checks, 8 Chromium tests**, typecheck, clean installation and both production builds. The complete npm audit and runtime-only audit each reported **zero vulnerabilities**. Later commits are checked again by the same workflow; PR #2 links the final SHA and latest run.
 
 The user's Mac clone was not mounted in the execution environment. These are independent isolated Ubuntu CI results using the requested Node/npm versions, not a claim of commands executed on that Mac. Historical static images under `screenshots/` are not current running-application evidence. Current actual screenshots and JSON/log reports are attached to the relevant CI run under `qa-evidence/`.
 
@@ -72,3 +73,11 @@ The user's Mac clone was not mounted in the execution environment. These are ind
 - `docs/ARCHITECTURE_V2.md` and the older API/QA documents are historical design records, not authoritative current verification. The canonical backend OpenAPI remains the source of truth.
 
 PR #2 stays Draft until the separate real-backend and full-system acceptance criteria are satisfied. No merge or production deployment is part of this work.
+
+## G4 live UX remediation
+
+See [G4_REMEDIATION.md](docs/G4_REMEDIATION.md) for read deduplication,
+Retry-After/CORS requirements, status-only task editing, scoped backend
+activity, unchanged multilingual content, isolated real-PostgreSQL tests and
+integration-owner instructions. G3 OpenAPI 1.1.0 and approval policy remain
+unchanged. No AI provider calls are needed for G4 tests.

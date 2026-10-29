@@ -1,0 +1,18 @@
+# G4 presentation runbook — isolated G3
+
+Use the existing owner browser session at **http://localhost:25174**. Select **G4 — Многоязычный бизнес-ассистент** if it is not selected. The application must show **LIVE · BACKEND**. If the session has expired, the owner signs in with their existing human credentials; credentials are not included here.
+
+1. **Dashboard:** click **Dashboard**. Explain that these are live backend projects, tasks and recent events.
+2. **Multilingual project and Kanban:** select the G4 project, then **Projektaufgaben**. The Russian/German/English description and the published task **Analyse der Kundenanfragen** are visible. Switch between **Kanban** and **Liste**. Reload and select the desired view again; the task persists. Open the task to show that only status is editable and that material edits go through a new plan version. Close without saving during the presentation.
+3. **Immutable plan and human approval:** click **AI Planungsstudio**. Under **Versionshistorie**, select v1. Show the fixed snapshot, version ID `545864a0-7d31-4fed-908a-7aa854b9cdd8` and SHA-256 `b07a051a0ff3908ff63c96e25f314e25568c32faf383ad20a7a4a002623c565c`. **Freigabehistorie** shows its existing human approval; the version is already published. Do not click approval, revoke or publish again.
+4. **Activity:** click **Aktivität & Betrieb**. The selected project's backend events show plan creation, review, human approval and publication. The previously failed planning operation is also visible; it is not a generated plan.
+5. **Prior genuine AI result:** if demonstrating real AI provenance, use the earlier [redacted acceptance evidence](evidence/ai-real.json) and [generated-plan screenshot](evidence/ai-draft.png). That is a separate synthetic G3 project and human-role acceptance session. Do not submit a new planning request for this presentation: the historical acceptance budget is exhausted and G4 development spending has not been separately authorized or activated. The manual G4 v1 is not AI-generated.
+
+## Recovery
+
+- **429 / “Anfragen kurz pausiert”:** keep the page open and wait for the displayed server-supplied countdown; reads recover automatically. Do not repeat writes or login. If no readable deadline or repeated throttling is reported, use **Lesedaten erneut laden** after the indicated cooldown; do not assume a fixed interval.
+- **“Database temporarily unavailable”:** wait briefly and reload once, then use the existing login if necessary. One such transient occurred during G4 verification and a page reload restored the owner session. If it persists, stop the live demo and use the saved screenshots and acceptance evidence; do not reset the database.
+- **Frontend unavailable:** check the dedicated G3 frontend and backend processes. For the existing local backend at `127.0.0.1:23081`, start only the frontend from `apps/frontend` with `VITE_DATA_MODE=live VITE_API_BASE_URL= UAPM_DEV_API_TARGET=http://127.0.0.1:23081 npm run dev -- --host localhost --port 25174 --strictPort`. The loopback proxy preserves the original origin and exposes Retry-After; the backend's allowed origin remains unchanged. Do not start a second process on the same port, restart unrelated services, or alter CORS/rate limits.
+- **AI unavailable:** continue with the existing human-approved plan and recorded AI evidence. Do not reset a ledger, switch on development mode, or create a replacement AI request without the separately documented owner authorization.
+
+The original G3 volumes and credentials are preserved. This is a local demonstration, not a production deployment. The application shows up to the first 100 records on affected collection screens; AI output language is not guaranteed.
