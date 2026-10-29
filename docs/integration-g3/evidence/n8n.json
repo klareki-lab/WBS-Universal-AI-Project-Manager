@@ -1,0 +1,484 @@
+{
+  "profile": "deterministic fixtures; no model calls",
+  "executions": [
+    {
+      "workflowId": "G3Workflow0000001",
+      "executionId": "70",
+      "result": "PASS",
+      "startedAt": "2026-10-28T20:17:26.753Z",
+      "stoppedAt": "2026-10-28T20:17:27.081Z",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4
+            }
+          ]
+        },
+        {
+          "name": "Normalize session",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-02 Multi-Agent Core",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 311
+            }
+          ]
+        },
+        {
+          "name": "Shape chat response",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "workflowId": "G3Workflow0000002",
+      "executionId": "71",
+      "result": "PASS",
+      "startedAt": "2026-10-28T20:17:26.806Z",
+      "stoppedAt": "2026-10-28T20:17:27.070Z",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 14
+            }
+          ]
+        },
+        {
+          "name": "Prepare request",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 16
+            }
+          ]
+        },
+        {
+          "name": "Fixture mode?",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 2
+            }
+          ]
+        },
+        {
+          "name": "Fixture Coordinator",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 10
+            }
+          ]
+        },
+        {
+          "name": "Parse decision",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 11
+            }
+          ]
+        },
+        {
+          "name": "Route intent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 14
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-03 Planning & Review",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 177
+            }
+          ]
+        },
+        {
+          "name": "Shape core output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "workflowId": "G3Workflow0000003",
+      "executionId": "72",
+      "result": "PASS",
+      "startedAt": "2026-10-28T20:17:26.929Z",
+      "stoppedAt": "2026-10-28T20:17:27.058Z",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4
+            }
+          ]
+        },
+        {
+          "name": "Fixture mode?",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Fixture Planner",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4
+            }
+          ]
+        },
+        {
+          "name": "Parse planner output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Fixture review?",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Fixture Reviewer",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Merge review (bounded 1 revision)",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        },
+        {
+          "name": "Validate plan",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 8
+            }
+          ]
+        },
+        {
+          "name": "Save draft via MCP",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 80
+            }
+          ]
+        },
+        {
+          "name": "Shape output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "workflowId": "G3Workflow0000004",
+      "executionId": "68",
+      "result": "PASS",
+      "startedAt": "2026-10-28T20:17:26.097Z",
+      "stoppedAt": "2026-10-28T20:17:26.184Z",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        },
+        {
+          "name": "Resolve read intent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        },
+        {
+          "name": "Get project",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 24
+            }
+          ]
+        },
+        {
+          "name": "Get progress",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 29
+            }
+          ]
+        },
+        {
+          "name": "List tasks",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 16
+            }
+          ]
+        },
+        {
+          "name": "Shape read response",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "workflowId": "G3Workflow0000005",
+      "executionId": "67",
+      "result": "PASS",
+      "startedAt": "2026-10-28T20:17:25.983Z",
+      "stoppedAt": "2026-10-28T20:17:26.056Z",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        },
+        {
+          "name": "Validate mutation",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 6
+            }
+          ]
+        },
+        {
+          "name": "Needs approval check?",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1
+            }
+          ]
+        },
+        {
+          "name": "Fetch approval status",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 25
+            }
+          ]
+        },
+        {
+          "name": "Enforce human approval",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Execute mutation",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 20
+            }
+          ]
+        },
+        {
+          "name": "Shape execution result",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "workflowId": "G3Workflow0000006",
+      "executionId": "69",
+      "result": "PASS",
+      "startedAt": "2026-10-28T20:17:26.212Z",
+      "stoppedAt": "2026-10-28T20:17:26.264Z",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 8
+            }
+          ]
+        },
+        {
+          "name": "Normalize error",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Has operation IDs?",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Fetch operation status",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 28
+            }
+          ]
+        },
+        {
+          "name": "Shape error report",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "compiledWorkflowHashes": {
+    "wf-01-chat-dev-adapter.json": "85bbff428c95f377fa5bc20617266479f1eda801bcb1a913e4ba2199ca635bd5",
+    "wf-02-multi-agent-core.json": "8ca2640f1464b1eb7817df93a2f42759269535d25309804406c97de01c07a056",
+    "wf-03-planning-review.json": "b6cff835672ea3ba443188930bd4f9c9a35389c664c4895574ffa4f210ed2cdf",
+    "wf-04-mcp-read-ops.json": "97f36ee817b3bcf4873bf42b9c78cc3ae71b8ba78f9a3730c25a52d2a3056083",
+    "wf-05-approved-mutation-executor.json": "e629b5075481371d4a3d1543871eab02e904f35bb7f33cfec724e05f60f1d0a1",
+    "wf-06-error-reporting.json": "b043810af2f11d5a63676fa7f795fd38c64b795db5a6ab085c5f1f9b90c64a42"
+  },
+  "isolatedCredentialCount": 1,
+  "realAI": "NOT VERIFIED",
+  "environmentOpenAICredential": false
+}

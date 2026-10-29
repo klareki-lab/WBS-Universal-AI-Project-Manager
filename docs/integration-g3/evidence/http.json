@@ -1,0 +1,269 @@
+{
+  "result": "PASS",
+  "checks": [
+    {
+      "name": "Scoped MCP read reaches real backend",
+      "result": "PASS"
+    },
+    {
+      "name": "Unscoped child tool request rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Project isolation and actionable MCP backend errors",
+      "result": "PASS"
+    },
+    {
+      "name": "Service actor cannot approve even through direct HTTP",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP submit-review precedes request-approval",
+      "result": "PASS"
+    },
+    {
+      "name": "Exact hash enforced",
+      "result": "PASS"
+    },
+    {
+      "name": "WF-05 executed authorized publication through real MCP and PostgreSQL",
+      "result": "PASS"
+    },
+    {
+      "name": "Repeated executor request creates no duplicate tasks",
+      "result": "PASS"
+    },
+    {
+      "name": "WF-04 executed persisted project/progress/task reads",
+      "result": "PASS"
+    },
+    {
+      "name": "WF-06 executed operation error reporting",
+      "result": "PASS"
+    },
+    {
+      "name": "Scoped MCP task detail includes persisted dependencies",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP update_task creates a draft and leaves published task unchanged",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale task write rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Concurrent project updates: one commit, one conflict",
+      "result": "PASS"
+    },
+    {
+      "name": "Immutable revision history and exact-key replay",
+      "result": "PASS"
+    },
+    {
+      "name": "Revoked approval cannot authorize publication; MCP reports invalidated state",
+      "result": "PASS"
+    },
+    {
+      "name": "Strict operation callback union rejects neither/both",
+      "result": "PASS"
+    },
+    {
+      "name": "Callback cannot relabel original base version",
+      "result": "PASS"
+    },
+    {
+      "name": "Service write scope enforced server-side",
+      "result": "PASS"
+    },
+    {
+      "name": "Cookie mutation requires CSRF",
+      "result": "PASS"
+    },
+    {
+      "name": "Expired human session rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Expired service credential rejected",
+      "result": "PASS"
+    }
+  ],
+  "responses": [
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "requestId": "id-0110"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "requestId": "id-0111"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans",
+      "status": 201,
+      "requestId": "id-0113"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans/id-0114/approvals",
+      "status": 403,
+      "requestId": "id-0115",
+      "code": "insufficient_scope"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans/id-0114/approvals",
+      "status": 409,
+      "requestId": "id-0116",
+      "code": "content_hash_mismatch"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans/id-0114/approvals",
+      "status": 201,
+      "requestId": "id-0117"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0112/tasks",
+      "status": 200,
+      "requestId": "id-0118"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0112/tasks/id-0119",
+      "status": 200,
+      "requestId": "id-0120"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/id-0112/tasks/id-0119/status",
+      "status": 409,
+      "requestId": "id-0121",
+      "code": "stale_task_version"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0112",
+      "status": 200,
+      "requestId": "id-0122"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/id-0112",
+      "status": 200,
+      "requestId": "id-0123"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/id-0112",
+      "status": 409,
+      "requestId": "id-0124",
+      "code": "stale_project_version"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0112",
+      "status": 200,
+      "requestId": "id-0125"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans",
+      "status": 201,
+      "requestId": "id-0126"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans",
+      "status": 201,
+      "requestId": "id-0127"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0112/plans/id-0114",
+      "status": 200,
+      "requestId": "id-0128"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans/id-0129/submit-review",
+      "status": 200,
+      "requestId": "id-0130"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans/id-0129/approvals",
+      "status": 201,
+      "requestId": "id-0131"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans/id-0129/revoke-approval",
+      "status": 201,
+      "requestId": "id-0132"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans/id-0129/publish",
+      "status": 409,
+      "requestId": "id-0133",
+      "code": "approval_revoked"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/agent/planning-requests",
+      "status": 202,
+      "requestId": "id-0134"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/operations/id-0135/result",
+      "status": 400,
+      "requestId": "id-0136",
+      "code": "invalid_input"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/operations/id-0135/result",
+      "status": 400,
+      "requestId": "id-0137",
+      "code": "invalid_input"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans",
+      "status": 403,
+      "requestId": "id-0138",
+      "code": "insufficient_scope"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0112/plans",
+      "status": 403,
+      "requestId": "id-0139",
+      "code": "csrf_required"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0112",
+      "status": 401,
+      "requestId": "id-0140",
+      "code": "session_expired"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0112",
+      "status": 401,
+      "requestId": "id-0141",
+      "code": "invalid_token"
+    }
+  ],
+  "projectId": "id-0112"
+}

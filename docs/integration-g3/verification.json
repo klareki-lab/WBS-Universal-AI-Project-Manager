@@ -1,0 +1,51 @@
+{
+  "packagedAt": "2026-10-29T05:48:45.704Z",
+  "codeCommit": "a80516e959af745470fae27e49229a46e5784c01",
+  "branch": "feat/integration-g3",
+  "sourceCandidates": {
+    "backend": "a58f6bb8e24e4b13ab8962a088b01106952a59ea",
+    "frontend": "61f42a1bf71fb9488a768ac80180ce3e84428e5e",
+    "mcp": "2afcd8264369dc3092fda9c37f0d9d9fb1e6281d"
+  },
+  "sourceHistoryPreserved": true,
+  "trees": {
+    "apps/backend": "1267a48e9322102069525dea168bc546a6a16be6",
+    "apps/frontend": "ea368c17533b6c6b9a289440835e4bafd515d6f2",
+    "apps/mcp-server": "e7852bd3a53f383a299a21eeb0eb950553d690c3",
+    "packages/contracts": "cc8158f38ab3bf90900eedee28461ce55bdae41d",
+    "automation/n8n/workflows": "234b19a3f1f0273354cacb2bc1484a1bf36c3c75",
+    "infra/integration-g3": "224151ffc691e18f7c1838f563abb9e9270496f4",
+    "scripts/integration-g3": "216cdf059da88bc845ed24f2001705a5609d7ab4"
+  },
+  "checks": {
+    "browser": {
+      "result": "PASS",
+      "count": 13
+    },
+    "browser-policy": {
+      "result": "PASS",
+      "count": 4
+    },
+    "browser-retry": {
+      "result": "PASS",
+      "count": 3
+    },
+    "browser-errors": {
+      "result": "PASS",
+      "count": 3
+    },
+    "browser-outage": {
+      "result": "PASS",
+      "count": 2
+    },
+    "http": {
+      "result": "PASS",
+      "count": 22
+    }
+  },
+  "workflowCount": 6,
+  "realAI": "NOT VERIFIED",
+  "timeBasedApprovalExpiry": "NOT IMPLEMENTED; P1 unchanged",
+  "overall": "FAIL for full acceptance; deterministic integration PASS",
+  "node": "v24.15.0"
+}
