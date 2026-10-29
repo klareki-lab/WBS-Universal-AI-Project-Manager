@@ -123,25 +123,27 @@ export function buildHttpApp(cfg: Config, backend: BackendClient) {
     }
   };
 
-  // Compatibility facade for the frozen n8n HTTP nodes. Calls the same MCP
-  // tool catalog through the SDK; no domain state or alternate authorization.
-  app.post("/mcp/call-tool", async (req, res) => {
-    try { parsePrincipal(req,cfg.mcpServiceToken); }
-    catch {res.status(401).json({error:{code:"unauthorized",message:"Invalid service token"}});return;}
-    const client=new Client({name:"uapm-n8n-facade",version:"1.1.0"});
-    const headers:Record<string,string>={authorization:`Bearer ${cfg.mcpServiceToken}`};
-    for(const name of ["x-correlation-id","x-on-behalf-of","x-service-subject"]) if(req.header(name)) headers[name]=req.header(name)!;
-    const transport=new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${cfg.port}/mcp`),{requestInit:{headers}});
+  // Both HTTP aliases enter the real SDK tool catalog. No direct adapter
+  // dispatch: scoped schemas, original-base validation and human guards agree.
+  const toolFacade = async (req: Request, res: Response, wrapped: boolean) => {
+    try { parsePrincipal(req, cfg.mcpServiceToken); }
+    catch { res.status(401).json({error:{code:"unauthorized",message:"Invalid service token"}}); return; }
+    const client = new Client({name:"uapm-n8n-facade",version:"1.1.0"});
+    const headers: Record<string,string> = {authorization:`Bearer ${cfg.mcpServiceToken}`};
+    for (const name of ["x-correlation-id","x-on-behalf-of","x-service-subject"]) if(req.header(name)) headers[name]=req.header(name)!;
+    const transport = new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${req.socket.localPort}/mcp`), {requestInit:{headers}});
     try {
       await client.connect(transport);
-      const result=await client.callTool({name:req.body.tool,arguments:req.body.arguments??{}});
-      let data=result.structuredContent;
-      if(!data){try{data=JSON.parse((result.content as any[]).find(c=>c.type==='text')?.text??'{}')}catch{data={error:{code:'mcp_response_unknown',message:'MCP response invalid. Mutation outcome may be unknown; retry only with the original idempotency key.'}}}}
-      res.status(result.isError?422:200).json(data);
-    } catch {res.status(503).json({error:{code:"mcp_response_unknown",message:"MCP request interrupted; retain the original idempotency key"}});}
-    finally {await transport.terminateSession().catch(()=>{});await client.close().catch(()=>{});}
-  });
-
+      const result = await client.callTool({name:wrapped?req.params.tool as string:req.body.tool, arguments:req.body.arguments??{}});
+      let data = result.structuredContent;
+      if (!data) { try { data=JSON.parse((result.content as any[]).find(c=>c.type==='text')?.text??'{}'); }
+        catch { data={error:{code:'mcp_response_unknown',message:'MCP response invalid. Retry only with the original idempotency key.'}}; } }
+      res.status(result.isError?422:200).json(wrapped&&!result.isError?{result:data}:data);
+    } catch { res.status(503).json({error:{code:"mcp_response_unknown",message:"MCP request interrupted; retain the original idempotency key"}}); }
+    finally { await transport.terminateSession().catch(()=>{}); await client.close().catch(()=>{}); }
+  };
+  app.post("/mcp/call-tool", (req,res)=>toolFacade(req,res,false));
+  app.post("/invoke/:tool", (req,res)=>toolFacade(req,res,true));
   app.post("/mcp", handleMcp);
   app.get("/mcp", handleMcp);
   app.delete("/mcp", handleMcp);

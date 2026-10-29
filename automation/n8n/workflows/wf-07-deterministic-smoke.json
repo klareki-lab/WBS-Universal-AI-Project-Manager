@@ -1,0 +1,54 @@
+{
+  "name": "UAPM WF-07 — Deterministic smoke (manual → MCP /invoke)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "When clicking Execute workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-420, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/invoke/list_projects",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "authorization", "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}" },
+            { "name": "x-correlation-id", "value": "=wf07-manual" }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={ \"arguments\": { \"limit\": 5 } }",
+        "options": { "timeout": 8000 }
+      },
+      "id": "invoke-list-projects",
+      "name": "MCP list_projects",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-180, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nconst items = resp.result?.items || [];\nreturn [{ json: {\n  response: `n8n -> MCP -> backend OK: ${items.length} project(s) visible. First: ${items[0]?.name || 'none'}`,\n  itemCount: items.length,\n  firstProjectId: items[0]?.id || null\n} }];"
+      },
+      "id": "shape-out",
+      "name": "Shape smoke response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [60, 300]
+    }
+  ],
+  "connections": {
+    "When clicking Execute workflow": { "main": [[{ "node": "MCP list_projects", "type": "main", "index": 0 }]] },
+    "MCP list_projects": { "main": [[{ "node": "Shape smoke response", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-07-deterministic-smoke-v2",
+  "triggerCount": 0,
+  "active": false
+}

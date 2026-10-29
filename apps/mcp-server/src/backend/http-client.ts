@@ -65,6 +65,7 @@ const CODE_MAP: Record<string, BackendErrorCode> = {
   invalid_token: "unauthorized",
   authentication_required: "unauthorized",
   csrf_failed: "forbidden",
+  scope_insufficient: "forbidden",
   version_conflict: "stale_version",
   stale_version: "stale_version",
   stale_project_version: "stale_version",
