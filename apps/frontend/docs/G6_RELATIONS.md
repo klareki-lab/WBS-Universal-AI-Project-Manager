@@ -55,3 +55,14 @@ reference into frontend; do not weaken CSRF or human approval. Preserve any
 concurrent integration-specific changes. Local owner app `localhost:25174`
 won't change until the integration owner builds the updated branch. No AI
 calls were made in this workstream.
+
+## Backend membership revocation limitation (verified in isolated G6)
+The database intentionally rejects deletion of a member who is still assigned to a
+published task (composite foreign key `tasks_project_id_assignee_id_fkey`).
+The frontend does not bypass that constraint. The G6 browser acceptance
+therefore verifies membership revocation in a separate project with no
+assignment, and verifies that a **disabled assigned identity** remains labeled
+accurately but cannot be selected as a new assignee. True removed-ID warning
+is additionally unit-tested with a stale or unavailable directory entry.
+For full removal, the organization must first reassign or unassign the task
+via the immutable plan/approval/publication flow.

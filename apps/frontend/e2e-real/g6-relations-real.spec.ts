@@ -117,17 +117,29 @@ test('real member assignment + dependency add/remove and cycle rejection require
  expect(edges.items).toHaveLength(0);
  const rows=await db.query('SELECT depends_on_id FROM task_dependencies WHERE project_id=$1 AND task_id=$2',[project.id,b.id]);
  expect(rows.rows).toHaveLength(0);
- // Revoking project membership does not invent a replacement name or auto-unassign.
- await db.query('DELETE FROM project_members WHERE project_id=$1 AND user_id=$2',[project.id,editor.id]);
- await page.reload();await card.click();
- await expect(page.getByRole('dialog').getByText(/Bisherige Zuweisung/)).toBeVisible();
- await expect(page.getByRole('dialog').getByText(/nicht im aktuellen Mitgliederverzeichnis/)).toBeVisible();
+ // Composite FK prevents removing membership while this project still assigns a task.
+ // Verify revocation on a separate project where this employee has no assignment.
+ const revokedProject=await command(page,'/api/v1/projects',{name:'G6 isolated revoked membership',description:'No assigned task'});
+ const revokedRoot='/api/v1/projects/'+revokedProject.id;
+ await db.query("INSERT INTO project_members(project_id,user_id,role) VALUES($1,$2,'editor')",[revokedProject.id,editor.id]);
+ const beforeRevoke=await (await page.request.get(revokedRoot+'/members?limit=100&offset=0')).json();
+ expect(beforeRevoke.items.map((m:{user_id:string})=>m.user_id)).toContain(editor.id);
+ await db.query('DELETE FROM project_members WHERE project_id=$1 AND user_id=$2',[revokedProject.id,editor.id]);
+ const afterRevoke=await (await page.request.get(revokedRoot+'/members?limit=100&offset=0')).json();
+ expect(afterRevoke.items.map((m:{user_id:string})=>m.user_id)).not.toContain(editor.id);
+ // The already assigned employee may become disabled. Preserve the real stored
+ // assignment and warn that this identity is no longer a selectable assignee.
+ await db.query('UPDATE users SET disabled=true WHERE id=$1',[editor.id]);
+ await page.goto('/projects/'+project.id+'/board');await card.click();
+ await expect(page.getByTestId('selected-member')).toContainText(editor.display_name);
+ await expect(page.getByTestId('selected-member')).toContainText('deaktiviert');
+ await expect(page.getByRole('dialog').getByRole('combobox',{name:'Verantwortlich'})).toBeDisabled();
  expect(providerCalls).toBe(0);
  await writeFile('qa-evidence/g6-relations-real.json',JSON.stringify({
   backend:'pinned G6 + isolated PostgreSQL',project_id:project.id,changed_task_id:b.id,
   initial_plan_id:initial.id,assignment_plan_id:draft.id,removal_plan_id:lastPlanId,
   assignment_member_id:editor.id,cyclesRejected:true,dependenciesAddedAndRemoved:true,
-  membershipRevocationShown:true,afterReloadAssignee:updated.assignee_id,
+  unusedMembershipRevoked:true,assignedAccountDisabledWarning:true,afterReloadAssignee:updated.assignee_id,
   rowsAfterRemoval:rows.rows.length,providerCalls
  },null,2));
 });
