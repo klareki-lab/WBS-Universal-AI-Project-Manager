@@ -16,7 +16,17 @@ export const explainError = (error: unknown): string => {
       400: 'Eingabe wurde abgelehnt. Bitte die Felder pr\u00fcfen.',
     };
     const status = Number(error.status);
-    const message = descriptions[status] ?? error.message;
+    const code= 'code' in error ? String(error.code) : '';
+    const g6:Record<string,string>={
+      self_dependency_not_allowed:'Eine Aufgabe darf nicht von sich selbst abhängen.',
+      duplicate_dependency:'Diese Abhängigkeit wurde mehrfach ausgewählt.',
+      invalid_dependency_reference:'Mindestens eine abhängige Aufgabe gehört nicht zu diesem Projekt oder ist nicht mehr verfügbar.',
+      invalid_assignee:'Die ausgewählte Person ist kein aktives menschliches Projektmitglied mehr. Bitte die Mitgliederliste neu laden.',
+      dependencies_incomplete:'Die Vorgängeraufgaben sind noch nicht abgeschlossen.',
+    };
+    const message=code==='invalid_plan'&&/cycle|zyklus|kreis/i.test(error.message)
+      ? 'Diese Abhängigkeiten erzeugen einen Zyklus. Bitte mindestens eine Verbindung entfernen.'
+      :g6[code]??descriptions[status]??error.message;
     return message + ('code' in error ? ` (${String(error.code)})` : '') + ('requestId' in error && error.requestId ? ' \u00b7 Request-ID '+String(error.requestId) : '');
   }
   return error instanceof Error ? error.message : 'Unerwarteter Fehler. Bitte aktuellen Stand pr\u00fcfen.';

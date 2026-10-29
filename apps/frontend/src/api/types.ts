@@ -7,7 +7,11 @@ export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done' | 'cancelle
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type OperationState = 'queued' | 'running' | 'succeeded' | 'completed' | 'partial' | 'failed';
 export type ProposalStatus = 'pending' | 'applied' | 'rejected' | 'revision_requested';
-export interface User { id: string; displayName: string; }
+/** Project-directory details are populated only from the authenticated backend in live mode. */
+export interface User {
+  id: string; displayName: string; email?: string;
+  kind?: 'human'|'service'; role?: 'owner'|'editor'|'viewer'; disabled?: boolean;
+}
 export interface ProjectMember { projectId: string; userId: string; roleLabel: string; }
 export interface Project { id: string; name: string; description: string; type: ProjectType; targetDate: string; budget?: number; constraints: string[]; status: ProjectStatus; progress: number; createdAt: string; activeDraftVersionId?: string; approvedPlanVersionId?: string; }
 export interface Phase { id: string; title: string; description: string; order: number; }

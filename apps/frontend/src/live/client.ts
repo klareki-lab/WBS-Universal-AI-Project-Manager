@@ -12,6 +12,11 @@ export interface Plan {id:string;project_id:string;number:number;base_project_ve
 export interface Operation {id:string;project_id:string;kind:'planning'|'publish';status:JobStatus;error:string|null;result:Record<string,unknown>|null;created_at:string;attempts:number}
 export interface Activity {id:string;project_id:string;type?:string;event_type?:string;created_at:string;[key:string]:unknown}
 export interface Page<T>{items:T[];limit:number;offset:number}
+export interface ProjectMember {
+  user_id:string; email:string; display_name:string;
+  kind:'human'|'service'; role:'owner'|'editor'|'viewer'; disabled:boolean;
+}
+export interface TaskDependency { project_id:string; task_id:string; depends_on_id:string }
 export class ApiError extends Error {
   constructor(public status:number,public code:string,message:string,public requestId:string,public retryAt:number|null=null){super(message);this.name='ApiError'}
 }
@@ -107,7 +112,9 @@ export const api={
  project:(id:string,options:ReadOptions={})=>request<Project>(p(id),'GET',undefined,undefined,options),
  createProject:(name:string,description:string,key?:string)=>request<Project>('/api/v1/projects','POST',{name,description},key),
  dashboard:(id:string,options:ReadOptions={})=>request<{total:number;progress_percent:number;by_status:Record<string,number>}>(p(id)+'/dashboard','GET',undefined,undefined,options),
- tasks:(id:string,options:ReadOptions={})=>request<Page<Task>>(p(id)+'/tasks?limit=100&offset=0','GET',undefined,undefined,options),
+ tasks:(id:string,options:ReadOptions={},offset=0)=>request<Page<Task>>(p(id)+'/tasks?limit=100&offset='+offset,'GET',undefined,undefined,options),
+ members:(id:string,options:ReadOptions={},offset=0)=>request<Page<ProjectMember>>(p(id)+'/members?limit=100&offset='+offset,'GET',undefined,undefined,options),
+ dependencies:(id:string,taskId:string,options:ReadOptions={})=>request<{items:TaskDependency[]}>(p(id)+'/tasks/'+encodeURIComponent(taskId)+'/dependencies','GET',undefined,undefined,options),
  status:(id:string,task:Pick<Task,'id'|'version'>,status:TaskStatus,key?:string)=>request<Task>(p(id)+'/tasks/'+task.id+'/status','PATCH',{version:task.version,status},key),
  plans:(id:string,options:ReadOptions={})=>request<Page<Plan>>(p(id)+'/plans?limit=100&offset=0','GET',undefined,undefined,options),
  plan:(id:string,version:string,options:ReadOptions={})=>request<Plan>(p(id)+'/plans/'+version,'GET',undefined,undefined,options),
