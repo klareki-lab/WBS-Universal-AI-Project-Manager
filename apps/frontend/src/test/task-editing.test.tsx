@@ -14,7 +14,7 @@ vi.mock('../api/taskChanges',async importOriginal=>({...await importOriginal<typ
 const task:Task={id:'second-task',projectId:'project',phaseId:'phase',title:'Original',description:'Old content',priority:'medium',status:'todo',estimateDays:0,dependsOn:[],version:7};
 const receipt={id:'exact-draft',number:2,project_id:'project',status:'draft',content_hash:'b'.repeat(64)};
 beforeEach(()=>{mocks.create.mockReset();mocks.demo=false});
-async function show(){const close=vi.fn(),save=vi.fn(async()=>undefined);render(<MemoryRouter><OperationalTaskPanel task={task} tasks={[task]} members={[]} onClose={close} onSave={save}/></MemoryRouter>);await waitFor(()=>expect(screen.getByRole('button',{name:taskEditing.edit})).toBeEnabled());return {close,save}}
+async function show(){const close=vi.fn(),save=vi.fn(async()=>undefined);render(<MemoryRouter><OperationalTaskPanel task={task} tasks={[task]} members={[]} onClose={close} onSave={save}/></MemoryRouter>);if(!mocks.demo)await waitFor(()=>expect(screen.getByRole('button',{name:taskEditing.edit})).toBeEnabled());return {close,save}}
 describe('editable task content with human-approved draft publication',()=>{
  it('makes supported fields editable from the details panel and keeps status a separate command',async()=>{
   await show();fireEvent.click(screen.getByRole('button',{name:taskEditing.edit}));
