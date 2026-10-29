@@ -1,6 +1,6 @@
 import type {ReadOptions} from '../live/readCoordinator';
 import {activityNames} from '../i18n/g4';
-import type {ProjectApi,Project,PlanVersion,Task,NewProjectInput,OperationalTaskPatch,TaskEdit,TaskStatus,Approval,ActivityEvent,OperationJob,AppCapabilities} from './types';
+import type {ProjectApi,Project,PlanVersion,Task,User,NewProjectInput,OperationalTaskPatch,TaskEdit,TaskStatus,Approval,ActivityEvent,OperationJob,AppCapabilities} from './types';
 import {api,activeSession,login,logout,session,type Plan,type Project as ServerProject,type Task as ServerTask,type Page,type ProjectMember as ServerMember} from '../live/client';
 /**
  * The G6 collection contract is offset/limit based (100 maximum).
