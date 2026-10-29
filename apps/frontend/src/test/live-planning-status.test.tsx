@@ -42,7 +42,7 @@ describe('planning operation feedback',()=>{
   state.draft=true;state.published=true;
   render(<MemoryRouter initialEntries={['/projects/p1/review?plan=manual-v2']}><Routes><Route path="/projects/:projectId/review" element={<LivePlanWorkspace/>}/></Routes></MemoryRouter>);
   expect(await screen.findByTestId('plan-next-step')).toHaveTextContent('veröffentlicht');
-  expect(screen.getAllByRole('link',{name:'Zum Kanban',exact:true})).toHaveLength(1);
+  expect(screen.getAllByRole('link',{name:/^Zum Kanban$/})).toHaveLength(1);
   expect(screen.getByRole('link',{name:'Aufgaben im Kanban anzeigen'})).toHaveAttribute('href','/projects/p1/board');
  });
 
