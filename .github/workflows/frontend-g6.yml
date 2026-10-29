@@ -1,0 +1,100 @@
+name: Frontend G6 real backend (no AI)
+on:
+  push:
+    branches: [feat/frontend]
+    paths: ['apps/frontend/**', '.github/workflows/frontend-g6.yml']
+  pull_request:
+    branches: [main]
+    paths: ['apps/frontend/**', '.github/workflows/frontend-g6.yml']
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: frontend-g6-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: g6_isolated
+          POSTGRES_USER: g6
+          POSTGRES_PASSWORD: g6_ephemeral_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U g6 -d g6_isolated"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://g6:g6_ephemeral_ci_only@127.0.0.1:5432/g6_isolated
+      HOST: 127.0.0.1
+      PORT: 13081
+      COOKIE_SECURE: 'false'
+      ALLOWED_ORIGIN: http://127.0.0.1:15175
+      N8N_ENDPOINT: ''
+      N8N_TOKEN: ''
+      ADMIN_EMAIL: g6-owner@example.invalid
+      ADMIN_NAME: G6 Synthetic Owner
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Read-only pinned G6 API reference; no integration worktree touched
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: dfd368cb0b424c1da423beb1b0666ed815b179fd
+          path: .g6-backend-reference
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.15.0
+      - name: Initialize isolated project identities and backend; no AI provider credentials
+        run: |
+          set -euo pipefail
+          mkdir -p apps/frontend/qa-evidence
+          { node --version; npm --version; git rev-parse HEAD; git status --short --branch; } > apps/frontend/qa-evidence/g6-environment.log
+          PASSWORD=$(node -e "console.log(require('node:crypto').randomBytes(24).toString('hex'))")
+          echo "::add-mask::$PASSWORD"
+          echo "ADMIN_PASSWORD=$PASSWORD" >> "$GITHUB_ENV"
+          echo "UAPM_G6_BACKEND_DIR=$GITHUB_WORKSPACE/.g6-backend-reference/apps/backend" >> "$GITHUB_ENV"
+          export ADMIN_PASSWORD="$PASSWORD"
+          cd .g6-backend-reference/apps/backend
+          npm ci
+          npm run migrate
+          npm run admin -- create-user
+          ADMIN_EMAIL='g6-editor@example.invalid' ADMIN_NAME='Ирина Müller' npm run admin -- create-user
+          npm run build
+          npm start > "$GITHUB_WORKSPACE/apps/frontend/qa-evidence/g6-backend.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:13081/ready; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:13081/ready
+      - name: Clean frontend install and Chromium
+        working-directory: apps/frontend
+        run: |
+          npm ci
+          npm run typecheck
+          npx playwright install --with-deps chromium
+      - name: G6 real-member/dependency browser acceptance (zero AI)
+        working-directory: apps/frontend
+        run: npx playwright test --config playwright.g6-real.config.ts 2>&1 | tee qa-evidence/g6-real-browser.log
+      - name: Verify PostgreSQL and ensure no planning operations
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -Atc "SELECT 'planning_jobs=' || count(*) FROM operation_jobs WHERE kind='planning';" | tee apps/frontend/qa-evidence/g6-no-ai-jobs.txt
+          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM operation_jobs WHERE kind='planning';")" = "0"
+      - name: Verify pinned reference is unchanged
+        run: git -C .g6-backend-reference diff --exit-code -- apps/backend packages/contracts
+      - name: Preserve G6 logs and real browser screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: frontend-g6-real-${{ github.event.pull_request.head.sha || github.sha }}
+          path: apps/frontend/qa-evidence/
+          retention-days: 14

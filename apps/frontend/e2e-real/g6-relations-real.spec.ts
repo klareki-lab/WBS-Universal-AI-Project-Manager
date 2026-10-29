@@ -5,7 +5,10 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 // G6 API reference + isolated PostgreSQL only. Never touches owner demo or AI/MCP.
 const requireBackend=createRequire(path.join(process.env.UAPM_G6_BACKEND_DIR!,'package.json'));
-const {Pool}=requireBackend('pg') as typeof import('pg');
+const {Pool}=requireBackend('pg') as {Pool:new(config:{connectionString:string})=>{
+  query:(sql:string,values?:unknown[])=>Promise<{rows:Array<Record<string,any>>}>;
+  end:()=>Promise<void>;
+}};
 const db=new Pool({connectionString:process.env.DATABASE_URL});
 test.afterAll(async()=>{await db.end()});
 async function command(page:Page,route:string,body:unknown){
@@ -79,7 +82,7 @@ test('real member assignment + dependency add/remove and cycle rejection require
  await expect(card).toContainText(editor.display_name);
  await card.click();
  const publishedPanel=page.getByRole('dialog');
- await expect(publishedPanel.getByLabelText('Aktuelle Abhängigkeiten')).toContainText('Analyse / Анализ');
+ await expect(publishedPanel.getByRole('list',{name:'Aktuelle Abhängigkeiten'})).toContainText('Analyse / Анализ');
  await page.screenshot({path:'qa-evidence/screenshots/g6-published-assignee-kanban.png',fullPage:true});
  await publishedPanel.getByRole('button',{name:'Details schließen'}).click();
  // Backend must reject an attempted cycle: A -> B while B -> A is published.

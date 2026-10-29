@@ -30,8 +30,9 @@ test('edit selected task, recover one draft, approve exact hash and publish with
  await page.goto(`/projects/${project.id}/board`);await page.getByRole('button',{name:'Aufgabe \u00f6ffnen: Selected task to edit'}).click();
  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Inhalte bearbeiten',exact:true}).click();
  const title='\u0410\u043d\u0430\u043b\u0438\u0437 / Analyse / Analysis';const description='  \u041d\u043e\u0432\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435.\nGr\u00f6\u00dfe & e\u0301.\nEnglish: \u201cquotes\u201d.  ';
- await dialog.getByLabel('Titel',{exact:true}).fill(title);await dialog.getByLabel('Beschreibung',{exact:true}).fill(description);await dialog.getByLabel('Priorit\u00e4t',{exact:true}).selectOption('high');await dialog.getByLabel('F\u00e4lligkeit',{exact:true}).fill('2026-12-20');await dialog.getByLabel('Verantwortlich',{exact:true}).fill(user.id);
- await expect(dialog.getByLabel('Status',{exact:true})).toBeDisabled();await expect(dialog.getByRole('checkbox')).toBeDisabled();
+ await dialog.getByLabel('Titel',{exact:true}).fill(title);await dialog.getByLabel('Beschreibung',{exact:true}).fill(description);await dialog.getByLabel('Priorit\u00e4t',{exact:true}).selectOption('high');await dialog.getByLabel('F\u00e4lligkeit',{exact:true}).fill('2026-12-20');await dialog.getByRole('combobox',{name:'Verantwortlich'}).fill(user.display_name);
+ await dialog.getByRole('button',{name:new RegExp(user.display_name)}).click();
+ await expect(dialog.getByLabel('Status',{exact:true})).toBeDisabled();await expect(dialog.getByRole('checkbox',{name:'Abhängigkeit: First task stays unchanged'})).toBeChecked();
  await page.screenshot({path:'qa-evidence/screenshots/task-editable-real-backend.png',fullPage:true});
  let lost=false;let created:{id:string;content_hash:string}|undefined;const keys:string[]=[];
  // Lose the first response AFTER PostgreSQL committed it; explicit replay must reuse that operation key.

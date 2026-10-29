@@ -83,7 +83,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Real backend browser scenarios (no AI calls)
         working-directory: apps/frontend
-        run: npx playwright test --config playwright.g4-real.config.ts 2>&1 | tee qa-evidence/g4-real-browser.log
+        run: npx playwright test --config playwright.g4-real.config.ts e2e-real/g4-real.spec.ts 2>&1 | tee qa-evidence/g4-real-browser.log
       - name: Verify PostgreSQL bytes and absence of planning operations
         working-directory: apps/frontend
         run: node scripts/g4-verify-db.mjs | tee qa-evidence/g4-postgresql.log

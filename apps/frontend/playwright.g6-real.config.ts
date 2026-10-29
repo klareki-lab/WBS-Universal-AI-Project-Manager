@@ -1,6 +1,6 @@
 import {defineConfig} from '@playwright/test';
 export default defineConfig({
- testDir:'./e2e-real',testMatch:['**/g6-relations-real.spec.ts'],
+ testDir:'./e2e-real',testMatch:['**/g6-relations-real.spec.ts','**/task-metadata-real.spec.ts'],
  timeout:120_000,expect:{timeout:70_000},retries:0,workers:1,forbidOnly:Boolean(process.env.CI),
  reporter:[['list'],['json',{outputFile:'qa-evidence/g6-real-playwright.json'}]],
  outputDir:'qa-evidence/g6-real-browser',
