@@ -1,0 +1,108 @@
+name: Frontend build and security gate
+on:
+  push:
+    branches: [feat/frontend]
+    paths: ['apps/frontend/**', '.github/workflows/frontend-qa.yml']
+  pull_request:
+    branches: [main]
+    paths: ['apps/frontend/**', '.github/workflows/frontend-qa.yml']
+permissions:
+  contents: read
+concurrency:
+  group: frontend-qa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_DATA_MODE: mock
+      VITE_API_BASE_URL: ''
+    defaults:
+      run:
+        working-directory: apps/frontend
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.15.0'
+      - name: Record actual checkout and toolchain
+        run: |
+          mkdir -p qa-evidence
+          { node --version; npm --version; git status --short --branch; git rev-parse HEAD; } | tee qa-evidence/environment.log
+          npm install --global npm@11.12.1
+          npm --version | tee -a qa-evidence/environment.log
+      - name: Require the committed lockfile (never regenerate it in CI)
+        run: |
+          test -f package-lock.json
+          git ls-files --error-unmatch package-lock.json
+          sha256sum package-lock.json | tee qa-evidence/lockfile.sha256
+      - name: Clean dependency installation
+        run: |
+          npm ci 2>&1 | tee qa-evidence/npm-ci.log
+          git diff --exit-code -- package.json package-lock.json
+      - name: Verify the dependency graph
+        run: npm ls vite vitest @vitejs/plugin-react esbuild react-router-dom --all 2>&1 | tee qa-evidence/dependency-tree.log
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck 2>&1 | tee qa-evidence/typecheck.log
+      - name: Unit and HTTP regression tests
+        id: unit
+        continue-on-error: true
+        run: npm test -- --reporter=default --reporter=json --outputFile=qa-evidence/vitest.json 2>&1 | tee qa-evidence/vitest.log
+      - name: Domain smoke tests
+        id: smoke
+        continue-on-error: true
+        run: npm run test:smoke 2>&1 | tee qa-evidence/smoke.log
+      - name: Production build (demo)
+        id: build
+        continue-on-error: true
+        run: npm run build 2>&1 | tee qa-evidence/build.log
+      - name: Production build (live)
+        id: livebuild
+        continue-on-error: true
+        env:
+          VITE_DATA_MODE: live
+          VITE_API_BASE_URL: http://127.0.0.1:13081
+        run: npm run build 2>&1 | tee qa-evidence/build-live.log
+      - name: Full dependency audit
+        id: audit
+        continue-on-error: true
+        run: npm audit --json > qa-evidence/audit-all.json
+      - name: Runtime dependency audit
+        id: runtime
+        continue-on-error: true
+        run: npm audit --omit=dev --json > qa-evidence/audit-runtime.json
+      - name: Install isolated Chromium
+        run: npx playwright install --with-deps chromium > qa-evidence/browser-install.log 2>&1
+      - name: Actual React browser tests and screenshots
+        id: browser
+        continue-on-error: true
+        run: npm run test:browser 2>&1 | tee qa-evidence/browser.log
+      - name: Preserve logs and screenshots even when a check fails
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: frontend-qa-${{ github.event.pull_request.head.sha || github.sha }}
+          path: apps/frontend/qa-evidence/
+          retention-days: 14
+      - name: Enforce every check (continue-on-error above only preserves evidence)
+        if: always()
+        env:
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          UNIT: ${{ steps.unit.outcome }}
+          SMOKE: ${{ steps.smoke.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          LIVEBUILD: ${{ steps.livebuild.outcome }}
+          AUDIT: ${{ steps.audit.outcome }}
+          RUNTIME: ${{ steps.runtime.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
+        run: |
+          for value in "$TYPECHECK" "$UNIT" "$SMOKE" "$BUILD" "$LIVEBUILD" "$AUDIT" "$RUNTIME" "$BROWSER"; do
+            test "$value" = success
+          done
