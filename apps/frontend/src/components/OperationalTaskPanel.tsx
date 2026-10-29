@@ -88,7 +88,7 @@ export function OperationalTaskPanel({task,tasks,members,onClose,onSave,membersL
         {!editing&&statusChanged&&<p className="mt-2 text-xs">{taskEditing.statusFirst}</p>}
         <p className="mt-2 break-all text-xs">Version: {task.version} - {task.id}</p>
         {depsRead.loading&&!depsLoaded&&<p role="status" className="mt-2 text-xs text-slate-500">{taskEditing.depsLoading}</p>}
-        {depsRead.error&&<div role="alert" className="mt-2 text-sm text-red-700">{taskEditing.depsUnavailable} {explainError(depsRead.error)}
+        {Boolean(depsRead.error)&&<div role="alert" className="mt-2 text-sm text-red-700">{taskEditing.depsUnavailable} {explainError(depsRead.error)}
           <button type="button" className="ml-2 underline" onClick={()=>void depsRead.reload()}>{taskEditing.membersRetry}</button></div>}
       </div>}
       {saved&&signature===savedSignature&&<section role="status" data-testid="task-draft-saved" className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
