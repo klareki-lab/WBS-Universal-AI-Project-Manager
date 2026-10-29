@@ -40,7 +40,9 @@ The live plan workspace supports planning from an empty project, manual draft cr
 
 The dedicated n8n profile uses the source workflows compiled without AI credential nodes. Coordinator, Planner and Reviewer use clearly marked deterministic fixtures; subsequent schema validation, MCP calls, backend callbacks and PostgreSQL persistence are real. Webhook bearer authentication is imported into this isolated n8n credential store from the ignored runtime file. Six stable workflow IDs make nested execution reproducible. `import-workflows.mjs` only imports into this dedicated instance. Reimport restarts that instance; do it before, not during, acceptance runs.
 
-**Real AI mode is NOT VERIFIED.** Do not set the fixture runtime to `ai`: AI nodes are intentionally removed from the imported fixture graphs. A separately reviewed AI profile must retain those nodes, configure the referenced `uapm-openai` credential securely in this isolated n8n credential store, enforce an explicit low token/iteration budget, then execute and capture a real request. No credential was supplied or copied from another installation. No paid AI calls were made.
+**Real AI mode remains NOT VERIFIED.** A separate bounded native AI profile is now available; see [AI setup and owner actions](AI_PROFILE.md) and [final acceptance](FINAL.md). Do not change `G3_PLANNING_MODE` to turn the compiled fixture graph into AI. Use `G3_EXECUTION_PROFILE=ai` only after the documented credential and expense gates. No credential was supplied or copied from another installation; no paid calls were made.
+
+G3 MVP approval scope retains P1: permission-based revocation, explicit human revocation and credential expiry are supported/tested. Time-based approval TTL is out of scope, with Product Owner ratification required before final release acceptance. No migration or contract change implements a TTL.
 
 ## Repeatable verification
 

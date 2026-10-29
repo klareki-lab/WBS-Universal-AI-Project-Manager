@@ -1,6 +1,8 @@
 # G3 full-system acceptance report
 
-**Overall: FAIL for unconditional full-system acceptance.** The isolated deterministic product integration **PASSes**. A real AI-model E2E execution is **NOT VERIFIED**, and literal time-based approval expiry is not implemented by the frozen P1 policy. Neither gap is counted as a passing gate.
+**Current verdict: CONDITIONAL PASS — external owner actions remain; final release acceptance is withheld.** The deterministic product integration passes. Genuine AI execution is **NOT VERIFIED** because no authorized sandbox OpenAI credential or expense authorization is available. Time-based approval expiry is **out of scope for the G3 MVP**, subject to Product Owner ratification. See [G3-FINAL acceptance and blockers](FINAL.md). This is not a PASS of the real-AI gate.
+
+The results below are the preserved baseline at `7beaf1ca91396e63ca6b9645a736f994c14c0379`; new profile evidence is reported separately in FINAL.md.
 
 Worktree: `/Users/admin/Projects/uapm-integration-g3` · branch: `feat/integration-g3` · verified integration code commit: `a80516e959af745470fae27e49229a46e5784c01`. The final branch head also contains this report and redacted evidence. No main merge or production deployment occurred.
 
@@ -35,7 +37,7 @@ Backend OpenAPI remains **v1.1.0, 28 paths, 33 operations, 43 schemas**. Contrac
 | Six executed n8n workflows | **6/6 deterministic workflow executions PASS**; saved execution IDs, actual node execution status/time and compiled fixture hashes are recorded. This is execution evidence, not import-only evidence. [Evidence](evidence/n8n.json) |
 | Package dependency audits | Backend, frontend and MCP: **0 findings**. MCP Zod upgraded to patched 4.6.7 with regression verification. [Backend](evidence/backend-audit.json), [frontend](evidence/frontend-audit.json), [MCP](evidence/mcp-audit.json) |
 | Real AI-model E2E | **NOT VERIFIED**. No task OpenAI environment credential and no OpenAI credential in the dedicated n8n store. No paid calls were made. Fixture data is explicitly synthetic. |
-| Time-based approval expiry | **NOT IMPLEMENTED / NOT VERIFIED**. No approval TTL or expires_at exists in the canonical policy/schema. Revocation and expired user/service credentials pass; mapping revoked state to an MCP 'expired' label is not treated as proof of a TTL. |
+| Time-based approval expiry | **OUT OF SCOPE for G3 MVP; Product Owner ratification pending.** No TTL is implemented or claimed. Permission-based revocation, explicit human revocation and expired credentials remain separate tested gates. |
 
 The passing groups overlap and are not added into a misleading global acceptance total. Component checks do not substitute for the actual Chromium/HTTP/n8n/SQL gates.
 
@@ -61,9 +63,9 @@ No existing production n8n, PostgreSQL, MCP port 8100, website, mail, Messe Hub 
 
 | Classification | Gap / required next step |
 | --- | --- |
-| **Blocker for full AI acceptance** | Securely configure an authorized provider credential in this isolated n8n instance and execute a real bounded planning request. The source configuration caps model output at 1,200 tokens and agent iterations at three, but the AI graph itself is unverified. Do not merely switch the compiled fixture graph's environment to ai; import and validate an AI profile that retains the credential-bearing nodes. |
-| **Blocker for literal expiry acceptance** | Product Owner must define whether/how approvals expire with time, followed by a versioned policy/contract change and expiry/publication tests. No TTL was invented and P1 was not altered. Permanent revocation is fully demonstrated. |
+| **Blocker for full AI acceptance** | Securely configure an authorized provider credential in this isolated n8n instance and execute a real bounded planning request. The separate native AI profile is prepared and passes mock-provider execution; actual provider execution remains unverified. It caps output at 1,200 tokens and total model calls at three behind a locked durable budget guard. See AI_PROFILE.md for the exact secure resumption procedure. |
+| **External release gate** | Product Owner must ratify retaining P1 and excluding time-based approval expiry from the G3 MVP. No TTL implementation or migration is planned for this candidate. |
 | Deferred enhancement | Broader live task/plan editing, project budgets/deadlines and conversation UX remain limited by the completed component/API feature set. Unsupported live actions fail explicitly. Manual revision currently copies a snapshot and edits the first task title. |
 | Deferred beyond local acceptance | Production TLS, retention, backups, container security assessment, deployment controls and capacity testing. This local test result makes no production-readiness claim. |
 
-[Setup and repeatable commands](README.md) reproduce the local product and each evidence group. Full acceptance remains withheld until the two blocker gates are resolved.
+[Setup and repeatable commands](README.md) reproduce the local product and each evidence group. Final release acceptance remains withheld until genuine AI execution and the external owner decisions in FINAL.md are completed.

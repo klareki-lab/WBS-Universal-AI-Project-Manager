@@ -12,3 +12,18 @@ The original requirements require human approval of an exact immutable version, 
 - Migration 004 records revocations for already-ineligible pending approvals. Published/superseded history is preserved. Revocation rows themselves are immutable.
 
 This closes P1 under the declared RC policy. Alternative business policies, such as historical approvals surviving account removal, require an explicit product/security decision and a versioned change; they must not silently weaken these checks.
+
+## G3 MVP scope decision — ratification pending
+
+For the G3 acceptance candidate, retain P1 exactly as implemented. Time-based approval expiry is **not a committed MVP requirement**. There is no approval TTL, scheduled expiration, implicit timeout or approval `expires_at`; no schema or migration change is authorized by this scope clarification. The Product Owner must ratify this exclusion before final release acceptance. This records the requested candidate scope, not completed ratification.
+
+These are distinct acceptance cases:
+
+| Case | MVP requirement / evidence |
+| --- | --- |
+| Revocation when human permissions change | Supported and tested; permanent invalidation of pending approval |
+| Explicit human revocation | Supported and tested; immutable revocation history |
+| Expired user/session/service credentials | Supported and tested authentication behavior; distinct from approval lifetime |
+| Time-based approval expiry | Out of scope for G3 MVP; not implemented and not claimed |
+
+An MCP compatibility label `expired` for a revoked approval means invalidated authority; it is not evidence of a time-based approval TTL.

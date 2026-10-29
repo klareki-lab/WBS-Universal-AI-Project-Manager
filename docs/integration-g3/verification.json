@@ -44,8 +44,45 @@
     }
   },
   "workflowCount": 6,
-  "realAI": "NOT VERIFIED",
-  "timeBasedApprovalExpiry": "NOT IMPLEMENTED; P1 unchanged",
-  "overall": "FAIL for full acceptance; deterministic integration PASS",
-  "node": "v24.15.0"
+  "realAI": "NOT VERIFIED; no isolated credential; zero paid calls",
+  "timeBasedApprovalExpiry": "OUT OF SCOPE for G3 MVP; Product Owner ratification pending; no implementation or migration",
+  "overall": "CONDITIONAL PASS; real-AI and final release acceptance withheld pending owner actions",
+  "node": "v24.15.0",
+  "baselineVerifiedCommit": "7beaf1ca91396e63ca6b9645a736f994c14c0379",
+  "finalCandidate": {
+    "profile": "automation/n8n/ai-profile",
+    "report": "docs/integration-g3/FINAL.md",
+    "checks": {
+      "aiSafetyUnit": {
+        "result": "PASS",
+        "count": 10
+      },
+      "nativeN8nMock": {
+        "result": "PASS",
+        "provider": "MOCK ONLY",
+        "genuineAI": false
+      },
+      "reactMissingCredential": {
+        "result": "PASS",
+        "count": 3
+      },
+      "realHttpRegression": {
+        "result": "PASS",
+        "count": 22
+      },
+      "frontend": {
+        "result": "PASS",
+        "count": 29
+      },
+      "frontendBuild": "PASS",
+      "scriptSyntax": "PASS",
+      "diffCheck": "PASS"
+    },
+    "ownerExpenseAuthorization": "PENDING",
+    "ownerP1ScopeRatification": "PENDING",
+    "paidCalls": 0,
+    "providerReservations": 0,
+    "canonicalBackendMcpContractsAndMigrationsUnchanged": true
+  },
+  "treeReference": "Existing trees describe the preserved baseline codeCommit; final increment is documented in finalCandidate and FINAL.md."
 }

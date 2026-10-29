@@ -1,18 +1,14 @@
-The three frozen component branches are integrated into a new isolated G3 worktree with React, the authoritative Fastify/PostgreSQL backend, controlled MCP tools and six executed n8n workflows. Canonical Backend OpenAPI v1.1.0 and P1 are preserved; service membership is explicitly configured and assigned atomically when a human creates a project.
+The integrated Project Studio now has a separate bounded native AI execution profile alongside the preserved six deterministic workflows. It retains the OpenAI model/credential nodes, uses one Coordinator/Planner/Reviewer pass each, validates outputs strictly and preserves original operation/base provenance. A local durable guard caps the acceptance run at three calls, 1,200 output tokens each, with zero automatic provider retries and a default-locked expense gate.
 
-Full-system acceptance is **FAIL / withheld**: deterministic local integration passes, but a real AI-model E2E run is NOT VERIFIED and time-based approval expiry has no definition/implementation in the frozen P1 policy. This draft is reviewable integration work, not a release approval.
+**Verdict: CONDITIONAL PASS; final release acceptance withheld. Genuine OpenAI E2E is NOT VERIFIED.** No suitable sandbox OpenAI credential or explicit expense authorization was available, so no paid calls were made. The Product Owner must also ratify retaining P1 and excluding time-based approval expiry from the G3 MVP. No TTL schema, logic or migration was introduced.
 
-Validated:
+New validation:
 
-- Backend 49/49, frontend 29/29, MCP 22/22; all package audits report zero vulnerabilities.
-- Real HTTP/MCP/n8n acceptance 22/22, plus six saved successful deterministic workflow executions.
-- Actual Chromium fresh-project planning→draft→human approval→publication→persisted Kanban/list/dashboard/activity, independent mobile browser isolation, immutable revisions/rejection/revocation, ambiguous committed response recovery with original key, stale/conflicting writes, expired sessions, and real dedicated-database outage/recovery.
-- New G3 PostgreSQL/n8n volumes and loopback runtime; migrations 003/004 verified. A newly built backend container also runs and reports ready.
+- Safety/profile tests 10/10; actual React missing-credential path 3/3 (one failed durable operation, no draft or fixture fallback).
+- Actual native n8n Coordinator/Planner/Reviewer → budget guard → MCP → immutable PostgreSQL draft with a **mock provider only**, clearly marked and never counted as real AI output.
+- Real HTTP/MCP/n8n/PostgreSQL regression 22/22; frontend tests 29/29 and build pass. Backend 49/49, MCP 22/22 and remaining browser/audit evidence are reused from verified commit `7beaf1ca91396e63ca6b9645a736f994c14c0379` because canonical backend/MCP/contracts/dependencies are unchanged.
+- Real React screenshot and redacted n8n/provenance evidence are attached under `docs/integration-g3/evidence`; zero actual provider reservations.
 
-Exact incorporated commits:
+See [final acceptance report](docs/integration-g3/FINAL.md), [AI setup and single secure credential-supply action](docs/integration-g3/AI_PROFILE.md), [baseline report](docs/integration-g3/REPORT.md) and `verification.json`. Once the owner supplies the sandbox credential and explicitly authorizes expense, the prepared real-provider browser runner must complete and capture actual provider IDs, immutable version/hash, human approval and persisted publication before any PASS verdict.
 
-- Backend: a58f6bb8e24e4b13ab8962a088b01106952a59ea
-- Frontend: 61f42a1bf71fb9488a768ac80180ce3e84428e5e
-- MCP/n8n: 2afcd8264369dc3092fda9c37f0d9d9fb1e6281d
-
-See `docs/integration-g3/REPORT.md`, `COMPATIBILITY.md`, `README.md`, `verification.json` and the redacted evidence directory. Component-only and fixture-only tests are clearly distinguished from actual system execution. Secrets/raw authentication headers remain outside Git. No existing service, production MCP port 8100, agent branch, main branch or production deployment was modified.
+No main merge, production deployment, force push, rewritten agent branch, copied production secret or replaced G3 volume. This remains a Draft PR.

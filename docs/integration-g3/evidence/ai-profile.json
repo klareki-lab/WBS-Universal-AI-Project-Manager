@@ -1,0 +1,1041 @@
+{
+  "collectedAt": "2026-10-29T06:12:39.659Z",
+  "realAI": "NOT VERIFIED",
+  "credentialInventory": [
+    {
+      "id": "G3WebhookAuth001",
+      "type": "httpHeaderAuth",
+      "name": "G3 isolated webhook bearer"
+    },
+    {
+      "id": "G3AIMockCred001",
+      "type": "openAiApi",
+      "name": "MOCK ONLY OpenAI protocol credential"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "G3AIWorkflow00001",
+      "active": true,
+      "nodesMatchReviewedSource": true,
+      "connectionsMatchReviewedSource": true,
+      "sourceSha256": "b3273297ecb137019e9c3ff002d4a4b111c8ea8246c5cdf1597278e59903aa76",
+      "models": []
+    },
+    {
+      "id": "G3AIWorkflow00002",
+      "active": true,
+      "nodesMatchReviewedSource": true,
+      "connectionsMatchReviewedSource": true,
+      "sourceSha256": "04aa5bcdb06f6cb9e113e146effa4e10fffa48dd3328f8ace82d4e3e8fba852f",
+      "models": [
+        {
+          "name": "Coordinator model",
+          "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+          "version": 1,
+          "credentialReference": "uapm-openai",
+          "parameters": {
+            "model": "gpt-4.1-mini",
+            "options": {
+              "temperature": 0.1,
+              "maxTokens": 1200,
+              "timeout": 12000,
+              "maxRetries": 0,
+              "responseFormat": "json_object",
+              "baseURL": "=http://host.docker.internal:23083/operations/{{ $('Prepare request').first().json.operation.operation_id }}/coordinator/v1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G3AIWorkflow00003",
+      "active": true,
+      "nodesMatchReviewedSource": true,
+      "connectionsMatchReviewedSource": true,
+      "sourceSha256": "693e3f1eaf414b1eff159e681d7c32bc6ad58ae7bfeec6ffbd94aad24549dfef",
+      "models": [
+        {
+          "name": "Planner model",
+          "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+          "version": 1,
+          "credentialReference": "uapm-openai",
+          "parameters": {
+            "model": "gpt-4.1-mini",
+            "options": {
+              "temperature": 0.1,
+              "maxTokens": 1200,
+              "timeout": 12000,
+              "maxRetries": 0,
+              "responseFormat": "json_object",
+              "baseURL": "=http://host.docker.internal:23083/operations/{{ $('Entry packet').first().json.operation.operation_id }}/planner/v1"
+            }
+          }
+        },
+        {
+          "name": "Reviewer model",
+          "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+          "version": 1,
+          "credentialReference": "uapm-openai",
+          "parameters": {
+            "model": "gpt-4.1-mini",
+            "options": {
+              "temperature": 0.1,
+              "maxTokens": 1200,
+              "timeout": 12000,
+              "maxRetries": 0,
+              "responseFormat": "json_object",
+              "baseURL": "=http://host.docker.internal:23083/operations/{{ $('Entry packet').first().json.operation.operation_id }}/reviewer/v1"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "executions": [
+    {
+      "executionId": "85",
+      "workflowId": "G3AIWorkflow00002",
+      "status": "success",
+      "startedAt": "2026-10-29T06:12:15.829Z",
+      "stoppedAt": "2026-10-29T06:12:16.129Z",
+      "profile": "native AI profile; credential missing",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Prepare request",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator model",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 0,
+              "missingCredential": true
+            }
+          ]
+        },
+        {
+          "name": "Coordinator agent",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 16,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Parse decision",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 14,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Report AI failure via MCP",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 255,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "84",
+      "workflowId": "G3AIWorkflow00001",
+      "status": "error",
+      "startedAt": "2026-10-29T06:12:15.748Z",
+      "stoppedAt": "2026-10-29T06:12:16.140Z",
+      "profile": "native AI profile; credential missing",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 27,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Normalize session",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 8,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-02 Multi-Agent Core",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 335,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Shape chat response",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 3,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "83",
+      "workflowId": "G3MockAIWf00003",
+      "status": "success",
+      "startedAt": "2026-10-29T06:09:42.857Z",
+      "stoppedAt": "2026-10-29T06:09:43.081Z",
+      "profile": "MOCK PROVIDER ONLY",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Planner model",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 6,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Planner agent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 18,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Parse planner output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 9,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Reviewer model",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 9,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Reviewer agent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 30,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Merge review (bounded 1 revision)",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 9,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Validate plan",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 11,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Save draft via MCP",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 130,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Shape output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "82",
+      "workflowId": "G3MockAIWf00002",
+      "status": "success",
+      "startedAt": "2026-10-29T06:09:41.713Z",
+      "stoppedAt": "2026-10-29T06:09:43.101Z",
+      "profile": "MOCK PROVIDER ONLY",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 7,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Prepare request",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 7,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator model",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 28,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator agent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1098,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Parse decision",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 12,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-03 Planning & Review",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 252,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Shape core output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "81",
+      "workflowId": "G3MockAIWf00001",
+      "status": "success",
+      "startedAt": "2026-10-29T06:09:41.665Z",
+      "stoppedAt": "2026-10-29T06:09:43.114Z",
+      "profile": "MOCK PROVIDER ONLY",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 15,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Normalize session",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 7,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-02 Multi-Agent Core",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1414,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Shape chat response",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "80",
+      "workflowId": "G3MockAIWf00002",
+      "status": "success",
+      "startedAt": "2026-10-29T06:08:29.892Z",
+      "stoppedAt": "2026-10-29T06:08:31.007Z",
+      "profile": "MOCK PROVIDER ONLY",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Prepare request",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator model",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 24,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator agent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 979,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Report AI failure via MCP",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 124,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "79",
+      "workflowId": "G3MockAIWf00001",
+      "status": "error",
+      "startedAt": "2026-10-29T06:08:29.845Z",
+      "stoppedAt": "2026-10-29T06:08:31.020Z",
+      "profile": "MOCK PROVIDER ONLY",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 18,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Normalize session",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-02 Multi-Agent Core",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1136,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Shape chat response",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 5,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "78",
+      "workflowId": "G3MockAIWf00002",
+      "status": "success",
+      "startedAt": "2026-10-29T06:07:12.813Z",
+      "stoppedAt": "2026-10-29T06:07:14.026Z",
+      "profile": "MOCK PROVIDER ONLY",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Prepare request",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator model",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 14,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator agent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1052,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Report AI failure via MCP",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 147,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "77",
+      "workflowId": "G3MockAIWf00001",
+      "status": "error",
+      "startedAt": "2026-10-29T06:07:12.761Z",
+      "stoppedAt": "2026-10-29T06:07:14.044Z",
+      "profile": "MOCK PROVIDER ONLY",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 23,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Normalize session",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 6,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-02 Multi-Agent Core",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1239,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Shape chat response",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 5,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "76",
+      "workflowId": "G3AIWorkflow00002",
+      "status": "success",
+      "startedAt": "2026-10-29T06:05:02.478Z",
+      "stoppedAt": "2026-10-29T06:05:03.056Z",
+      "profile": "native AI profile; credential missing",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Prepare request",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator model",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 0,
+              "missingCredential": true
+            }
+          ]
+        },
+        {
+          "name": "Coordinator agent",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 20,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Parse decision",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 12,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Report AI failure via MCP",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 527,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "75",
+      "workflowId": "G3AIWorkflow00001",
+      "status": "error",
+      "startedAt": "2026-10-29T06:05:02.413Z",
+      "stoppedAt": "2026-10-29T06:05:03.083Z",
+      "profile": "native AI profile; credential missing",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 20,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Normalize session",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 10,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-02 Multi-Agent Core",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 620,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Shape chat response",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 6,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "74",
+      "workflowId": "G3AIWorkflow00002",
+      "status": "error",
+      "startedAt": "2026-10-29T06:03:08.943Z",
+      "stoppedAt": "2026-10-29T06:03:09.058Z",
+      "profile": "native AI profile; credential missing",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 10,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Prepare request",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Coordinator model",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 0,
+              "missingCredential": true
+            }
+          ]
+        },
+        {
+          "name": "Coordinator agent",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 56,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Parse decision",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 26,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Report AI failure via MCP",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 6,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "executionId": "73",
+      "workflowId": "G3AIWorkflow00001",
+      "status": "error",
+      "startedAt": "2026-10-29T06:03:08.896Z",
+      "stoppedAt": "2026-10-29T06:03:09.070Z",
+      "profile": "native AI profile; credential missing",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 16,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Normalize session",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 6,
+              "missingCredential": false
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-02 Multi-Agent Core",
+          "runs": [
+            {
+              "status": "error",
+              "timeMs": 139,
+              "missingCredential": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actualProviderReservations": 0,
+  "paidCalls": 0,
+  "expenseAuthorization": "NOT RECEIVED",
+  "ownerRatification": "PENDING"
+}
