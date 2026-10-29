@@ -53,7 +53,7 @@ describe("Real backend integration (feat/backend-core, OpenAPI canon)", { skip: 
       // Skip gracefully if not available.
       return;
     }
-    const pv = await client.getPlanScoped(principal, PROJECT_ID!, PLAN_ID);
+    const pv = await client.getPlanVersion(principal, PROJECT_ID!, PLAN_ID);
     assert.equal(pv.id, PLAN_ID);
     assert.equal(pv.contentHash.length, 64);
   });

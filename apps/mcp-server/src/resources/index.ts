@@ -81,3 +81,4 @@ export function registerResources(server: McpServer, ctx: Ctx): void {
     },
   );
 }
+export const _schemaRefs = {};

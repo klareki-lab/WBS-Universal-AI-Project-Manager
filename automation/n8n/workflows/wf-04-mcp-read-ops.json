@@ -28,7 +28,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "url": "={{ $env.MCP_UAPM_URL }}/invoke/get_project",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -47,7 +47,7 @@
           ]
         },
         "sendBody": true,
-        "jsonBody": "={\n  \"tool\": \"get_project\",\n  \"arguments\": { \"id\": \"{{ $json.projectId }}\" }\n}",
+        "jsonBody": "={\n  \"arguments\": { \"id\": \"{{ $json.projectId }}\" }\n}",
         "options": {
           "timeout": 10000,
           "response": {
@@ -69,7 +69,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "url": "={{ $env.MCP_UAPM_URL }}/invoke/get_project_progress",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -88,7 +88,7 @@
           ]
         },
         "sendBody": true,
-        "jsonBody": "={\n  \"tool\": \"get_project_progress\",\n  \"arguments\": { \"projectId\": \"{{ $('Resolve read intent').item.json.projectId }}\" }\n}",
+        "jsonBody": "={\n  \"arguments\": { \"projectId\": \"{{ $('Resolve read intent').item.json.projectId }}\" }\n}",
         "options": {
           "timeout": 10000,
           "response": {
@@ -110,7 +110,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "url": "={{ $env.MCP_UAPM_URL }}/invoke/list_project_tasks",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -129,7 +129,7 @@
           ]
         },
         "sendBody": true,
-        "jsonBody": "={\n  \"tool\": \"list_project_tasks\",\n  \"arguments\": { \"projectId\": \"{{ $('Resolve read intent').item.json.projectId }}\", \"limit\": 50 }\n}",
+        "jsonBody": "={\n  \"arguments\": { \"projectId\": \"{{ $('Resolve read intent').item.json.projectId }}\", \"limit\": 50 }\n}",
         "options": {
           "timeout": 10000,
           "response": {

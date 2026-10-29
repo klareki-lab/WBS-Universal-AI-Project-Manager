@@ -34,7 +34,7 @@ describe("Read-only access and authorization", () => {
 
   it("get_task denies non-member", async () => {
     const stranger = await makeClient(h.baseUrl, { userId: "user_outsider" });
-    const res = await stranger.callTool({ name: "get_task", arguments: { id: "tsk_demo_1" } });
+    const res = await stranger.callTool({ name: "get_task", arguments: { projectId: "prj_demo", taskId: "tsk_demo_1" } });
     assert.ok(res.isError);
     await stranger.close();
   });

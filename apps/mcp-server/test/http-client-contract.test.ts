@@ -231,9 +231,14 @@ describe("HttpBackendClient against canonical OpenAPI contract", () => {
     assert.equal(call.body.snapshot.tasks[0].phase_key, "discovery");
   });
 
-  it("publishApprovedPlanScoped sends content_hash and interprets succeeded operation", async () => {
+  it("publishApprovedPlan sends content_hash and interprets succeeded operation", async () => {
     const client = new HttpBackendClient(loadConfig());
-    const res = await client.publishApprovedPlanScoped(principal, demoProjectId, demoPlanId, "a".repeat(64), "idem-publish-1");
+    const res = await client.publishApprovedPlan(principal, {
+      projectId: demoProjectId,
+      planVersionId: demoPlanId,
+      contentHash: "a".repeat(64),
+      idempotencyKey: "idem-publish-1",
+    });
     assert.deepEqual(res.publishedTaskIds, ["t_1", "t_2"]);
     const call = captured.find((c) => c.method === "POST" && c.path.endsWith("/publish"));
     assert.ok(call);
@@ -252,7 +257,7 @@ describe("HttpBackendClient against canonical OpenAPI contract", () => {
   it("updateTaskStatus refuses — human-only policy guard", async () => {
     const client = new HttpBackendClient(loadConfig());
     await assert.rejects(
-      client.updateTaskStatus(principal, { taskId: "t", expectedVersion: 1, status: "in_progress", idempotencyKey: "idem-stat-1" }),
+      client.updateTaskStatus(principal, { projectId: demoProjectId, taskId: "t", expectedVersion: 1, status: "in_progress", idempotencyKey: "idem-stat-1" }),
       (e: unknown) => e instanceof BackendError && e.code === "human_only",
     );
   });
@@ -275,9 +280,9 @@ describe("HttpBackendClient against canonical OpenAPI contract", () => {
     assert.ok(p.completionRatio > 0 && p.completionRatio < 1);
   });
 
-  it("getPlanScoped maps approved status to internal approved", async () => {
+  it("getPlanVersion maps approved status to internal approved", async () => {
     const client = new HttpBackendClient(loadConfig());
-    const pv = await client.getPlanScoped(principal, demoProjectId, demoPlanId);
+    const pv = await client.getPlanVersion(principal, demoProjectId, demoPlanId);
     assert.equal(pv.status, "approved");
     assert.equal(pv.contentHash.length, 64);
     assert.equal(pv.plan.phases[0]!.name, "Discovery");

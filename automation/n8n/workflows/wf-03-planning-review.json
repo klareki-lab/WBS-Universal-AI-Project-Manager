@@ -132,7 +132,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "url": "={{ $env.MCP_UAPM_URL }}/invoke/create_plan_draft",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -151,7 +151,7 @@
           ]
         },
         "sendBody": true,
-        "jsonBody": "={\n  \"tool\": \"create_plan_draft\",\n  \"arguments\": {\n    \"projectId\": \"{{ $json.decision && $json.decision.projectId || $json.request.projectId }}\",\n    \"plan\": {{ JSON.stringify($json.plan) }},\n    \"idempotencyKey\": \"wf03-draft-{{ $json.request.principal.correlationId }}\"\n  }\n}",
+        "jsonBody": "={\n  \"arguments\": {\n    \"projectId\": \"{{ $json.decision && $json.decision.projectId || $json.request.projectId }}\",\n    \"plan\": {{ JSON.stringify($json.plan) }},\n    \"idempotencyKey\": \"wf03-draft-{{ $json.request.principal.correlationId }}\"\n  }\n}",
         "options": {
           "response": {
             "response": {

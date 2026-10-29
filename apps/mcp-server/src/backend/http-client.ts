@@ -13,6 +13,7 @@ import type {
   PublishApprovedPlanInput,
   RequestApprovalInput,
   UpdateTaskInput,
+  UpdateTaskResult,
   UpdateTaskStatusInput,
 } from "./types.js";
 import type {
@@ -59,12 +60,12 @@ const STATUS_TO_CODE: Record<number, BackendErrorCode> = {
   504: "timeout",
 };
 
-// Contract-specific codes mapped to our internal taxonomy.
 const CODE_MAP: Record<string, BackendErrorCode> = {
   unauthenticated: "unauthorized",
   invalid_token: "unauthorized",
   authentication_required: "unauthorized",
   csrf_failed: "forbidden",
+  scope_insufficient: "forbidden",
   version_conflict: "stale_version",
   stale_version: "stale_version",
   stale_project_version: "stale_version",
@@ -76,12 +77,7 @@ const CODE_MAP: Record<string, BackendErrorCode> = {
   rate_limited: "rate_limited",
 };
 
-// ----- Internal <-> contract mapping -----
-
-function hasValidPriority(p?: string): asserts p {
-  // Internal priority allows "critical"; contract expects "urgent".
-  // Translate on write; translate back on read.
-}
+// ----- Priority translation -----
 
 function toContractPriority(p: string | undefined): string | undefined {
   if (p === "critical") return "urgent";
@@ -91,6 +87,16 @@ function toContractPriority(p: string | undefined): string | undefined {
 function toInternalPriority(p: string | undefined): "low" | "medium" | "high" | "critical" {
   if (p === "urgent") return "critical";
   return (p ?? "medium") as "low" | "medium" | "high" | "critical";
+}
+
+function slugify(s: string): string {
+  return (
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "phase"
+  );
 }
 
 function toContractSnapshot(plan: PlanDraft) {
@@ -114,14 +120,6 @@ function toContractSnapshot(plan: PlanDraft) {
     depends_on: t.dependsOn,
   }));
   return { phases, tasks };
-}
-
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || "phase";
 }
 
 interface ContractPlanResponse {
@@ -155,7 +153,7 @@ interface ContractPlanResponse {
 function contractStatusToPlan(s: ContractPlanResponse["status"]): PlanVersion["status"] {
   switch (s) {
     case "in_review":
-      return "pending_approval"; // closest internal state
+      return "pending_approval";
     case "draft":
       return "draft";
     case "approved":
@@ -276,7 +274,7 @@ function fromContractOperation(c: any): OperationStatus {
     action: c.kind ?? "unknown",
     projectId: c.project_id ?? null,
     idempotencyKey: null,
-    attempts: 0,
+    attempts: c.attempts ?? 0,
     lastError: c.error ? { code: "backend_error", message: String(c.error) } : null,
     resultRef: c.result ? JSON.stringify(c.result).slice(0, 1024) : null,
     createdAt: c.created_at ?? new Date().toISOString(),
@@ -297,6 +295,17 @@ function fromContractActivity(c: any): ActivityEntry {
   };
 }
 
+// Audit event types that indicate a REAL human decision on a plan version.
+// Codex's activity log emits one of these for every decidePlan call.
+const APPROVAL_DECISION_TYPES = new Set([
+  "plan_approved",
+  "plan_rejected",
+  "plan.approved",
+  "plan.rejected",
+  "approval.decided",
+  "decide_plan",
+]);
+
 // ---------- client ----------
 
 export class HttpBackendClient implements BackendClient {
@@ -310,15 +319,15 @@ export class HttpBackendClient implements BackendClient {
       }
     }
     const headers = new Headers({
-      "content-type": "application/json",
       accept: "application/json",
     });
+    if (opts.body !== undefined) {
+      headers.set("content-type", "application/json");
+    }
     if (this.cfg.backendServiceToken) {
       headers.set("authorization", `Bearer ${this.cfg.backendServiceToken}`);
     }
     if (opts.principal.correlationId) headers.set("x-request-id", opts.principal.correlationId);
-    // The backend derives the service identity + membership from the bearer.
-    // We attach on-behalf-of for audit correlation only; backend decides trust.
     if (opts.principal.userId) headers.set("x-on-behalf-of", opts.principal.userId);
     if (opts.idempotencyKey) headers.set("idempotency-key", opts.idempotencyKey);
 
@@ -351,7 +360,10 @@ export class HttpBackendClient implements BackendClient {
         const code: BackendErrorCode = mappedCode ?? STATUS_TO_CODE[res.status] ?? "internal_error";
         const message = parsed.error?.message ?? `Backend ${res.status}`;
         if (parsed.error?.request_id) {
-          logger.warn({ status: res.status, code, backendRequestId: parsed.error.request_id }, "backend error");
+          logger.warn(
+            { status: res.status, code, backendRequestId: parsed.error.request_id },
+            "backend error",
+          );
         }
         if (RETRY_STATUSES.has(res.status) && attempt <= this.cfg.maxRetries) {
           const retryAfter = Number(res.headers.get("retry-after")) * 1000 || Math.min(2 ** attempt * 100, 2000);
@@ -379,12 +391,27 @@ export class HttpBackendClient implements BackendClient {
   }
 
   private humanOnly(tool: string): Promise<never> {
-    return Promise.reject(new BackendError(
-      "human_only",
-      `Tool ${tool} maps to an endpoint marked x-human-only in the OpenAPI contract. ` +
-        `Service bearer tokens cannot invoke it; the operation must be performed by an authenticated human via the frontend.`,
-      403,
-    ));
+    return Promise.reject(
+      new BackendError(
+        "human_only",
+        `Tool ${tool} maps to an endpoint marked x-human-only in the OpenAPI contract. ` +
+          `Service bearer tokens cannot invoke it; the operation must be performed by an authenticated human via the frontend.`,
+        403,
+      ),
+    );
+  }
+
+  private async currentProjectVersion(p: Principal, projectId: string): Promise<number> {
+    const raw = await this.request<any>({
+      method: "GET",
+      path: `/api/v1/projects/${encodeURIComponent(projectId)}`,
+      principal: p,
+    });
+    const v = Number(raw?.version);
+    if (!Number.isInteger(v) || v < 1) {
+      throw new BackendError("validation_error", `Backend returned invalid project version: ${raw?.version}`, 500);
+    }
+    return v;
   }
 
   // ----- READS -----
@@ -432,19 +459,7 @@ export class HttpBackendClient implements BackendClient {
     };
   }
 
-  async getTask(_p: Principal, _taskId: string): Promise<TaskDetail> {
-    // The contract requires projectId in the path. We expect taskId to be a UUID;
-    // callers must supply projectId separately via list_project_tasks → get_task flow.
-    // If a caller sends a bare UUID, we return not_found to force the correct flow.
-    throw new BackendError(
-      "validation_error",
-      "get_task requires both projectId and taskId; use list_project_tasks first or pass '<projectId>/<taskId>' as the id. Backend path is /api/v1/projects/{projectId}/tasks/{taskId}.",
-      400,
-    );
-  }
-
-  // Added helper for callers that have both IDs (used by extended tooling).
-  async getTaskScoped(p: Principal, projectId: string, taskId: string): Promise<TaskDetail> {
+  async getTask(p: Principal, projectId: string, taskId: string): Promise<TaskDetail> {
     const c = await this.request<any>({
       method: "GET",
       path: `/api/v1/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}`,
@@ -453,18 +468,10 @@ export class HttpBackendClient implements BackendClient {
     return fromContractTask(c, projectId);
   }
 
-  async getPlanVersion(p: Principal, planVersionId: string): Promise<PlanVersion> {
-    throw new BackendError(
-      "validation_error",
-      "get_plan_version requires both projectId and planId in the contract: GET /api/v1/projects/{projectId}/plans/{planId}. Use get_plan_scoped(projectId, planId).",
-      400,
-    );
-  }
-
-  async getPlanScoped(p: Principal, projectId: string, planId: string): Promise<PlanVersion> {
+  async getPlanVersion(p: Principal, projectId: string, planVersionId: string): Promise<PlanVersion> {
     const c = await this.request<ContractPlanResponse>({
       method: "GET",
-      path: `/api/v1/projects/${encodeURIComponent(projectId)}/plans/${encodeURIComponent(planId)}`,
+      path: `/api/v1/projects/${encodeURIComponent(projectId)}/plans/${encodeURIComponent(planVersionId)}`,
       principal: p,
     });
     return fromContractPlan(c);
@@ -473,7 +480,7 @@ export class HttpBackendClient implements BackendClient {
   async getCurrentPublishedPlan(p: Principal, projectId: string): Promise<PlanVersion | null> {
     const project = await this.getProject(p, projectId);
     if (!project.currentPlanVersionId) return null;
-    return this.getPlanScoped(p, projectId, project.currentPlanVersionId);
+    return this.getPlanVersion(p, projectId, project.currentPlanVersionId);
   }
 
   async getProjectProgress(p: Principal, projectId: string): Promise<ProjectProgress> {
@@ -495,31 +502,58 @@ export class HttpBackendClient implements BackendClient {
     };
   }
 
-  async getApprovalStatus(p: Principal, planVersionId: string): Promise<ApprovalStatus> {
-    throw new BackendError(
-      "validation_error",
-      "Approval status is derived from GET /api/v1/projects/{projectId}/plans/{planId}; use get_plan_scoped and read planVersion.status. No dedicated backend operationId exists.",
-      400,
-    );
-  }
-
-  async getApprovalScoped(p: Principal, projectId: string, planId: string): Promise<ApprovalStatus> {
-    const pv = await this.getPlanScoped(p, projectId, planId);
+  /**
+   * Returns an ApprovalStatus that distinguishes a *real* human decision
+   * (populated from the project activity log) from a *derived* plan state
+   * (plan.status === "approved"/"rejected" with no corresponding audit event).
+   *
+   * If a plan is marked approved/rejected in the plan table but the audit
+   * log does not carry a `plan_approved`/`plan_rejected` entry for its
+   * content hash, the returned `decidedBy`/`decidedAt` remain null and
+   * `derivedFromPlanState=true` is set in `reason` for operator inspection.
+   */
+  async getApprovalStatus(p: Principal, projectId: string, planVersionId: string): Promise<ApprovalStatus> {
+    const plan = await this.getPlanVersion(p, projectId, planVersionId);
+    const state: ApprovalStatus["state"] =
+      plan.status === "approved" || plan.status === "published"
+        ? "approved"
+        : plan.status === "rejected"
+        ? "rejected"
+        : plan.status === "pending_approval"
+        ? "pending"
+        : plan.status === "superseded"
+        ? "approved" // was approved historically; superseded by a later publication
+        : "none";
+    // Walk a bounded slice of the audit log for a matching decision event.
+    let decidedBy: string | null = null;
+    let decidedAt: string | null = null;
+    let decisionComment: string | null = null;
+    let derivedFromPlanState = state === "approved" || state === "rejected";
+    try {
+      const activity = await this.listActivityHistory(p, projectId, undefined, 100);
+      for (const entry of activity.items) {
+        if (!APPROVAL_DECISION_TYPES.has(entry.action)) continue;
+        const metaPlanId = (entry.metadata as any)?.plan_version_id ?? (entry.metadata as any)?.planVersionId;
+        const metaHash = (entry.metadata as any)?.content_hash ?? (entry.metadata as any)?.contentHash;
+        if (metaPlanId === planVersionId || metaHash === plan.contentHash || entry.entityId === planVersionId) {
+          decidedBy = entry.actorId;
+          decidedAt = entry.createdAt;
+          decisionComment = (entry.metadata as any)?.comment ?? null;
+          derivedFromPlanState = false;
+          break;
+        }
+      }
+    } catch {
+      /* audit read failure is non-fatal — leave decidedBy null */
+    }
     return {
-      planVersionId: pv.id,
-      state:
-        pv.status === "approved"
-          ? "approved"
-          : pv.status === "rejected"
-          ? "rejected"
-          : pv.status === "pending_approval"
-          ? "pending"
-          : "none",
-      requestedBy: pv.createdBy,
-      requestedAt: pv.createdAt,
-      decidedBy: null,
-      decidedAt: null,
-      reason: null,
+      planVersionId,
+      state,
+      requestedBy: plan.createdBy,
+      requestedAt: plan.createdAt,
+      decidedBy,
+      decidedAt,
+      reason: decisionComment ?? (derivedFromPlanState ? "derived_from_plan_state" : null),
     };
   }
 
@@ -554,38 +588,16 @@ export class HttpBackendClient implements BackendClient {
     return this.humanOnly("create_project");
   }
 
-  private async currentProjectVersion(p: Principal, projectId: string): Promise<number> {
-    // Fetch the raw contract response to read `version` directly; our internal
-    // ProjectDetail does not expose version by design (it is a backend-only
-    // optimistic concurrency token).
-    const raw = await this.request<any>({
-      method: "GET",
-      path: `/api/v1/projects/${encodeURIComponent(projectId)}`,
-      principal: p,
-    });
-    const v = Number(raw?.version);
-    if (!Number.isInteger(v) || v < 1) {
-      throw new BackendError("validation_error", `Backend returned invalid project version: ${raw?.version}`, 500);
-    }
-    return v;
-  }
-
   async createPlanDraft(p: Principal, input: CreatePlanDraftInput) {
     const base_project_version = await this.currentProjectVersion(p, input.projectId);
     const c = await this.request<ContractPlanResponse>({
       method: "POST",
       path: `/api/v1/projects/${encodeURIComponent(input.projectId)}/plans`,
-      body: {
-        base_project_version,
-        snapshot: toContractSnapshot(input.plan),
-      },
+      body: { base_project_version, snapshot: toContractSnapshot(input.plan) },
       principal: p,
       idempotencyKey: input.idempotencyKey,
     });
-    return {
-      planVersion: fromContractPlan(c),
-      operationId: c.id, // backend returns the plan version id; MCP exposes it as operation ref
-    };
+    return { planVersion: fromContractPlan(c), operationId: c.id };
   }
 
   async proposePlanChanges(p: Principal, input: ProposePlanChangesInput) {
@@ -601,63 +613,82 @@ export class HttpBackendClient implements BackendClient {
       principal: p,
       idempotencyKey: input.idempotencyKey,
     });
-    return {
-      planVersion: fromContractPlan(c),
-      operationId: c.id,
-    };
+    return { planVersion: fromContractPlan(c), operationId: c.id };
   }
 
-  async requestPlanApproval(_p: Principal, _input: RequestApprovalInput): Promise<never> {
-    throw new BackendError(
-      "validation_error",
-      "requestApproval requires both projectId and planVersionId. Use request_plan_approval_scoped(projectId, planVersionId).",
-      400,
-    );
-  }
-
-  async requestPlanApprovalScoped(p: Principal, projectId: string, planId: string, idempotencyKey: string) {
-    const c = await this.request<ContractPlanResponse>({
-      method: "POST",
-      path: `/api/v1/projects/${encodeURIComponent(projectId)}/plans/${encodeURIComponent(planId)}/request-approval`,
-      principal: p,
-      idempotencyKey,
-    });
+  /**
+   * `submit-review` moves a draft plan into `in_review` state so a human can
+   * decidePlan. `request-approval` is a separate endpoint that is accepted
+   * only on draft plans (it is a parallel entry point to submit-review and
+   * does not stack on top of it). The adapter picks the correct endpoint
+   * based on the plan's current status so callers see a single logical
+   * "please route this to human approval" operation.
+   */
+  async requestPlanApproval(p: Principal, input: RequestApprovalInput) {
+    const current = await this.getPlanVersion(p, input.projectId, input.planVersionId);
+    let c: ContractPlanResponse;
+    if (current.status === "draft") {
+      // Prefer submit-review; the backend smoke test uses this sequence
+      // (plan.draft → submit-review → in_review → decidePlan).
+      c = await this.request<ContractPlanResponse>({
+        method: "POST",
+        path: `/api/v1/projects/${encodeURIComponent(input.projectId)}/plans/${encodeURIComponent(input.planVersionId)}/submit-review`,
+        principal: p,
+        idempotencyKey: input.idempotencyKey,
+      });
+    } else if (current.status === "pending_approval") {
+      // Already in review — return the current state without a redundant call.
+      c = {
+        id: current.id,
+        project_id: current.projectId,
+        number: current.versionNumber,
+        base_project_version: 1,
+        status: "in_review",
+        snapshot: { phases: [], tasks: [] } as any,
+        content_hash: current.contentHash,
+        created_by: current.createdBy,
+        created_at: current.createdAt,
+      };
+    } else {
+      // Terminal states — fall through so the backend returns a clean error.
+      c = await this.request<ContractPlanResponse>({
+        method: "POST",
+        path: `/api/v1/projects/${encodeURIComponent(input.projectId)}/plans/${encodeURIComponent(input.planVersionId)}/request-approval`,
+        principal: p,
+        idempotencyKey: input.idempotencyKey,
+      });
+    }
     const pv = fromContractPlan(c);
     return {
       approval: {
         planVersionId: pv.id,
         state: pv.status === "approved" ? "approved" : pv.status === "rejected" ? "rejected" : "pending",
         requestedBy: pv.createdBy,
-        requestedAt: new Date().toISOString(),
+        requestedAt: pv.createdAt,
         decidedBy: null,
         decidedAt: null,
-        reason: null,
+        reason: input.note ?? null,
       } as ApprovalStatus,
       operationId: pv.id,
     };
   }
 
-  async publishApprovedPlan(_p: Principal, _input: PublishApprovedPlanInput): Promise<never> {
-    throw new BackendError(
-      "validation_error",
-      "publishPlan requires projectId, planId and content_hash. Use publish_approved_plan_scoped(projectId, planId, contentHash).",
-      400,
-    );
-  }
-
-  async publishApprovedPlanScoped(p: Principal, projectId: string, planId: string, contentHash: string, idempotencyKey: string) {
+  async publishApprovedPlan(p: Principal, input: PublishApprovedPlanInput) {
     const c = await this.request<any>({
       method: "POST",
-      path: `/api/v1/projects/${encodeURIComponent(projectId)}/plans/${encodeURIComponent(planId)}/publish`,
-      body: { content_hash: contentHash },
+      path: `/api/v1/projects/${encodeURIComponent(input.projectId)}/plans/${encodeURIComponent(input.planVersionId)}/publish`,
+      body: { content_hash: input.contentHash },
       principal: p,
-      idempotencyKey,
+      idempotencyKey: input.idempotencyKey,
     });
-    // publishPlan returns an Operation shape (publish kind). The task IDs land in operation.result.task_ids once succeeded.
     const op = fromContractOperation(c);
+    const publishedTaskIds: string[] = Array.isArray(c?.result?.task_ids) ? c.result.task_ids : [];
+    // After the publish operation succeeds the plan version becomes "published".
+    // Return null for the plan version to force callers to re-read it rather
+    // than reasoning from the operation's input snapshot.
     return {
-      planVersion: null as unknown as PlanVersion,
-      publishedTaskIds: (c.result?.task_ids as string[]) ?? [],
+      planVersion: null as PlanVersion | null,
+      publishedTaskIds,
       operationId: op.operationId,
     };
   }
@@ -666,15 +697,62 @@ export class HttpBackendClient implements BackendClient {
     return this.humanOnly("update_task_status");
   }
 
-  async updateTask(_p: Principal, _input: UpdateTaskInput): Promise<never> {
-    // taskMetadata is service-callable but it returns a new DRAFT PlanVersion.
-    // Services MUST NOT treat the response as an applied edit — it still needs
-    // human review and publication. We refuse here and expose a dedicated
-    // `propose_task_metadata` tool in a follow-up.
-    throw new BackendError(
-      "validation_error",
-      "update_task is deprecated: the taskMetadata endpoint returns a new draft PlanVersion that still requires human review and publication. Use propose_task_metadata (follow-up tool) via the backend's `/plans/{planId}/submit-review` → `/request-approval` → human approval → `/publish` flow.",
-      400,
-    );
+  /**
+   * `taskMetadata` is service-callable (`plans:write`) but its response is
+   * a NEW DRAFT plan version containing the proposed change. Nothing in
+   * the task is applied in place. The caller must route the returned plan
+   * version through the normal approval + publication pipeline for the
+   * modification to take effect.
+   */
+  async updateTask(p: Principal, input: UpdateTaskInput): Promise<UpdateTaskResult> {
+    const body: Record<string, unknown> = { version: input.expectedVersion };
+    if (input.changes.title !== undefined) body.title = input.changes.title;
+    if (input.changes.description !== undefined) body.description = input.changes.description;
+    if (input.changes.priority !== undefined) body.priority = toContractPriority(input.changes.priority);
+    if (input.changes.assigneeId !== undefined) body.assignee_id = input.changes.assigneeId;
+    if (input.changes.startDate !== undefined) body.start_date = input.changes.startDate;
+    if (input.changes.dueDate !== undefined) body.due_date = input.changes.dueDate;
+    if (input.changes.estimateHours !== undefined) body.estimated_effort = input.changes.estimateHours;
+    if (input.changes.definitionOfDone !== undefined) body.definition_of_done = input.changes.definitionOfDone;
+    const c = await this.request<ContractPlanResponse>({
+      method: "PATCH",
+      path: `/api/v1/projects/${encodeURIComponent(input.projectId)}/tasks/${encodeURIComponent(input.taskId)}`,
+      body,
+      principal: p,
+      idempotencyKey: input.idempotencyKey,
+    });
+    const planVersion = fromContractPlan(c);
+    return {
+      proposedPlanVersion: planVersion,
+      operationId: planVersion.id,
+      requiresApproval: true,
+      nextSteps: [
+        "request_plan_approval(projectId, planVersionId)",
+        "wait for human decidePlan (frontend)",
+        "publish_approved_plan(projectId, planVersionId, contentHash) — requires plans:publish",
+      ],
+    };
+  }
+
+  /**
+   * Agent → async-planning callback writer. Service identity needs
+   * `operations:write` + `plans:write`. This is the direct wrapper over
+   * `POST /api/v1/operations/{operationId}/result`. The MCP server does
+   * not expose this as a tool by default; n8n invokes the backend directly
+   * via its own worker identity.
+   */
+  async operationResult(
+    p: Principal,
+    operationId: string,
+    body: { result?: { base_project_version: number; snapshot: ReturnType<typeof toContractSnapshot> }; error?: string },
+    idempotencyKey: string,
+  ) {
+    return this.request<any>({
+      method: "POST",
+      path: `/api/v1/operations/${encodeURIComponent(operationId)}/result`,
+      body,
+      principal: p,
+      idempotencyKey,
+    });
   }
 }

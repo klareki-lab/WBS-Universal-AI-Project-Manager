@@ -58,7 +58,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "url": "={{ $env.MCP_UAPM_URL }}/invoke/get_approval_status",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -77,7 +77,7 @@
           ]
         },
         "sendBody": true,
-        "jsonBody": "={\n  \"tool\": \"get_approval_status\",\n  \"arguments\": { \"planVersionId\": \"{{ $json.op.arguments.planVersionId }}\" }\n}",
+        "jsonBody": "={\n  \"arguments\": { \"planVersionId\": \"{{ $json.op.arguments.planVersionId }}\" }\n}",
         "options": {
           "timeout": 10000,
           "response": {
@@ -112,7 +112,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "url": "={{ $env.MCP_UAPM_URL }}/invoke/{{ $json.op.name }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -131,7 +131,7 @@
           ]
         },
         "sendBody": true,
-        "jsonBody": "={\n  \"tool\": \"{{ $json.op.name }}\",\n  \"arguments\": {{ JSON.stringify($json.op.arguments) }}\n}",
+        "jsonBody": "={\n  \"arguments\": {{ JSON.stringify($json.op.arguments) }}\n}",
         "options": {
           "timeout": 15000,
           "retry": {

@@ -11,6 +11,7 @@ import type {
   PublishApprovedPlanInput,
   RequestApprovalInput,
   UpdateTaskInput,
+  UpdateTaskResult,
   UpdateTaskStatusInput,
 } from "../backend/types.js";
 import type {
@@ -202,17 +203,23 @@ export class MockBackend implements BackendClient {
     return this.paginate(list, filter.cursor, filter.limit);
   }
 
-  async getTask(principal: Principal, taskId: string): Promise<TaskDetail> {
+  async getTask(principal: Principal, projectId: string, taskId: string): Promise<TaskDetail> {
     const t = this.tasks.get(taskId);
     if (!t) throw new BackendError("not_found", `Task ${taskId} not found`, 404);
-    this.ensureProjectAccess(principal, t.projectId);
+    if (t.projectId !== projectId) {
+      throw new BackendError("not_found", `Task ${taskId} not found in project ${projectId}`, 404);
+    }
+    this.ensureProjectAccess(principal, projectId);
     return t;
   }
 
-  async getPlanVersion(principal: Principal, planVersionId: string): Promise<PlanVersion> {
+  async getPlanVersion(principal: Principal, projectId: string, planVersionId: string): Promise<PlanVersion> {
     const pv = this.planVersions.get(planVersionId);
     if (!pv) throw new BackendError("not_found", `Plan version ${planVersionId} not found`, 404);
-    this.ensureProjectAccess(principal, pv.projectId);
+    if (pv.projectId !== projectId) {
+      throw new BackendError("not_found", `Plan version ${planVersionId} not found in project ${projectId}`, 404);
+    }
+    this.ensureProjectAccess(principal, projectId);
     const { publishedTaskIds: _p, ...rest } = pv;
     return rest;
   }
@@ -256,10 +263,13 @@ export class MockBackend implements BackendClient {
     };
   }
 
-  async getApprovalStatus(principal: Principal, planVersionId: string): Promise<ApprovalStatus> {
+  async getApprovalStatus(principal: Principal, projectId: string, planVersionId: string): Promise<ApprovalStatus> {
     const pv = this.planVersions.get(planVersionId);
     if (!pv) throw new BackendError("not_found", `Plan version ${planVersionId} not found`, 404);
-    this.ensureProjectAccess(principal, pv.projectId);
+    if (pv.projectId !== projectId) {
+      throw new BackendError("not_found", `Plan version ${planVersionId} not found in project ${projectId}`, 404);
+    }
+    this.ensureProjectAccess(principal, projectId);
     return (
       this.approvals.get(planVersionId) ?? {
         planVersionId,
@@ -399,11 +409,17 @@ export class MockBackend implements BackendClient {
     const userId = this.requireUser(principal);
     const pv = this.planVersions.get(input.planVersionId);
     if (!pv) throw new BackendError("not_found", `Plan version ${input.planVersionId} not found`, 404);
-    this.ensureProjectAccess(principal, pv.projectId);
+    if (pv.projectId !== input.projectId) {
+      throw new BackendError("not_found", `Plan version ${input.planVersionId} not found in project ${input.projectId}`, 404);
+    }
+    this.ensureProjectAccess(principal, input.projectId);
     if (pv.status === "published") {
       throw new BackendError("conflict", "Plan already published", 409);
     }
     return this.registerIdempotency(input.idempotencyKey, () => {
+      // Simulate the contract's submit-review → request-approval sequencing:
+      // draft -> pending_approval (via the virtual submit-review step), then
+      // record the approval request. This matches the HttpBackendClient flow.
       pv.status = "pending_approval";
       const approval: StoredApproval = {
         planVersionId: pv.id,
@@ -445,7 +461,17 @@ export class MockBackend implements BackendClient {
     const userId = this.requireUser(principal);
     const pv = this.planVersions.get(input.planVersionId);
     if (!pv) throw new BackendError("not_found", `Plan version ${input.planVersionId} not found`, 404);
+    if (pv.projectId !== input.projectId) {
+      throw new BackendError("not_found", `Plan version ${input.planVersionId} not found in project ${input.projectId}`, 404);
+    }
     const project = this.ensureProjectAccess(principal, pv.projectId);
+    if (pv.contentHash !== input.contentHash) {
+      throw new BackendError(
+        "conflict",
+        "content_hash does not match the stored plan version — fetch the plan first",
+        409,
+      );
+    }
     const approval = this.approvals.get(pv.id);
     if (!approval || approval.state !== "approved") {
       throw new BackendError("approval_required", "Plan version is not approved by a human", 403);
@@ -527,7 +553,10 @@ export class MockBackend implements BackendClient {
     const userId = this.requireUser(principal);
     const task = this.tasks.get(input.taskId);
     if (!task) throw new BackendError("not_found", `Task ${input.taskId} not found`, 404);
-    this.ensureProjectAccess(principal, task.projectId);
+    if (task.projectId !== input.projectId) {
+      throw new BackendError("not_found", `Task ${input.taskId} not found in project ${input.projectId}`, 404);
+    }
+    this.ensureProjectAccess(principal, input.projectId);
     if (task.version !== input.expectedVersion) {
       throw new BackendError("stale_version", `Task version mismatch (have ${task.version}, got ${input.expectedVersion})`, 409);
     }
@@ -556,38 +585,83 @@ export class MockBackend implements BackendClient {
     });
   }
 
-  async updateTask(principal: Principal, input: UpdateTaskInput) {
+  /**
+   * Contract-aligned semantics: taskMetadata produces a new draft PlanVersion
+   * carrying the proposed change. The task itself is NOT updated in place.
+   */
+  async updateTask(principal: Principal, input: UpdateTaskInput): Promise<UpdateTaskResult> {
     const userId = this.requireUser(principal);
     const task = this.tasks.get(input.taskId);
     if (!task) throw new BackendError("not_found", `Task ${input.taskId} not found`, 404);
-    this.ensureProjectAccess(principal, task.projectId);
+    if (task.projectId !== input.projectId) {
+      throw new BackendError("not_found", `Task ${input.taskId} not found in project ${input.projectId}`, 404);
+    }
+    this.ensureProjectAccess(principal, input.projectId);
     if (task.version !== input.expectedVersion) {
       throw new BackendError("stale_version", `Task version mismatch (have ${task.version}, got ${input.expectedVersion})`, 409);
     }
-    const touchesHighImpact = Object.keys(input.changes).some((k) => HIGH_IMPACT_FIELDS.has(k));
-    if (touchesHighImpact) {
-      // Not applied directly: require a plan-change proposal for high-impact edits
-      throw new BackendError(
-        "approval_required",
-        "High-impact fields (priority/assigneeId/dueDate) require an approved plan change proposal",
-        403,
-        { requiredFlow: "propose_plan_changes -> request_plan_approval -> publish_approved_plan" },
-      );
-    }
     return this.registerIdempotency(input.idempotencyKey, () => {
-      Object.assign(task, input.changes);
-      task.version += 1;
-      task.updatedAt = nowIso();
-      const op = this.recordOperation("update_task", task.projectId, input.idempotencyKey);
+      // Build a proposal plan that mirrors the project's current task set
+      // but applies the requested metadata change to this task.
+      const existingTasks = [...this.tasks.values()].filter((t) => t.projectId === input.projectId);
+      const project = this.projects.get(input.projectId)!;
+      const phases = project.phases.length
+        ? project.phases.map((ph) => ({ name: ph.name, order: ph.order, description: undefined as string | undefined }))
+        : [{ name: "Default", order: 0, description: undefined as string | undefined }];
+      const planTasks = existingTasks.map((t) => ({
+        tempId: t.id,
+        phaseName: project.phases.find((ph) => ph.id === t.phaseId)?.name ?? phases[0]!.name,
+        title: t.id === task.id ? input.changes.title ?? t.title : t.title,
+        description: t.id === task.id && input.changes.description !== undefined ? input.changes.description : t.description ?? undefined,
+        priority: (t.id === task.id && input.changes.priority !== undefined ? input.changes.priority : t.priority) as "low" | "medium" | "high" | "critical",
+        dependsOn: t.dependencies,
+        estimateHours: t.id === task.id && input.changes.estimateHours !== undefined ? input.changes.estimateHours ?? undefined : t.estimateHours ?? undefined,
+        definitionOfDone: t.id === task.id && input.changes.definitionOfDone !== undefined ? input.changes.definitionOfDone ?? undefined : t.definitionOfDone ?? undefined,
+        dueDate: t.id === task.id && input.changes.dueDate !== undefined ? input.changes.dueDate ?? undefined : t.dueDate ?? undefined,
+      }));
+      const planDraft: PlanDraft = {
+        summary: `Metadata change for task ${task.id}`,
+        assumptions: [],
+        risks: [],
+        phases,
+        tasks: planTasks,
+      };
+      const id = `plv_${randomUUID()}`;
+      const existing = [...this.planVersions.values()].filter((pv) => pv.projectId === input.projectId);
+      const versionNumber = existing.length + 1;
+      const pv: StoredPlanVersion = {
+        id,
+        projectId: input.projectId,
+        versionNumber,
+        status: "draft",
+        contentHash: hashPlan(planDraft),
+        summary: planDraft.summary,
+        createdAt: nowIso(),
+        createdBy: userId,
+        plan: planDraft,
+        publishedTaskIds: [],
+      };
+      this.planVersions.set(id, pv);
+      const op = this.recordOperation("update_task.metadata_proposed", input.projectId, input.idempotencyKey);
       this.recordActivity({
-        projectId: task.projectId,
+        projectId: input.projectId,
         actorId: userId,
-        action: "task.updated",
-        entityType: "task",
-        entityId: task.id,
-        metadata: { fields: Object.keys(input.changes) },
+        action: "plan.draft_created",
+        entityType: "plan_version",
+        entityId: id,
+        metadata: { reason: "taskMetadata proposal", taskId: task.id, fields: Object.keys(input.changes) },
       });
-      return { task, operationId: op.operationId, requiresApproval: false };
+      const { publishedTaskIds: _p, ...rest } = pv;
+      return {
+        proposedPlanVersion: rest,
+        operationId: op.operationId,
+        requiresApproval: true as const,
+        nextSteps: [
+          "request_plan_approval(projectId, planVersionId)",
+          "wait for human decidePlan (frontend)",
+          "publish_approved_plan(projectId, planVersionId, contentHash) — requires plans:publish",
+        ],
+      };
     });
   }
 

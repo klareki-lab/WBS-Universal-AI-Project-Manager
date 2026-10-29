@@ -3,8 +3,8 @@ import { z } from "zod";
 export const StableIdSchema = z.string().min(1).max(128);
 
 export const PaginationInputSchema = z.object({
-  cursor: z.string().optional().describe("Opaque pagination cursor from a prior response."),
-  limit: z.number().int().positive().max(200).optional().describe("Max items to return."),
+  cursor: z.string().optional().describe("Opaque pagination cursor from a prior response. Decoded as `offset` against the backend."),
+  limit: z.number().int().positive().max(100).optional().describe("Max items to return (contract max: 100)."),
 });
 
 export const PaginationOutputSchema = z.object({

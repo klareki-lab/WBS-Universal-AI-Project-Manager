@@ -124,5 +124,72 @@ export function buildHttpApp(cfg: Config, backend: BackendClient) {
   app.get("/mcp", handleMcp);
   app.delete("/mcp", handleMcp);
 
+  // --- REST invocation facade for deterministic HTTP callers (n8n webhooks).
+  //
+  // This path bypasses the MCP Streamable HTTP session negotiation so that
+  // deterministic workflow engines (which do not speak MCP) can still invoke
+  // read + write tools through a single, policy-enforced server-side surface.
+  // It uses the same service-token authentication, principal headers, and
+  // backend adapter as the MCP route — all policy guards (`human_only`,
+  // idempotency, scoped IDs, approval binding) apply identically.
+  //
+  // Shape:
+  //   POST /invoke/<tool_name>
+  //   Authorization: Bearer <UAPM_MCP_SERVICE_TOKEN>
+  //   x-on-behalf-of: <userId>              (required for user-scoped reads/writes)
+  //   x-correlation-id: <uuid>              (optional; generated otherwise)
+  //   Content-Type: application/json
+  //   Body: { "arguments": { ...tool args } }
+  //
+  // Response: 200 with { "result": <tool structured result> }
+  //           4xx/5xx with { "error": { "code": ..., "message": ... } }
+  //
+  // Tools are dispatched by name against the backend adapter so semantics are
+  // identical to the MCP tool wiring in src/tools/*.ts.
+  const invokeMap: Record<string, (p: Principal, args: any) => Promise<unknown>> = {
+    list_projects: (p, a) => backend.listProjects(p, a ?? {}),
+    get_project: (p, a) => backend.getProject(p, a.id),
+    list_project_tasks: (p, a) => backend.listProjectTasks(p, a.projectId, a),
+    get_task: (p, a) => backend.getTask(p, a.projectId, a.taskId),
+    get_plan_version: (p, a) => backend.getPlanVersion(p, a.projectId, a.planVersionId),
+    get_project_progress: (p, a) => backend.getProjectProgress(p, a.projectId),
+    get_approval_status: (p, a) => backend.getApprovalStatus(p, a.projectId, a.planVersionId),
+    list_activity_history: (p, a) => backend.listActivityHistory(p, a.projectId, a.cursor, a.limit),
+    get_operation_status: (p, a) => backend.getOperationStatus(p, a.operationId),
+    create_project: (p, a) => backend.createProject(p, a),
+    create_plan_draft: (p, a) => backend.createPlanDraft(p, a),
+    propose_plan_changes: (p, a) => backend.proposePlanChanges(p, a),
+    request_plan_approval: (p, a) => backend.requestPlanApproval(p, a),
+    publish_approved_plan: (p, a) => backend.publishApprovedPlan(p, a),
+    update_task_status: (p, a) => backend.updateTaskStatus(p, a),
+    update_task: (p, a) => backend.updateTask(p, a),
+  };
+
+  app.post("/invoke/:tool", async (req, res) => {
+    let principal: Principal;
+    try {
+      principal = parsePrincipal(req, cfg.mcpServiceToken);
+    } catch {
+      res.status(401).json({ error: { code: "unauthorized", message: "Missing or invalid service token" } });
+      return;
+    }
+    const toolName = req.params.tool;
+    const impl = invokeMap[toolName];
+    if (!impl) {
+      res.status(404).json({ error: { code: "not_found", message: `Unknown tool: ${toolName}` } });
+      return;
+    }
+    const log = withCorrelation(principal.correlationId!);
+    try {
+      const result = await impl(principal, (req.body ?? {}).arguments ?? {});
+      res.status(200).json({ result });
+    } catch (err: any) {
+      const code = err?.code ?? "internal_error";
+      const status = err?.status ?? (code === "human_only" ? 403 : code === "not_found" ? 404 : code === "unauthorized" ? 401 : code === "forbidden" ? 403 : 500);
+      log.warn({ tool: toolName, code }, "invoke failed");
+      res.status(status).json({ error: { code, message: String(err?.message ?? err) } });
+    }
+  });
+
   return app;
 }

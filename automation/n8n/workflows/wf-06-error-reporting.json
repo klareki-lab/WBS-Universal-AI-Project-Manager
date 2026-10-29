@@ -57,7 +57,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "url": "={{ $env.MCP_UAPM_URL }}/invoke/get_operation_status",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -72,7 +72,7 @@
           ]
         },
         "sendBody": true,
-        "jsonBody": "={\n  \"tool\": \"get_operation_status\",\n  \"arguments\": { \"operationId\": \"{{ $json.operationIds[0] }}\" }\n}",
+        "jsonBody": "={\n  \"arguments\": { \"operationId\": \"{{ $json.operationIds[0] }}\" }\n}",
         "options": {
           "timeout": 10000,
           "response": {

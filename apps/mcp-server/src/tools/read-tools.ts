@@ -48,8 +48,7 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     },
     async (args) => {
       try {
-        const page = await ctx.backend.listProjects(ctx.getPrincipal(), args);
-        return okText(page);
+        return okText(await ctx.backend.listProjects(ctx.getPrincipal(), args));
       } catch (e) {
         return errText(e);
       }
@@ -103,13 +102,18 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     "get_task",
     {
       title: "Get task",
-      description: "Return task details by stable ID.",
-      inputSchema: { id: StableIdSchema },
+      description:
+        "Return task details. Both projectId and taskId are required because the backend path is " +
+        "GET /api/v1/projects/{projectId}/tasks/{taskId} and tasks are not globally addressable.",
+      inputSchema: {
+        projectId: StableIdSchema,
+        taskId: StableIdSchema,
+      },
       outputSchema: TaskDetailSchema.shape,
     },
-    async ({ id }) => {
+    async ({ projectId, taskId }) => {
       try {
-        return okText(await ctx.backend.getTask(ctx.getPrincipal(), id));
+        return okText(await ctx.backend.getTask(ctx.getPrincipal(), projectId, taskId));
       } catch (e) {
         return errText(e);
       }
@@ -120,13 +124,18 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     "get_plan_version",
     {
       title: "Get plan version",
-      description: "Return a stored plan version with its ID, status and content hash.",
-      inputSchema: { id: StableIdSchema },
+      description:
+        "Return a stored plan version with its ID, status, content hash and full snapshot. " +
+        "Backend path: GET /api/v1/projects/{projectId}/plans/{planVersionId}.",
+      inputSchema: {
+        projectId: StableIdSchema,
+        planVersionId: StableIdSchema,
+      },
       outputSchema: PlanVersionSchema.shape,
     },
-    async ({ id }) => {
+    async ({ projectId, planVersionId }) => {
       try {
-        return okText(await ctx.backend.getPlanVersion(ctx.getPrincipal(), id));
+        return okText(await ctx.backend.getPlanVersion(ctx.getPrincipal(), projectId, planVersionId));
       } catch (e) {
         return errText(e);
       }
@@ -154,13 +163,19 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     "get_approval_status",
     {
       title: "Get approval status",
-      description: "Return the current approval state of a specific plan version.",
-      inputSchema: { planVersionId: StableIdSchema },
+      description:
+        "Return the approval state of a plan version. Distinguishes a real human decision (decidedBy / " +
+        "decidedAt derived from the project activity log) from a derived state inferred from plan.status. " +
+        "`reason` is `derived_from_plan_state` when the backend's audit log did not record a matching decision.",
+      inputSchema: {
+        projectId: StableIdSchema,
+        planVersionId: StableIdSchema,
+      },
       outputSchema: ApprovalStatusSchema.shape,
     },
-    async ({ planVersionId }) => {
+    async ({ projectId, planVersionId }) => {
       try {
-        return okText(await ctx.backend.getApprovalStatus(ctx.getPrincipal(), planVersionId));
+        return okText(await ctx.backend.getApprovalStatus(ctx.getPrincipal(), projectId, planVersionId));
       } catch (e) {
         return errText(e);
       }
@@ -171,7 +186,7 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     "list_activity_history",
     {
       title: "List activity history",
-      description: "Return authorized project activity with pagination.",
+      description: "Return authorized project activity (audit log) with pagination.",
       inputSchema: PaginationInputSchema.extend({ projectId: StableIdSchema }).shape,
       outputSchema: z.object({
         items: z.array(ActivityEntrySchema),
@@ -192,7 +207,9 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
     "get_operation_status",
     {
       title: "Get operation status",
-      description: "Return operation state and safe retry info. Use before retrying a mutation whose outcome is unknown.",
+      description:
+        "Return operation state and safe retry info. Use before retrying a mutation whose outcome is unknown. " +
+        "operationId is globally unique (not project-scoped) in the backend contract.",
       inputSchema: { operationId: StableIdSchema },
       outputSchema: OperationStatusSchema.shape,
     },
@@ -206,5 +223,4 @@ export function registerReadTools(server: McpServer, ctx: Ctx): void {
   );
 }
 
-// Silence unused imports when type-stripping
 export const _schemaRefs = { PaginationOutputSchema };

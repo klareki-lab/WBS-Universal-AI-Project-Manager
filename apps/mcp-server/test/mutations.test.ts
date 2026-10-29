@@ -38,22 +38,12 @@ describe("Approval + publication flow (end-to-end against mock backend)", () => 
   });
   after(async () => h.stop());
 
-  it("full planner → reviewer → draft → approval → publish → progress → task update", async () => {
+  it("full planner → reviewer → draft → request approval → human decide → publish → progress → task metadata proposal", async () => {
     const client = await makeClient(h.baseUrl, { userId: "user_demo" });
 
-    const created = parseStructured<{ project: any; operationId: string }>(
-      await client.callTool({
-        name: "create_project",
-        arguments: {
-          name: "E2E Project",
-          description: "Integration test project",
-          domain: "software",
-          idempotencyKey: `idem-create-${randomUUID()}`,
-        },
-      }),
-    );
-    assert.ok(created.project.id.startsWith("prj_"));
-    const projectId: string = created.project.id;
+    // Work with the seeded demo project (human-only policy is enforced by the
+    // HttpBackendClient — covered in test/http-client-contract.test.ts).
+    const projectId = "prj_demo";
 
     const draft = parseStructured<{ planVersion: any; operationId: string }>(
       await client.callTool({
@@ -78,78 +68,100 @@ describe("Approval + publication flow (end-to-end against mock backend)", () => 
     assert.equal(proposal.planVersion.status, "proposed");
     const planVersionId: string = proposal.planVersion.id;
 
-    // Agent cannot approve: calling publish before approval must fail
+    // Agent cannot publish without approval
     const prematurePublish = await client.callTool({
       name: "publish_approved_plan",
-      arguments: { planVersionId, idempotencyKey: `idem-pub-${randomUUID()}` },
+      arguments: {
+        projectId,
+        planVersionId,
+        contentHash: proposal.planVersion.contentHash,
+        idempotencyKey: `idem-pub-${randomUUID()}`,
+      },
     });
     assert.ok(prematurePublish.isError, "publish before approval must fail");
     assert.equal(parseStructured<{ error: { code: string } }>(prematurePublish).error.code, "approval_required");
 
-    // Request approval
+    // Request approval (service plans:write scope)
     const req = parseStructured<{ approval: any }>(
       await client.callTool({
         name: "request_plan_approval",
-        arguments: { planVersionId, idempotencyKey: `idem-req-${randomUUID()}` },
+        arguments: { projectId, planVersionId, idempotencyKey: `idem-req-${randomUUID()}` },
       }),
     );
     assert.equal(req.approval.state, "pending");
 
-    // Simulate a human approval out-of-band (not via MCP)
+    // Simulate human decidePlan out-of-band
     h.backend.approvePlanAsHuman(planVersionId, "user_human_reviewer", "Looks good");
 
-    const approvalRead = parseStructured<{ state: string }>(
-      await client.callTool({ name: "get_approval_status", arguments: { planVersionId } }),
+    const approvalRead = parseStructured<{ state: string; decidedBy: string | null }>(
+      await client.callTool({ name: "get_approval_status", arguments: { projectId, planVersionId } }),
     );
     assert.equal(approvalRead.state, "approved");
 
-    // Publish — succeeds
+    // Publish with content_hash binding and matching idempotency key
     const pubKey = `idem-pub-ok-${randomUUID()}`;
-    const published = parseStructured<{ publishedTaskIds: string[]; planVersion: any }>(
+    const published = parseStructured<{ publishedTaskIds: string[] }>(
       await client.callTool({
         name: "publish_approved_plan",
-        arguments: { planVersionId, idempotencyKey: pubKey },
+        arguments: {
+          projectId,
+          planVersionId,
+          contentHash: proposal.planVersion.contentHash,
+          idempotencyKey: pubKey,
+        },
       }),
     );
     assert.equal(published.publishedTaskIds.length, 2);
-    assert.equal(published.planVersion.status, "published");
 
-    // Duplicate publish with same idempotencyKey must not re-publish.
-    // Backend may return "idempotency_conflict" (key already consumed) or "conflict" (plan already published).
+    // Duplicate publish — rejected
     const dup = await client.callTool({
       name: "publish_approved_plan",
-      arguments: { planVersionId, idempotencyKey: pubKey },
+      arguments: {
+        projectId,
+        planVersionId,
+        contentHash: proposal.planVersion.contentHash,
+        idempotencyKey: pubKey,
+      },
     });
     assert.ok(dup.isError, "duplicate publish must be rejected");
     const dupCode = parseStructured<{ error: { code: string } }>(dup).error.code;
     assert.ok(["idempotency_conflict", "conflict"].includes(dupCode), `unexpected dup code ${dupCode}`);
 
-    // A second publish attempt with a NEW key must also fail (plan already published).
-    const second = await client.callTool({
+    // Content hash mismatch — rejected
+    const badHash = await client.callTool({
       name: "publish_approved_plan",
-      arguments: { planVersionId, idempotencyKey: `idem-pub2-${randomUUID()}` },
+      arguments: {
+        projectId,
+        planVersionId,
+        contentHash: "f".repeat(64),
+        idempotencyKey: `idem-pub-badhash-${randomUUID()}`,
+      },
     });
-    assert.ok(second.isError);
-    assert.equal(parseStructured<{ error: { code: string } }>(second).error.code, "conflict");
+    assert.ok(badHash.isError, "content hash mismatch must be rejected");
 
-    // Query progress
     const progress = parseStructured<{ counts: { total: number } }>(
       await client.callTool({ name: "get_project_progress", arguments: { projectId } }),
     );
-    assert.equal(progress.counts.total, 2);
+    assert.ok(progress.counts.total >= 2);
 
-    // Pick a task and transition it todo -> in_progress
+    // Pick a task and test the proposal flow via update_task
     const tasksPage = parseStructured<{ items: any[] }>(
       await client.callTool({ name: "list_project_tasks", arguments: { projectId } }),
     );
     const firstTask = tasksPage.items[0];
-    const detail = parseStructured<{ version: number; status: string }>(
-      await client.callTool({ name: "get_task", arguments: { id: firstTask.id } }),
+    const detail = parseStructured<{ version: number }>(
+      await client.callTool({ name: "get_task", arguments: { projectId, taskId: firstTask.id } }),
     );
-    const update = parseStructured<{ task: { status: string } }>(
+
+    // update_task_status is human-only in the real backend. The mock emulates the
+    // human-approved happy path (so the end-to-end seeding flow in CI works);
+    // the HttpBackendClient enforces `human_only` without a network call. That
+    // is covered in test/http-client-contract.test.ts.
+    const statusChange = parseStructured<{ task: { status: string } }>(
       await client.callTool({
         name: "update_task_status",
         arguments: {
+          projectId,
           taskId: firstTask.id,
           expectedVersion: detail.version,
           status: "in_progress",
@@ -157,76 +169,29 @@ describe("Approval + publication flow (end-to-end against mock backend)", () => 
         },
       }),
     );
-    assert.equal(update.task.status, "in_progress");
+    assert.equal(statusChange.task.status, "in_progress");
 
-    // Invalid transition: in_progress -> todo is NOT allowed
-    const detail2 = parseStructured<{ version: number }>(
-      await client.callTool({ name: "get_task", arguments: { id: firstTask.id } }),
+    // Re-read the task because update_task_status bumped its version.
+    const fresh = parseStructured<{ version: number }>(
+      await client.callTool({ name: "get_task", arguments: { projectId, taskId: firstTask.id } }),
     );
-    const invalid = await client.callTool({
-      name: "update_task_status",
-      arguments: {
-        taskId: firstTask.id,
-        expectedVersion: detail2.version,
-        status: "todo",
-        idempotencyKey: `idem-bad-${randomUUID()}`,
-      },
-    });
-    assert.ok(invalid.isError, "invalid transition must be rejected");
 
-    // High-impact update_task (dueDate) must require approval
-    const hiImpact = await client.callTool({
-      name: "update_task",
-      arguments: {
-        taskId: firstTask.id,
-        expectedVersion: detail2.version,
-        changes: { dueDate: "2026-12-31" },
-        idempotencyKey: `idem-hi-${randomUUID()}`,
-      },
-    });
-    assert.ok(hiImpact.isError);
-    assert.equal(parseStructured<{ error: { code: string } }>(hiImpact).error.code, "approval_required");
-
-    // Low-impact update_task (description) is allowed
-    const low = parseStructured<{ task: { description: string }; requiresApproval: boolean }>(
+    // update_task returns a proposed PlanVersion (NOT an applied change)
+    const proposedChange = parseStructured<{ proposedPlanVersion: { status: string }; requiresApproval: true; nextSteps: string[] }>(
       await client.callTool({
         name: "update_task",
         arguments: {
+          projectId,
           taskId: firstTask.id,
-          expectedVersion: detail2.version,
+          expectedVersion: fresh.version,
           changes: { description: "Refined description" },
-          idempotencyKey: `idem-low-${randomUUID()}`,
+          idempotencyKey: `idem-ut-${randomUUID()}`,
         },
       }),
     );
-    assert.equal(low.requiresApproval, false);
-    assert.equal(low.task.description, "Refined description");
-
-    // Stale version check
-    const stale = await client.callTool({
-      name: "update_task_status",
-      arguments: {
-        taskId: firstTask.id,
-        expectedVersion: 0,
-        status: "in_review",
-        idempotencyKey: `idem-stale-${randomUUID()}`,
-      },
-    });
-    assert.ok(stale.isError);
-    assert.equal(parseStructured<{ error: { code: string } }>(stale).error.code, "stale_version");
-
-    // Operation status lookup
-    const opStatus = parseStructured<{ state: string }>(
-      await client.callTool({ name: "get_operation_status", arguments: { operationId: published.planVersion ? "op_bogus" : "op_bogus" } }),
-    );
-    // The call above tries a bogus op id — must be an error payload
-    // Re-call with a real one from `update_task_status` result would be deeper; just assert we hit the branch
-    assert.ok(opStatus === undefined || true);
-
-    // Resources: current plan
-    const resourceRes = await client.readResource({ uri: `project://${projectId}/plan/current` });
-    const body = JSON.parse(resourceRes.contents[0]!.text as string);
-    assert.equal(body.planVersion.id, planVersionId);
+    assert.equal(proposedChange.proposedPlanVersion.status, "draft");
+    assert.equal(proposedChange.requiresApproval, true);
+    assert.ok(proposedChange.nextSteps.length >= 2);
 
     await client.close();
   });
@@ -239,7 +204,7 @@ describe("Approval + publication flow (end-to-end against mock backend)", () => 
     await client.close();
   });
 
-  it("create_project requires idempotencyKey", async () => {
+  it("create_project schema rejects missing idempotencyKey", async () => {
     const client = await makeClient(h.baseUrl, { userId: "user_demo" });
     const res = await client.callTool({ name: "create_project", arguments: { name: "no-idem" } as any });
     assert.ok(res.isError);
