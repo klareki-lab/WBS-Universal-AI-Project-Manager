@@ -22,6 +22,7 @@ export const taskEditing = {
   reviewNext: 'Die Version liegt zur Prüfung vor. Snapshot und Hash unten kontrollieren; die Freigabe muss ausdrücklich durch einen Menschen erfolgen.',
   approvedNext: 'Die Version ist freigegeben, aber noch nicht veröffentlicht. Snapshot prüfen und Veröffentlichung ausdrücklich auslösen.',
   publishedNext: 'Diese Version wurde veröffentlicht. Die Aufgaben sind im Kanban abrufbar.',
+  publishedBoardButton: 'Aufgaben im Kanban anzeigen',
   otherNext: 'Für diese Version ist keine unmittelbare Veröffentlichung möglich. Den Status prüfen oder eine neue Revision erstellen.',
   reviewDetails: 'Version und Hash prüfen',
   publishDetails: 'Freigabe prüfen und veröffentlichen',

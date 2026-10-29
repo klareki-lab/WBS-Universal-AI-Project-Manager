@@ -6,11 +6,11 @@ import userEvent from '@testing-library/user-event';
 import {MemoryRouter,Route,Routes} from 'react-router-dom';
 import LivePlanWorkspace from '../pages/LivePlanWorkspace';
 
-const state=vi.hoisted(()=>({failed:false,draft:false,reviewed:false}));
-beforeEach(()=>{state.failed=false;state.draft=false;state.reviewed=false;});
+const state=vi.hoisted(()=>({failed:false,draft:false,reviewed:false,published:false}));
+beforeEach(()=>{state.failed=false;state.draft=false;state.reviewed=false;state.published=false;});
 vi.mock('../live/client',()=>({api:{
  project:vi.fn(async()=>({id:'p1',name:'Synthetic project',version:1})),
- plans:vi.fn(async()=>({items:state.draft?[{id:'manual-v2',project_id:'p1',number:2,base_project_version:1,status:state.reviewed?'in_review':'draft',content_hash:'a'.repeat(64),created_at:'2026-10-29T10:00:00Z',snapshot:{phases:[{key:'phase',name:'Phase',description:''}],tasks:[{key:'task',phase_key:'phase',title:'Manuell geändert',description:'No AI',priority:'medium',due_date:null,assignee_id:null,depends_on:[]}]}}]:[]})),
+ plans:vi.fn(async()=>({items:state.draft?[{id:'manual-v2',project_id:'p1',number:2,base_project_version:1,status:state.published?'published':state.reviewed?'in_review':'draft',content_hash:'a'.repeat(64),created_at:'2026-10-29T10:00:00Z',snapshot:{phases:[{key:'phase',name:'Phase',description:''}],tasks:[{key:'task',phase_key:'phase',title:'Manuell geändert',description:'No AI',priority:'medium',due_date:null,assignee_id:null,depends_on:[]}]}}]:[]})),
  approvalHistory:vi.fn(async()=>({items:[],revocations:[]})),
  review:vi.fn(async()=>{state.reviewed=true;}),
  operations:vi.fn(async()=>({items:state.failed?[{id:'op1',kind:'planning',status:'failed',error:'AI_BUDGET_EXHAUSTED'}]:[]})),
@@ -36,6 +36,14 @@ describe('planning operation feedback',()=>{
   fireEvent.click(screen.getByRole('button',{name:'Review einreichen'}));
   await waitFor(()=>expect(api.review).toHaveBeenCalledWith('p1','manual-v2'));
   expect(api.planning).not.toHaveBeenCalled();
+ });
+
+ it('has exactly one unambiguous header Kanban link after publication',async()=>{
+  state.draft=true;state.published=true;
+  render(<MemoryRouter initialEntries={['/projects/p1/review?plan=manual-v2']}><Routes><Route path="/projects/:projectId/review" element={<LivePlanWorkspace/>}/></Routes></MemoryRouter>);
+  expect(await screen.findByTestId('plan-next-step')).toHaveTextContent('veröffentlicht');
+  expect(screen.getAllByRole('link',{name:'Zum Kanban',exact:true})).toHaveLength(1);
+  expect(screen.getByRole('link',{name:'Aufgaben im Kanban anzeigen'})).toHaveAttribute('href','/projects/p1/board');
  });
 
 });

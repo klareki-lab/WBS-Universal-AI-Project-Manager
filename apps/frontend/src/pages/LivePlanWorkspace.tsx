@@ -72,7 +72,7 @@ export default function LivePlanWorkspace(){
      <button className="btn-primary" disabled={busy} onClick={()=>void act(()=>api.review(projectId,plan.id),'Zur Prüfung eingereicht.')}>Review einreichen</button>:
      plan.status==='in_review'?<a className="btn-primary" href="#plan-review-details">{taskEditing.reviewDetails}</a>:
      plan.status==='approved'?<a className="btn-primary" href="#plan-review-details">{taskEditing.publishDetails}</a>:
-     plan.status==='published'?<Link className="btn-secondary" to={`/projects/${projectId}/board`}>Zum Kanban</Link>:null}</div>
+     plan.status==='published'?<Link className="btn-secondary" to={`/projects/${projectId}/board`}>{taskEditing.publishedBoardButton}</Link>:null}</div>
  </div></Card>}
  <div className="grid gap-5 xl:grid-cols-2"><div className="space-y-5"><Card className="p-6"><h2 className="text-lg font-bold">AI-Planung anfordern</h2><p className="my-3 text-sm text-slate-500">Eine Modellantwort ist keine menschliche Freigabe. {g4.aiLanguage}</p><label className="field-label">Planungsziel<textarea className="field-input" value={prompt} onChange={e=>setPrompt(e.target.value)}/></label><button className="btn-primary mt-3" disabled={busy||!prompt.trim()} onClick={()=>{setShowOperations(true);void act(()=>api.planning(projectId,prompt),g4.planningSubmitted)}}>Planung anfordern</button><details className="mt-5 rounded-xl border border-slate-200 p-3" open={showOperations||Boolean(activeIds)} onToggle={e=>setShowOperations(e.currentTarget.open)}>
   <summary className="cursor-pointer text-sm font-semibold">{taskEditing.operationHistory(jobs.length)}</summary>
