@@ -29,7 +29,7 @@ export const liveApi:ProjectApi={
  async listProjects(options){return (await api.projects(options)).items.map(mp)},
  async getProject(id,options){return mp(await api.project(id,options))},
  async createProject(input:NewProjectInput){if(input.budget||input.targetDate||input.constraints.length)unsupported('Budget, Frist oder Projektbedingungen');const p=await api.createProject(input.name,input.description);return {project:mp(p),plan:{id:'',projectId:p.id,version:0,status:'draft',createdAt:p.created_at,source:'proposal',phases:[],tasks:[],warnings:[]}}},
- async listTasks(id,options){const tasks=await allPages(offset=>api.tasks(id,options,offset),options);if(options?.includeDependencies===false)return tasks.map(mt);const plans=await Promise.all([...new Set(tasks.map(t=>t.source_plan_id))].map(pid=>api.plan(id,pid,options)));const ids=new Map(tasks.map(t=>[t.source_key,t.id]));return tasks.map(t=>({...mt(t),dependsOn:(plans.find(p=>p.id===t.source_plan_id)?.snapshot.tasks.find(s=>s.key===t.source_key)?.depends_on??[]).map(key=>ids.get(key)).filter((id):id is string=>Boolean(id))}))},
+ async listTasks(id,options){const tasks=await allPages(offset=>api.tasks(id,options,offset),options);return tasks.map(mt)},
  async updateTask(pid,tid,patch:OperationalTaskPatch,expectedVersion){const keys=Object.keys(patch);if(keys.length!==1||!('status'in patch)||!patch.status)unsupported('Direkte Metadatenänderung');if(!Number.isInteger(expectedVersion)||!expectedVersion)throw new Error('Aufgabenversion fehlt. Bitte Aufgabe erneut laden.');return mt(await api.status(pid,{id:tid,version:expectedVersion},patch.status as TaskStatus))},
  async createTask(){return unsupported('Aufgabe ohne veröffentlichten Plan erstellen')},
  async listMembers(pid,options){
