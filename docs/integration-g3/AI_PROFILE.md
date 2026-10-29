@@ -1,3 +1,5 @@
+> Historical preparation record. Current real-AI acceptance and owner decisions: [FINAL.md](FINAL.md).
+
 # G3 bounded native AI execution profile
 
 Status: imported and validated with the actual n8n engine using a **mock provider**, plus actual React/backend missing-credential failure. **Genuine OpenAI execution is NOT VERIFIED.** No paid calls were made. The deterministic profile remains the default and its source graphs/IDs are unchanged.

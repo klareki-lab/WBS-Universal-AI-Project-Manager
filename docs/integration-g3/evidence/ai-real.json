@@ -1,0 +1,554 @@
+{
+  "collectedAt": "2026-10-29T07:18:30.410Z",
+  "dataClassification": "Synthetic G3 project data; credential/header values excluded",
+  "ownerDecision": "https://github.com/klareki-lab/WBS-Universal-AI-Project-Manager/pull/4#issuecomment-6490217776",
+  "browserResult": "PASS",
+  "realAI": "VERIFIED",
+  "executionIds": [
+    "95",
+    "94",
+    "93"
+  ],
+  "executions": [
+    {
+      "id": "95",
+      "workflowId": "G3AIWorkflow00003",
+      "status": "success",
+      "startedAt": "2026-10-29T07:17:32.086Z",
+      "stoppedAt": "2026-10-29T07:17:38.452Z",
+      "operationId": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 0
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Planner model",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4346
+            }
+          ]
+        },
+        {
+          "name": "Planner agent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4409
+            }
+          ]
+        },
+        {
+          "name": "Parse planner output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 30
+            }
+          ]
+        },
+        {
+          "name": "Reviewer model",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1473
+            }
+          ]
+        },
+        {
+          "name": "Reviewer agent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1522
+            }
+          ]
+        },
+        {
+          "name": "Merge review (bounded 1 revision)",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 19
+            }
+          ]
+        },
+        {
+          "name": "Validate plan",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 12
+            }
+          ]
+        },
+        {
+          "name": "Save draft via MCP",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 345
+            }
+          ]
+        },
+        {
+          "name": "Shape output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "94",
+      "workflowId": "G3AIWorkflow00002",
+      "status": "success",
+      "startedAt": "2026-10-29T07:17:24.991Z",
+      "stoppedAt": "2026-10-29T07:17:38.480Z",
+      "operationId": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "nodes": [
+        {
+          "name": "Sub-workflow input",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 1
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Prepare request",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Coordinator model",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3153
+            }
+          ]
+        },
+        {
+          "name": "Coordinator agent",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 7012
+            }
+          ]
+        },
+        {
+          "name": "Parse decision",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 31
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-03 Planning & Review",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 6414
+            }
+          ]
+        },
+        {
+          "name": "Shape core output",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "93",
+      "workflowId": "G3AIWorkflow00001",
+      "status": "success",
+      "startedAt": "2026-10-29T07:17:24.743Z",
+      "stoppedAt": "2026-10-29T07:17:38.496Z",
+      "operationId": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "nodes": [
+        {
+          "name": "G3 service webhook",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 3
+            }
+          ]
+        },
+        {
+          "name": "Entry packet",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 140
+            }
+          ]
+        },
+        {
+          "name": "Normalize session",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 5
+            }
+          ]
+        },
+        {
+          "name": "Invoke WF-02 Multi-Agent Core",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 13543
+            }
+          ]
+        },
+        {
+          "name": "Shape chat response",
+          "runs": [
+            {
+              "status": "success",
+              "timeMs": 4
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "providerCalls": [
+    {
+      "id": 1,
+      "operation_id": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "stage": "coordinator",
+      "request_hash": "e438b527c366af2fbf552e707f11cac0837dcbf4d499cc4819c82eedf65ab89c",
+      "reserved_usd": 0.01,
+      "created_at": "2026-10-29T07:17:29.143Z",
+      "status": "success",
+      "provider_request_id": "req_34c88880a02948d997f6e1211257eef9",
+      "completion_id": "chatcmpl-EeEg7Q3oGYcgoPOqvLWcGnRWIaYra",
+      "usage": "{\"prompt_tokens\":117,\"completion_tokens\":76,\"total_tokens\":193,\"prompt_tokens_details\":{\"cached_tokens\":0,\"audio_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"audio_tokens\":0,\"accepted_prediction_tokens\":0,\"rejected_prediction_tokens\":0}}"
+    },
+    {
+      "id": 2,
+      "operation_id": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "stage": "planner",
+      "request_hash": "d67bb32367ea62aa05d8662e8d8f9a399b1e713f2c67ec1abf447abcbf5b5b20",
+      "reserved_usd": 0.01,
+      "created_at": "2026-10-29T07:17:32.170Z",
+      "status": "success",
+      "provider_request_id": "req_228f27dbfb464e45b2db20ee2c72d2fc",
+      "completion_id": "chatcmpl-EeEg9OCAkMcpr0cS8rgiZXCrKuNIz",
+      "usage": "{\"prompt_tokens\":171,\"completion_tokens\":429,\"total_tokens\":600,\"prompt_tokens_details\":{\"cached_tokens\":0,\"audio_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"audio_tokens\":0,\"accepted_prediction_tokens\":0,\"rejected_prediction_tokens\":0}}"
+    },
+    {
+      "id": 3,
+      "operation_id": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "stage": "reviewer",
+      "request_hash": "ea4a26decc5db7efbe4e970416fce19ad9f61345428520699d0d896717b51b62",
+      "reserved_usd": 0.01,
+      "created_at": "2026-10-29T07:17:36.611Z",
+      "status": "success",
+      "provider_request_id": "req_176b901534cb4d5fbe80642015dbddec",
+      "completion_id": "chatcmpl-EeEgDHqreUsQisOmRd9ubE6PbfSub",
+      "usage": "{\"prompt_tokens\":442,\"completion_tokens\":139,\"total_tokens\":581,\"prompt_tokens_details\":{\"cached_tokens\":0,\"audio_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"audio_tokens\":0,\"accepted_prediction_tokens\":0,\"rejected_prediction_tokens\":0}}"
+    }
+  ],
+  "ledgerSummary": {
+    "calls": 3,
+    "reservedUsd": 0.03
+  },
+  "operations": [
+    {
+      "id": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "project_id": "d60c8ca4-2287-4812-881c-a91807a8dbf0",
+      "created_by": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "kind": "planning",
+      "status": "succeeded",
+      "input": {
+        "prompt": "SYNTHETISCH: Plane einen internen Workshop zu barrierefreien Formularen. Zwei Phasen, drei Aufgaben, messbare Abnahmekriterien. Keine echten Personen oder Kundendaten.",
+        "base_project_version": 1
+      },
+      "result": {
+        "content_hash": "9d419a1741ca88b6e1da37baf5fa082b9f26377c685559ee10821c8abe46e03b",
+        "plan_version_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19"
+      },
+      "error": null,
+      "attempts": 1,
+      "max_attempts": 3,
+      "request_id": "0521581c-84a2-4240-bdd5-92cd2bacc2f9",
+      "context_hash": "b069cf1996b97e5335767aa771d067539523ad7cb3deb41ed1e584717309b854",
+      "created_at": "2026-10-29T07:17:23.758Z",
+      "updated_at": "2026-10-29T07:17:38.386Z"
+    },
+    {
+      "id": "0e384d99-e1c7-4dde-965e-eebc44a1fdbc",
+      "project_id": "d60c8ca4-2287-4812-881c-a91807a8dbf0",
+      "created_by": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "kind": "publish",
+      "status": "succeeded",
+      "input": {
+        "plan_version_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19"
+      },
+      "result": {
+        "task_ids": {
+          "T1": "c2693c97-efe7-40c1-aab1-21a5d0ac8236",
+          "T2": "ae1f4495-79d9-4131-9dea-c6f95d5abb0f",
+          "T3": "e396e8f2-2317-4836-a2bb-ac6fa05c7842"
+        },
+        "task_count": 3,
+        "plan_version_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19"
+      },
+      "error": null,
+      "attempts": 1,
+      "max_attempts": 3,
+      "request_id": "c539bb0c-84b8-4826-89f1-b79025bbdb8c",
+      "context_hash": null,
+      "created_at": "2026-10-29T07:17:39.489Z",
+      "updated_at": "2026-10-29T07:17:39.489Z"
+    }
+  ],
+  "plans": [
+    {
+      "id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "project_id": "d60c8ca4-2287-4812-881c-a91807a8dbf0",
+      "number": 1,
+      "base_project_version": 1,
+      "status": "published",
+      "snapshot": {
+        "tasks": [
+          {
+            "key": "T1",
+            "title": "Erstellung der Workshop-Inhalte zu barrierefreien Formularen",
+            "due_date": null,
+            "priority": "high",
+            "phase_key": "phase-0",
+            "depends_on": [],
+            "start_date": null,
+            "assignee_id": null,
+            "description": "",
+            "estimated_effort": null,
+            "definition_of_done": "Workshop-Inhalte sind dokumentiert und umfassen mindestens 5 zentrale Aspekte der Barrierefreiheit."
+          },
+          {
+            "key": "T2",
+            "title": "Erstellung von Übungsformularen ohne echte Daten",
+            "due_date": null,
+            "priority": "medium",
+            "phase_key": "phase-0",
+            "depends_on": [
+              "T1"
+            ],
+            "start_date": null,
+            "assignee_id": null,
+            "description": "",
+            "estimated_effort": null,
+            "definition_of_done": "Mindestens 3 Übungsformulare sind erstellt und enthalten keine echten Personen- oder Kundendaten."
+          },
+          {
+            "key": "T3",
+            "title": "Durchführung des internen Workshops",
+            "due_date": null,
+            "priority": "urgent",
+            "phase_key": "phase-1",
+            "depends_on": [
+              "T1",
+              "T2"
+            ],
+            "start_date": null,
+            "assignee_id": null,
+            "description": "",
+            "estimated_effort": null,
+            "definition_of_done": "Workshop wurde mit mindestens 5 Teilnehmern durchgeführt und eine Feedbackrunde abgeschlossen."
+          }
+        ],
+        "phases": [
+          {
+            "key": "phase-0",
+            "name": "Vorbereitung",
+            "description": ""
+          },
+          {
+            "key": "phase-1",
+            "name": "Durchführung",
+            "description": ""
+          }
+        ]
+      },
+      "content_hash": "9d419a1741ca88b6e1da37baf5fa082b9f26377c685559ee10821c8abe46e03b",
+      "origin_operation_id": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "created_by": "9cc0d406-8e94-47b6-be19-1a07b3c7e8d8",
+      "created_at": "2026-10-29T07:17:38.386Z",
+      "published_at": "2026-10-29T07:17:39.489Z"
+    }
+  ],
+  "approvals": [
+    {
+      "id": "ca583a69-c22d-4f60-905b-fb7d0ce19b5b",
+      "plan_version_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "content_hash": "9d419a1741ca88b6e1da37baf5fa082b9f26377c685559ee10821c8abe46e03b",
+      "decision": "approved",
+      "user_id": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "kind": "human",
+      "created_at": "2026-10-29T07:17:39.194Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "ae1f4495-79d9-4131-9dea-c6f95d5abb0f",
+      "project_id": "d60c8ca4-2287-4812-881c-a91807a8dbf0",
+      "title": "Erstellung von Übungsformularen ohne echte Daten",
+      "status": "todo",
+      "source_plan_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "source_key": "T2",
+      "version": 1,
+      "definition_of_done": "Mindestens 3 Übungsformulare sind erstellt und enthalten keine echten Personen- oder Kundendaten."
+    },
+    {
+      "id": "c2693c97-efe7-40c1-aab1-21a5d0ac8236",
+      "project_id": "d60c8ca4-2287-4812-881c-a91807a8dbf0",
+      "title": "Erstellung der Workshop-Inhalte zu barrierefreien Formularen",
+      "status": "todo",
+      "source_plan_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "source_key": "T1",
+      "version": 1,
+      "definition_of_done": "Workshop-Inhalte sind dokumentiert und umfassen mindestens 5 zentrale Aspekte der Barrierefreiheit."
+    },
+    {
+      "id": "e396e8f2-2317-4836-a2bb-ac6fa05c7842",
+      "project_id": "d60c8ca4-2287-4812-881c-a91807a8dbf0",
+      "title": "Durchführung des internen Workshops",
+      "status": "todo",
+      "source_plan_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "source_key": "T3",
+      "version": 1,
+      "definition_of_done": "Workshop wurde mit mindestens 5 Teilnehmern durchgeführt und eine Feedbackrunde abgeschlossen."
+    }
+  ],
+  "events": [
+    {
+      "id": "5b3ac89e-14f2-42a5-af88-6a49c5fe12f7",
+      "type": "automation.member_assigned",
+      "entity_id": "9cc0d406-8e94-47b6-be19-1a07b3c7e8d8",
+      "actor_id": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "request_id": "a016e2f6-eb94-40b9-a913-7dff930b64af",
+      "data": {},
+      "created_at": "2026-10-29T07:17:23.556Z"
+    },
+    {
+      "id": "fd2ba821-442c-48b4-b1c4-3f828150ba73",
+      "type": "project.created",
+      "entity_id": "d60c8ca4-2287-4812-881c-a91807a8dbf0",
+      "actor_id": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "request_id": "a016e2f6-eb94-40b9-a913-7dff930b64af",
+      "data": {},
+      "created_at": "2026-10-29T07:17:23.556Z"
+    },
+    {
+      "id": "8cf3203d-b33c-496e-b641-5c7aab234fb0",
+      "type": "operation.queued",
+      "entity_id": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "actor_id": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "request_id": "0521581c-84a2-4240-bdd5-92cd2bacc2f9",
+      "data": {},
+      "created_at": "2026-10-29T07:17:23.758Z"
+    },
+    {
+      "id": "1c238e99-49ae-4c89-9361-ecbc3bf60318",
+      "type": "plan.created",
+      "entity_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "actor_id": "9cc0d406-8e94-47b6-be19-1a07b3c7e8d8",
+      "request_id": "1e6878a8-c817-4430-ab46-df2d57394c6e",
+      "data": {
+        "content_hash": "9d419a1741ca88b6e1da37baf5fa082b9f26377c685559ee10821c8abe46e03b"
+      },
+      "created_at": "2026-10-29T07:17:38.386Z"
+    },
+    {
+      "id": "3ef3a343-af96-4f3e-97a1-8752bb686002",
+      "type": "operation.succeeded",
+      "entity_id": "0ccf7232-5530-467c-9cab-9708e44bfb54",
+      "actor_id": "9cc0d406-8e94-47b6-be19-1a07b3c7e8d8",
+      "request_id": "1e6878a8-c817-4430-ab46-df2d57394c6e",
+      "data": {},
+      "created_at": "2026-10-29T07:17:38.386Z"
+    },
+    {
+      "id": "e0c9c8ce-6c76-4f42-b2d8-50d31d910f2f",
+      "type": "plan.review_requested",
+      "entity_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "actor_id": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "request_id": "1ffe44e1-682e-4c10-ae70-0d84fffa20d7",
+      "data": {},
+      "created_at": "2026-10-29T07:17:39.039Z"
+    },
+    {
+      "id": "3b61e36f-df81-492c-8b49-a11fbb39c9f5",
+      "type": "plan.approved",
+      "entity_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "actor_id": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "request_id": "3f494f5e-4805-4cf1-915a-08d2ec0aa13b",
+      "data": {
+        "approval_id": "ca583a69-c22d-4f60-905b-fb7d0ce19b5b",
+        "content_hash": "9d419a1741ca88b6e1da37baf5fa082b9f26377c685559ee10821c8abe46e03b"
+      },
+      "created_at": "2026-10-29T07:17:39.194Z"
+    },
+    {
+      "id": "ce553c4b-a4f5-4ca8-a29e-aaa34df32b3e",
+      "type": "plan.published",
+      "entity_id": "91ad8344-1106-4ab3-99dd-f5b82f242f19",
+      "actor_id": "6a6f4716-72bd-4a8a-a233-416f066b599c",
+      "request_id": "37e73b3a-03a5-4ef2-8366-a0e3350fa66e",
+      "data": {
+        "task_count": 3,
+        "operation_id": "0e384d99-e1c7-4dde-965e-eebc44a1fdbc"
+      },
+      "created_at": "2026-10-29T07:17:39.489Z"
+    }
+  ],
+  "estimatedUsd": 0.0013224,
+  "providerModelExecutionVerified": true,
+  "fullGenuineLifecycleVerified": true
+}

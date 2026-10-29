@@ -1,3 +1,5 @@
+> Historical preparation record. Current real-AI acceptance and owner decisions: [FINAL.md](FINAL.md).
+
 # G3 isolated integration runtime
 
 This branch combines the frozen backend, React frontend and MCP/n8n candidates. The backend OpenAPI v1.1.0 and P1 approval policy are unchanged. All examples use synthetic identities. This is local acceptance infrastructure, not a deployment.

@@ -1,3 +1,5 @@
+> Historical preparation record. Current real-AI acceptance and owner decisions: [FINAL.md](FINAL.md).
+
 # G3 full-system acceptance report
 
 **Current verdict: CONDITIONAL PASS — external owner actions remain; final release acceptance is withheld.** The deterministic product integration passes. Genuine AI execution is **NOT VERIFIED** because explicit owner expense authorization and P1 ratification remain unrecorded. The sandbox credential has since been supplied and confirmed by metadata-only check; no provider request was made. Time-based approval expiry is **out of scope for the G3 MVP**, subject to Product Owner ratification. See [G3-FINAL acceptance and blockers](FINAL.md). This is not a PASS of the real-AI gate.

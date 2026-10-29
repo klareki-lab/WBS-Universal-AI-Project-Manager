@@ -13,9 +13,9 @@ The original requirements require human approval of an exact immutable version, 
 
 This closes P1 under the declared RC policy. Alternative business policies, such as historical approvals surviving account removal, require an explicit product/security decision and a versioned change; they must not silently weaken these checks.
 
-## G3 MVP scope decision — ratification pending
+## G3 MVP scope decision — ratified
 
-For the G3 acceptance candidate, retain P1 exactly as implemented. Time-based approval expiry is **not a committed MVP requirement**. There is no approval TTL, scheduled expiration, implicit timeout or approval `expires_at`; no schema or migration change is authorized by this scope clarification. The Product Owner must ratify this exclusion before final release acceptance. This records the requested candidate scope, not completed ratification.
+For the G3 acceptance candidate, retain P1 exactly as implemented. Time-based approval expiry is **not a committed MVP requirement**. There is no approval TTL, scheduled expiration, implicit timeout or approval `expires_at`; no schema or migration change is authorized by this scope clarification. The Product Owner ratified this exclusion in [PR comment #6490217776](https://github.com/klareki-lab/WBS-Universal-AI-Project-Manager/pull/4#issuecomment-6490217776).
 
 These are distinct acceptance cases:
 
