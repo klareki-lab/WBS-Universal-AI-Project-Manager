@@ -1,0 +1,285 @@
+{
+  "name": "UAPM WF-04 — MCP Read Operations",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "sub-input",
+      "name": "Sub-workflow input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json; const d = r.decision || {}; const req = r.request;\n// Normalize read intent: project overview or task list\nconst projectId = d.projectId || req.projectId || null;\nif (!projectId) return [{ json: { error: 'projectId_missing' } }];\nreturn [{ json: { request: req, projectId, kind: d.readKind || 'overview' } }];"
+      },
+      "id": "resolve-read",
+      "name": "Resolve read intent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $json.request.principal.correlationId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"get_project\",\n  \"arguments\": { \"id\": \"{{ $json.projectId }}\" }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "specifyBody": "json"
+      },
+      "id": "get-project",
+      "name": "Get project",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $('Resolve read intent').item.json.request.principal.correlationId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"get_project_progress\",\n  \"arguments\": { \"projectId\": \"{{ $('Resolve read intent').item.json.projectId }}\" }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "specifyBody": "json"
+      },
+      "id": "get-progress",
+      "name": "Get progress",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        120,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $('Resolve read intent').item.json.request.principal.correlationId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"list_project_tasks\",\n  \"arguments\": { \"projectId\": \"{{ $('Resolve read intent').item.json.projectId }}\", \"limit\": 50 }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "specifyBody": "json"
+      },
+      "id": "list-tasks",
+      "name": "List tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const project = $('Get project').item.json;\nconst progress = $('Get progress').item.json;\nconst tasks = $('List tasks').item.json;\nconst req = $('Resolve read intent').item.json.request;\nconst err = project.error || progress.error || tasks.error;\nif (err) return [{ json: { response: `Read failed: ${err.message || err.code}`, correlationId: req.principal.correlationId, operationIds: [] } }];\nconst totalTasks = progress.counts?.total ?? 0;\nconst completion = Math.round((progress.completionRatio ?? 0) * 100);\nconst head = tasks.items?.slice(0, 5).map(t => `- ${t.title} [${t.status}]`).join('\\n') || 'no tasks';\nreturn [{ json: {\n  response: `Project ${project.name}: ${totalTasks} tasks, ${completion}% done. Overdue: ${progress.overdue}.\\nFirst tasks:\\n${head}`,\n  correlationId: req.principal.correlationId,\n  operationIds: []\n} }];"
+      },
+      "id": "shape-read",
+      "name": "Shape read response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "g3/wf-04",
+        "responseMode": "lastNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "id": "g3-webhook-4",
+      "name": "G3 service webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        600
+      ],
+      "webhookId": "g3-wf-04",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "G3WebhookAuth001",
+          "name": "G3 isolated webhook bearer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw=$input.first().json;\nif(raw.headers){if(raw.headers.authorization!=='Bearer '+$env.UAPM_WEBHOOK_TOKEN)throw new Error('Unauthorized G3 webhook');return [{json:raw.body}];}\nreturn [{json:raw}];"
+      },
+      "id": "entry-packet",
+      "name": "Entry packet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "Sub-workflow input": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve read intent": {
+      "main": [
+        [
+          {
+            "node": "Get project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get project": {
+      "main": [
+        [
+          {
+            "node": "Get progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get progress": {
+      "main": [
+        [
+          {
+            "node": "List tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List tasks": {
+      "main": [
+        [
+          {
+            "node": "Shape read response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "G3 service webhook": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry packet": {
+      "main": [
+        [
+          {
+            "node": "Resolve read intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-04-mcp-read-ops-v1",
+  "triggerCount": 0,
+  "active": true,
+  "id": "G3Workflow0000004"
+}

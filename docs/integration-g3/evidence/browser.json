@@ -1,0 +1,708 @@
+{
+  "started": "2026-10-28T20:15:43.174Z",
+  "checks": [
+    {
+      "name": "Human login",
+      "result": "PASS"
+    },
+    {
+      "name": "Reload session and CSRF restoration",
+      "result": "PASS"
+    },
+    {
+      "name": "Project created through React with canonical payload",
+      "result": "PASS"
+    },
+    {
+      "name": "Configured service assignment is atomic; no fixture intervention after project creation",
+      "result": "PASS"
+    },
+    {
+      "name": "React → backend operation → n8n Coordinator/Planner/Reviewer → MCP → immutable draft",
+      "result": "PASS"
+    },
+    {
+      "name": "Explicit human approval of displayed version and hash",
+      "result": "PASS"
+    },
+    {
+      "name": "Approved plan publication",
+      "result": "PASS"
+    },
+    {
+      "name": "Persisted Kanban after reload",
+      "result": "PASS"
+    },
+    {
+      "name": "Persisted list rendering",
+      "result": "PASS"
+    },
+    {
+      "name": "PostgreSQL tasks and durable operation provenance verified",
+      "result": "PASS"
+    },
+    {
+      "name": "Frontend activity reflects backend publication",
+      "result": "PASS"
+    },
+    {
+      "name": "Dashboard reflects persisted tasks",
+      "result": "PASS"
+    },
+    {
+      "name": "Independent mobile browser denies cross-project access",
+      "result": "PASS"
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 401,
+      "requestId": "id-0001"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 401,
+      "requestId": "id-0002"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "requestId": "id-0003"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0004"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0005"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0006"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0007"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0008"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0009"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0010"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0011"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0012"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0013"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0014"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0015"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0016"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0017"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0018"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0019"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0020"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "requestId": "id-0021"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0022"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0023"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0024"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0025"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0026"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0027"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0028"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029",
+      "status": 200,
+      "requestId": "id-0030"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029",
+      "status": 200,
+      "requestId": "id-0031"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/operations",
+      "status": 200,
+      "requestId": "id-0032"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans",
+      "status": 200,
+      "requestId": "id-0033"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans",
+      "status": 200,
+      "requestId": "id-0034"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/operations",
+      "status": 200,
+      "requestId": "id-0035"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0029/agent/planning-requests",
+      "status": 202,
+      "requestId": "id-0036"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029",
+      "status": 200,
+      "requestId": "id-0037"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans",
+      "status": 200,
+      "requestId": "id-0038"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/operations",
+      "status": 200,
+      "requestId": "id-0039"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029",
+      "status": 200,
+      "requestId": "id-0040"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans",
+      "status": 200,
+      "requestId": "id-0041"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/operations",
+      "status": 200,
+      "requestId": "id-0042"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043/approvals",
+      "status": 200,
+      "requestId": "id-0044"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0029/plans/id-0043/submit-review",
+      "status": 200,
+      "requestId": "id-0045"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans",
+      "status": 200,
+      "requestId": "id-0046"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029",
+      "status": 200,
+      "requestId": "id-0047"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/operations",
+      "status": 200,
+      "requestId": "id-0048"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043/approvals",
+      "status": 200,
+      "requestId": "id-0049"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043/approvals",
+      "status": 200,
+      "requestId": "id-0050"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0029/plans/id-0043/approvals",
+      "status": 201,
+      "requestId": "id-0051"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029",
+      "status": 200,
+      "requestId": "id-0052"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans",
+      "status": 200,
+      "requestId": "id-0053"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/operations",
+      "status": 200,
+      "requestId": "id-0054"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043/approvals",
+      "status": 200,
+      "requestId": "id-0055"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043/approvals",
+      "status": 200,
+      "requestId": "id-0056"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/id-0029/plans/id-0043/publish",
+      "status": 200,
+      "requestId": "id-0057"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans",
+      "status": 200,
+      "requestId": "id-0058"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/operations",
+      "status": 200,
+      "requestId": "id-0059"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029",
+      "status": 200,
+      "requestId": "id-0060"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0061"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0062"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0063"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0064"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0065"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0066"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/tasks",
+      "status": 200,
+      "requestId": "id-0067"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043",
+      "status": 200,
+      "requestId": "id-0068"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/tasks",
+      "status": 200,
+      "requestId": "id-0069"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043",
+      "status": 200,
+      "requestId": "id-0070"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0071"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0072"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0073"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0074"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0075"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0076"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/tasks",
+      "status": 200,
+      "requestId": "id-0077"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/tasks",
+      "status": 200,
+      "requestId": "id-0078"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043",
+      "status": 200,
+      "requestId": "id-0079"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043",
+      "status": 200,
+      "requestId": "id-0080"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0081"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0082"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0083"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0084"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0085"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0086"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0087"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0088"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/activity",
+      "status": 200,
+      "requestId": "id-0089"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/activity",
+      "status": 200,
+      "requestId": "id-0090"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0091"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/session",
+      "status": 200,
+      "requestId": "id-0092"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0093"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "requestId": "id-0094"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0095"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0096"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/tasks",
+      "status": 200,
+      "requestId": "id-0097"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0098"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/tasks",
+      "status": 200,
+      "requestId": "id-0099"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0100"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/tasks",
+      "status": 200,
+      "requestId": "id-0101"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043",
+      "status": 200,
+      "requestId": "id-0102"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/activity",
+      "status": 200,
+      "requestId": "id-0103"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "status": 200,
+      "requestId": "id-0104"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043",
+      "status": 200,
+      "requestId": "id-0105"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/plans/id-0043",
+      "status": 200,
+      "requestId": "id-0106"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/activity",
+      "status": 200,
+      "requestId": "id-0107"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/id-0029/activity",
+      "status": 200,
+      "requestId": "id-0108"
+    }
+  ],
+  "errors": [],
+  "projectId": "id-0029",
+  "planId": "id-0043",
+  "trace": {
+    "status": "published",
+    "origin_operation_id": "id-0109",
+    "operation_status": "succeeded",
+    "request_id": "id-0036",
+    "context_hash": "6ec53c50594dfe566ba272f9d3db10226772d54ba98f5b51a0365aeeb7e857e7",
+    "original_base": "1",
+    "tasks": 2
+  },
+  "result": "PASS"
+}

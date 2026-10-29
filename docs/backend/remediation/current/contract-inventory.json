@@ -1,0 +1,789 @@
+[
+  {
+    "path": "/api/v1/projects",
+    "method": "post",
+    "id": "createProject",
+    "security": [
+      {
+        "cookieAuth": []
+      }
+    ],
+    "statuses": [
+      "201",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects",
+    "method": "get",
+    "id": "listProjects",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}",
+    "method": "get",
+    "id": "getProject",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}",
+    "method": "patch",
+    "id": "updateProject",
+    "security": [
+      {
+        "cookieAuth": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/dashboard",
+    "method": "get",
+    "id": "dashboard",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/tasks",
+    "method": "get",
+    "id": "listTasks",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/tasks/{taskId}",
+    "method": "get",
+    "id": "getTask",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/tasks/{taskId}",
+    "method": "patch",
+    "id": "taskMetadata",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "201",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/tasks/{taskId}/status",
+    "method": "patch",
+    "id": "taskStatus",
+    "security": [
+      {
+        "cookieAuth": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/tasks/{taskId}/dependencies",
+    "method": "get",
+    "id": "dependencies",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans",
+    "method": "post",
+    "id": "createPlan",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "201",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans",
+    "method": "get",
+    "id": "listPlans",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans/{planId}",
+    "method": "get",
+    "id": "getPlan",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/change-proposals",
+    "method": "post",
+    "id": "proposeChanges",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "201",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans/{planId}/submit-review",
+    "method": "post",
+    "id": "submitReview",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans/{planId}/request-approval",
+    "method": "post",
+    "id": "requestApproval",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans/{planId}/approvals",
+    "method": "post",
+    "id": "decidePlan",
+    "security": [
+      {
+        "cookieAuth": []
+      }
+    ],
+    "statuses": [
+      "201",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans/{planId}/approvals",
+    "method": "get",
+    "id": "approvalHistory",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans/{planId}/revoke-approval",
+    "method": "post",
+    "id": "revokeApproval",
+    "security": [
+      {
+        "cookieAuth": []
+      }
+    ],
+    "statuses": [
+      "201",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/plans/{planId}/publish",
+    "method": "post",
+    "id": "publishPlan",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/operations",
+    "method": "get",
+    "id": "listOperations",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/operations/{operationId}",
+    "method": "get",
+    "id": "getOperation",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/activity",
+    "method": "get",
+    "id": "audit",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/agent/planning-requests",
+    "method": "post",
+    "id": "planningRequest",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "202",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/operations/{operationId}/result",
+    "method": "post",
+    "id": "operationResult",
+    "security": [
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/projects/{projectId}/conversations",
+    "method": "post",
+    "id": "conversation",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "201",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/auth/login",
+    "method": "post",
+    "id": "login",
+    "security": [],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/auth/me",
+    "method": "get",
+    "id": "currentUser",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/auth/session",
+    "method": "get",
+    "id": "validateSession",
+    "security": [
+      {
+        "cookieAuth": []
+      },
+      {
+        "serviceBearer": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/auth/csrf",
+    "method": "get",
+    "id": "csrfBootstrap",
+    "security": [
+      {
+        "cookieAuth": []
+      }
+    ],
+    "statuses": [
+      "200",
+      "400",
+      "401",
+      "403",
+      "404",
+      "409",
+      "413",
+      "415",
+      "429",
+      "500",
+      "503"
+    ]
+  },
+  {
+    "path": "/api/v1/auth/logout",
+    "method": "post",
+    "id": "logout",
+    "security": [
+      {
+        "cookieAuth": []
+      }
+    ],
+    "statuses": [
+      "204",
+      "401",
+      "403"
+    ]
+  },
+  {
+    "path": "/health",
+    "method": "get",
+    "id": "health",
+    "security": [],
+    "statuses": [
+      "200",
+      "503"
+    ]
+  },
+  {
+    "path": "/ready",
+    "method": "get",
+    "id": "readiness",
+    "security": [],
+    "statuses": [
+      "200",
+      "503"
+    ]
+  }
+]

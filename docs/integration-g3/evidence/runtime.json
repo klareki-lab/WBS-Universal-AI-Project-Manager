@@ -1,0 +1,116 @@
+{
+  "database": "uapm_g3 in new uapm-g3-postgres-1",
+  "migrations": [
+    {
+      "name": "001_core.sql",
+      "applied_at": "2026-10-28T19:48:00.904Z"
+    },
+    {
+      "name": "002_publish_uniqueness.sql",
+      "applied_at": "2026-10-28T19:48:00.904Z"
+    },
+    {
+      "name": "003_operation_context.sql",
+      "applied_at": "2026-10-28T19:48:00.904Z"
+    },
+    {
+      "name": "004_approval_revocations.sql",
+      "applied_at": "2026-10-28T19:48:00.904Z"
+    }
+  ],
+  "containers": [
+    {
+      "name": "uapm-g3-backend-check-1",
+      "image": "uapm-g3-backend:local",
+      "state": "running",
+      "health": "",
+      "ports": "127.0.0.1:23084->3001/tcp"
+    },
+    {
+      "name": "uapm-g3-n8n-1",
+      "image": "n8nio/n8n:1.74.0",
+      "state": "running",
+      "health": "",
+      "ports": "127.0.0.1:25682->5678/tcp"
+    },
+    {
+      "name": "uapm-g3-postgres-1",
+      "image": "postgres:17-alpine",
+      "state": "running",
+      "health": "healthy",
+      "ports": "127.0.0.1:25439->5432/tcp"
+    }
+  ],
+  "backendImage": "sha256:37a6a68ec1e9be337a9ecf5fe1b7995f0703127c1d81dd1ef62dea4c72abf228",
+  "provenance": [
+    {
+      "plan_id": "id-0043",
+      "project_id": "id-0029",
+      "status": "published",
+      "content_hash": "3c7f31eba54f4e43337bc9035db5b8fa63cb85a68b8ba2da35d426ba7b4d84ba",
+      "origin_operation_id": "id-0109",
+      "request_id": "id-0036",
+      "context_hash": "6ec53c50594dfe566ba272f9d3db10226772d54ba98f5b51a0365aeeb7e857e7",
+      "original_base": "1",
+      "operation_status": "succeeded"
+    }
+  ],
+  "events": [
+    {
+      "type": "automation.member_assigned",
+      "entity_id": "id-0142",
+      "actor_id": "id-0143",
+      "request_id": "id-0021",
+      "created_at": "2026-10-28T20:15:44.322Z"
+    },
+    {
+      "type": "project.created",
+      "entity_id": "id-0029",
+      "actor_id": "id-0143",
+      "request_id": "id-0021",
+      "created_at": "2026-10-28T20:15:44.322Z"
+    },
+    {
+      "type": "operation.queued",
+      "entity_id": "id-0109",
+      "actor_id": "id-0143",
+      "request_id": "id-0036",
+      "created_at": "2026-10-28T20:15:44.556Z"
+    },
+    {
+      "type": "operation.succeeded",
+      "entity_id": "id-0109",
+      "actor_id": "id-0142",
+      "request_id": "id-0144",
+      "created_at": "2026-10-28T20:15:45.700Z"
+    },
+    {
+      "type": "plan.created",
+      "entity_id": "id-0043",
+      "actor_id": "id-0142",
+      "request_id": "id-0144",
+      "created_at": "2026-10-28T20:15:45.700Z"
+    },
+    {
+      "type": "plan.review_requested",
+      "entity_id": "id-0043",
+      "actor_id": "id-0143",
+      "request_id": "id-0045",
+      "created_at": "2026-10-28T20:15:50.024Z"
+    },
+    {
+      "type": "plan.approved",
+      "entity_id": "id-0043",
+      "actor_id": "id-0143",
+      "request_id": "id-0051",
+      "created_at": "2026-10-28T20:15:50.180Z"
+    },
+    {
+      "type": "plan.published",
+      "entity_id": "id-0043",
+      "actor_id": "id-0143",
+      "request_id": "id-0057",
+      "created_at": "2026-10-28T20:15:50.372Z"
+    }
+  ]
+}

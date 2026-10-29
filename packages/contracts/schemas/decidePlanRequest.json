@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "content_hash": {
+      "type": "string",
+      "allOf": [
+        {
+          "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+        },
+        {
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected"
+      ]
+    },
+    "comment": {
+      "default": "",
+      "type": "string",
+      "maxLength": 20000,
+      "pattern": "^[^\\u0000\\uD800-\\uDFFF]*$"
+    }
+  },
+  "required": [
+    "content_hash",
+    "decision"
+  ],
+  "additionalProperties": false
+}

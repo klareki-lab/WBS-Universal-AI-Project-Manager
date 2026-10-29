@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-10-29T06:15:51.163967+00:00",
+  "dataClassification": "Synthetic sandbox only; no provider calls",
+  "checks": [
+    {
+      "command": "node --test scripts/integration-g3/ai/profile.test.mjs",
+      "result": "PASS",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "command": "npm --prefix apps/frontend test",
+      "result": "PASS",
+      "passed": 29,
+      "failed": 0
+    },
+    {
+      "command": "npm --prefix apps/frontend run build",
+      "result": "PASS"
+    },
+    {
+      "command": "node scripts/integration-g3/ai/mock-native.mjs",
+      "result": "PASS",
+      "provider": "MOCK ONLY",
+      "executionIds": [
+        "81",
+        "82",
+        "83"
+      ]
+    },
+    {
+      "command": "node scripts/integration-g3/ai/browser.mjs --expect-missing-credential",
+      "result": "PASS",
+      "checks": 3,
+      "n8nExecutionIds": [
+        "84",
+        "85"
+      ]
+    },
+    {
+      "command": "node scripts/integration-g3/http.mjs",
+      "result": "PASS",
+      "passed": 22,
+      "originalEvidencePreserved": true
+    },
+    {
+      "command": "node --check for new/changed scripts; git diff --check",
+      "result": "PASS"
+    }
+  ]
+}

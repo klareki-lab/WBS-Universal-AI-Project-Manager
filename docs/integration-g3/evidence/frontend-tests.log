@@ -1,0 +1,12 @@
+
+> universal-ai-project-manager-frontend@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.12 /Users/admin/Projects/uapm-integration-g3/apps/frontend
+
+
+ Test Files  4 passed (4)
+      Tests  29 passed (29)
+   Start at  06:44:58
+   Duration  2.23s (transform 297ms, setup 719ms, import 317ms, tests 1.66s, environment 1.56s)

@@ -1,0 +1,13 @@
+# G7 employee assignment — local G3 evidence
+
+Fourteen fictional Train Today identities were created in the isolated G3 database using the Product Owner's supplied example addresses. Each password was independently generated, checked against its salted scrypt hash, and discarded; only the hashes remain. No emails or invitations were sent. A secure password reset or provisioning procedure is required before employees can subsequently sign in. No department, function or separate username fields were invented.
+
+Only Sophie Keller, Jonas Weber and Leon Wagner were added to project `8c21ac99-b09a-41dd-bfa9-8f81e97f1be9`, each as a viewer. Viewer is the least-privileged membership and does not permit task updates or approval. The three new accounts authenticated successfully before generated credentials were discarded. Three `project.member_added` events record local administrative provisioning under the project owner, with the operator/source noted in event data.
+
+A single change proposal created draft v2 `6c00a5d5-0c1f-43d0-b841-c40df2e7fedb`, base project version 2, SHA-256 `f78c470e4261a3b9d21a9d7eeb7587794b1ae8676dc7a5fc94079cb74f6f9d82`. It assigns requirements/privacy to Sophie, implementation to Jonas, and functional testing to Leon. Each snapshot entry references its existing task ID and expected task version, so publication updates rather than duplicates those tasks. Task content and dependency edges were checked against the published plan before creating the proposal. Published plan v1 and all three task rows were unchanged after creation. The proposal is a draft: no review decision or publication was made by the integration operator.
+
+The real React selector displayed all three names, and the exact review screen displayed all three names, the draft ID and hash. The isolated named-member browser scenario exercised review, approval and publication with a separate synthetic fixture. The unrelated G3 outsider received HTTP 404 on the project directory. The project has three membership audit events and one change-proposal event. No planning requests or provider calls were made; acceptance/development ledgers remained at 3/6 calls respectively. Browser screenshots and sanitized local results are in the ignored `.g3` directory.
+
+## Owner next step
+
+Open `/projects/8c21ac99-b09a-41dd-bfa9-8f81e97f1be9/workspace?plan=6c00a5d5-0c1f-43d0-b841-c40df2e7fedb` on `http://localhost:25174`. Verify v2, the SHA-256 above and the three names; submit the draft for review. Only the authorized human should explicitly approve that exact hash, then publish and verify the task assignments in Kanban and List. If task versions or membership change before publication, stop and investigate the resulting conflict rather than bypassing it.

@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17253b;background:#f5f7fa;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px}button,select,input,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed}a{color:inherit;text-decoration:none}:focus-visible{outline:3px solid #57bbd0;outline-offset:3px}
+@layer components{
+ .sidebar{@apply fixed inset-y-0 left-0 z-40 flex w-[264px] flex-col bg-[#15243e] text-white transition-transform duration-200;box-shadow:2px 0 20px rgba(16,35,60,.08)}
+ .brand-mark{@apply flex h-11 w-11 items-center justify-center rounded-[13px] bg-[#2b7e75] text-[#a6ffe1]}
+ .font-brand{font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+ .nav-heading{@apply mb-3 px-5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#8290aa]}
+ .nav-link{@apply my-1 flex items-center gap-3 rounded-[10px] px-4 py-3 text-[13px] font-semibold text-[#b5c3d8] transition-colors hover:bg-white/[.07] hover:text-white}
+ .nav-active{@apply bg-[#254767] text-white;box-shadow:inset 3px 0 #7be3ba}
+ .project-select{@apply appearance-none truncate rounded-[9px] border border-white/10 bg-[#20334f] px-3 py-3 pr-6 text-xs font-semibold text-white outline-none}
+ .topbar{@apply flex h-[72px] items-center justify-between gap-4 border-b border-[#e8edf3] bg-white px-4 sm:px-7 lg:px-10}
+ .top-demo{@apply hidden items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[10px] font-extrabold tracking-wider text-amber-800 sm:inline-flex}
+ .avatar{@apply flex h-9 w-9 items-center justify-center rounded-full bg-[#dcefe9] text-sm font-extrabold text-emerald-700}
+ .icon-button{@apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-transparent text-slate-500 transition hover:border-slate-200 hover:bg-slate-50 hover:text-ink}
+ .skip-link{@apply fixed left-3 top-3 z-[100] -translate-y-24 rounded-lg bg-white p-3 font-bold text-ink focus:translate-y-0}
+ .demo-notice{@apply flex items-start gap-3 rounded-xl border border-[#f1e3b9] bg-[#fffaf0] px-4 text-[12px] leading-5 text-[#8b6533]}
+ .eyebrow{@apply text-[11px] font-extrabold uppercase tracking-[.2em] text-emerald-700}
+ .page-title{@apply text-[28px] font-extrabold leading-tight tracking-[-.025em] text-ink sm:text-[34px]}
+ .page-subtitle{@apply mt-2 max-w-[770px] text-[14px] leading-6 text-slate-500}
+ .panel{@apply rounded-[18px] border border-[#e9edf2] bg-white shadow-panel}
+ .btn-primary{@apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#149476] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#0b785f] disabled:opacity-50}
+ .btn-secondary{@apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-ink transition hover:bg-slate-50}
+ .btn-light{@apply rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-[#19334a] shadow-lg transition hover:bg-[#e4f7ef]}
+ .status-badge{@apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold}
+ .status-dot{@apply h-1.5 w-1.5 shrink-0 rounded-full bg-current}
+ .badge-slate{@apply bg-slate-100 text-slate-600}.badge-blue{@apply bg-blue-50 text-blue-700}.badge-green{@apply bg-emerald-50 text-emerald-700}.badge-amber{@apply bg-amber-50 text-amber-700}.badge-red{@apply bg-red-50 text-red-700}
+ .priority-high{@apply text-red-600}.priority-medium{@apply text-amber-600}.priority-low{@apply text-emerald-700}
+ .progress-track{@apply h-[7px] w-full overflow-hidden rounded-full bg-[#e8edf1]}
+ .progress-fill{@apply h-full rounded-full bg-[#25aa89] transition-all}
+ .stat-card{@apply rounded-[17px] border border-[#e9edf2] bg-white p-5 shadow-panel sm:p-6}
+ .stat-icon{@apply mb-4 flex h-11 w-11 items-center justify-center rounded-xl}
+ .stat-label{@apply mt-2 text-[13px] font-semibold text-slate-500}
+ .stat-value{@apply mt-2 block text-[32px] font-extrabold leading-tight tracking-[-.035em] text-ink}
+ .project-card{@apply block rounded-[15px] border border-slate-200 p-5 transition-all hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md}
+ .project-icon{@apply flex h-11 w-11 items-center justify-center rounded-xl}
+ .type-it{@apply bg-blue-50 text-blue-700}.type-marketing{@apply bg-rose-50 text-rose-700}.type-operations{@apply bg-violet-50 text-violet-700}.type-event{@apply bg-amber-50 text-amber-700}.type-custom{@apply bg-emerald-50 text-emerald-700}
+ .field-label{@apply block text-sm font-bold text-ink}
+ .field-input{@apply mt-2 block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal leading-6 text-ink outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15}
+ .phase-group{@apply overflow-hidden rounded-[14px] border border-slate-200}
+ .phase-header{@apply flex items-center justify-between bg-[#f8fafb] px-4 py-3.5 sm:px-5}
+ .phase-number{@apply flex h-9 w-9 items-center justify-center rounded-[10px] bg-white text-xs font-extrabold text-emerald-700 shadow-sm}
+ .board-task{@apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-200 hover:shadow-md}
+ .kanban-column{@apply min-h-[220px] rounded-[15px] bg-[#f5f7f9] p-3.5}
+ .view-button{@apply inline-flex items-center gap-1.5 rounded-[9px] px-3 py-2 text-xs font-bold text-slate-500}
+ .view-active{@apply bg-white text-ink shadow-sm}
+ .data-table{@apply min-w-full border-collapse text-left text-sm}
+ .data-table th{@apply whitespace-nowrap border-b border-slate-100 bg-[#f8fafc] px-4 py-3 text-xs font-extrabold text-slate-500}
+ .data-table td{@apply border-b border-slate-100 px-4 py-4 text-slate-600}
+}
+.hero{position:relative;isolation:isolate;min-height:296px;overflow:hidden;border-radius:21px;background:linear-gradient(105deg,#142641 4%,#21405c 65%,#1d5c65 120%);padding:43px 48px;box-shadow:0 8px 24px rgba(27,44,69,.08)}
+.hero-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}.hero-ring{position:absolute;border:1px solid rgba(143,230,207,.19);border-radius:999px;transform:rotate(-30deg)}.hero-ring.one{height:450px;width:450px;right:-115px;top:-160px}.hero-ring.two{height:320px;width:320px;right:-50px;top:-90px;border-color:rgba(143,230,207,.27)}.hero-ring.three{height:200px;width:200px;right:13px;top:-30px;border-color:rgba(143,230,207,.35)}.hero-orb{position:absolute;right:125px;top:100px;height:110px;width:110px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#a2f6d9,#21b28f 66%,#107d77);box-shadow:0 0 60px rgba(52,222,172,.25)}
+@media(max-width:700px){.hero{padding:33px 26px;min-height:330px}.hero-art{opacity:.42}.hero-orb{right:-10px;top:180px;width:90px;height:90px}.hero-ring.one{right:-260px}.hero-ring.two{right:-200px}.hero-ring.three{right:-130px}}

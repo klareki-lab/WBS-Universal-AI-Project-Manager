@@ -1,0 +1,35 @@
+{"name":"Independent password encoding authenticates human and sets hardened cookie","status":"PASS","duration_ms":113}
+{"name":"Unrelated owners and projects cannot enumerate each other","status":"PASS","duration_ms":74}
+{"name":"Viewer cannot mutate, approve, publish or elevate role","status":"PASS","duration_ms":91}
+{"name":"Nested task plan and operation UUID substitution is isolated","status":"PASS","duration_ms":195}
+{"name":"SQL composite FK blocks cross-project dependencies","status":"PASS","duration_ms":860}
+{"name":"CSRF missing forged foreign-session and hostile Origin all fail","status":"PASS","duration_ms":47}
+{"name":"Expired session and disabled human cannot authenticate","status":"PASS","duration_ms":19}
+{"name":"Scoped service cannot approve even with explicit approval scope","status":"PASS","duration_ms":53}
+{"name":"Expired service token and missing scopes are rejected","status":"PASS","duration_ms":18}
+{"name":"Saved plan hash independently recomputes; SQL content and history immutable","status":"PASS","duration_ms":52}
+{"name":"Forged and other-version hashes rejected; unauthorized publication has no effects","status":"PASS","duration_ms":104}
+{"name":"Approved content has immutable exact-hash approval; rejected plans cannot publish","status":"PASS","duration_ms":124}
+{"name":"Self cycles multi-task cycles duplicate IDs and unknown keys fail safely","status":"PASS","duration_ms":41}
+{"name":"Concurrent publication with same and different keys creates one materialization","status":"PASS","duration_ms":204}
+{"name":"Changed payload method and resource with reused idempotency key conflict","status":"PASS","duration_ms":51}
+{"name":"Stale task and project writes produce exactly one winner","status":"PASS","duration_ms":132}
+{"name":"Intervening mutation invalidates previously approved base version","status":"PASS","duration_ms":74}
+{"name":"Metadata edit remains proposal until approval and publication","status":"PASS","duration_ms":171}
+{"name":"Progress and audit actor/request correlation match database after lifecycle","status":"PASS","duration_ms":120}
+{"name":"Invalid oversized payload and manipulated identifiers return safe errors","status":"PASS","duration_ms":28}
+{"name":"Lost committed HTTP response is recovered after application restart without duplicate","status":"PASS","duration_ms":92}
+{"name":"Injected publication SQL failure rolls back phases tasks events operation and retry key","status":"PASS","duration_ms":90}
+{"name":"Actual cancelled transaction rolls back and same key safely retries","status":"PASS","duration_ms":126}
+{"name":"Independent worker reclaim and duplicate callbacks commit one draft","status":"PASS","duration_ms":59}
+{"name":"20 bounded concurrent GETs are successful with measured latency","status":"PASS","duration_ms":161}
+{"name":"Pagination bounds and distinct stable pages","status":"PASS","duration_ms":84}
+{"name":"Contract-valid 200-character phase key can be published","status":"PASS","duration_ms":71}
+{"name":"Schema-valid PostgreSQL text NUL returns client validation error","status":"PASS","duration_ms":3}
+{"name":"Client out-of-range integer version returns client validation error","status":"PASS","duration_ms":20}
+{"name":"Planning callback is bound to original requested base version","status":"PASS","duration_ms":45}
+{"name":"Publication rejects approval whose approving human was disabled before publish","status":"PASS","duration_ms":68}
+{"name":"Generated contract constrains result/error exclusivity","status":"PASS","duration_ms":1}
+{"name":"CORS preflight response includes DELETE only when implemented and request ID always exists","status":"PASS","duration_ms":2}
+{"name":"Idempotency replay after creation membership revocation must recheck authorization","status":"PASS","duration_ms":24}
+{"name":"Maximum 500-task chain publishes atomically with bounded concurrency","status":"PASS","duration_ms":1590}

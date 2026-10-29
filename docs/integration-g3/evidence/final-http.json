@@ -1,0 +1,270 @@
+{
+  "result": "PASS",
+  "checks": [
+    {
+      "name": "Scoped MCP read reaches real backend",
+      "result": "PASS"
+    },
+    {
+      "name": "Unscoped child tool request rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Project isolation and actionable MCP backend errors",
+      "result": "PASS"
+    },
+    {
+      "name": "Service actor cannot approve even through direct HTTP",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP submit-review precedes request-approval",
+      "result": "PASS"
+    },
+    {
+      "name": "Exact hash enforced",
+      "result": "PASS"
+    },
+    {
+      "name": "WF-05 executed authorized publication through real MCP and PostgreSQL",
+      "result": "PASS"
+    },
+    {
+      "name": "Repeated executor request creates no duplicate tasks",
+      "result": "PASS"
+    },
+    {
+      "name": "WF-04 executed persisted project/progress/task reads",
+      "result": "PASS"
+    },
+    {
+      "name": "WF-06 executed operation error reporting",
+      "result": "PASS"
+    },
+    {
+      "name": "Scoped MCP task detail includes persisted dependencies",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP update_task creates a draft and leaves published task unchanged",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale task write rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Concurrent project updates: one commit, one conflict",
+      "result": "PASS"
+    },
+    {
+      "name": "Immutable revision history and exact-key replay",
+      "result": "PASS"
+    },
+    {
+      "name": "Revoked approval cannot authorize publication; MCP reports invalidated state",
+      "result": "PASS"
+    },
+    {
+      "name": "Strict operation callback union rejects neither/both",
+      "result": "PASS"
+    },
+    {
+      "name": "Callback cannot relabel original base version",
+      "result": "PASS"
+    },
+    {
+      "name": "Service write scope enforced server-side",
+      "result": "PASS"
+    },
+    {
+      "name": "Cookie mutation requires CSRF",
+      "result": "PASS"
+    },
+    {
+      "name": "Expired human session rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Expired service credential rejected",
+      "result": "PASS"
+    }
+  ],
+  "responses": [
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "requestId": "8a2d34d6-3edb-4d47-bad4-ae3f1253685e"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects",
+      "status": 201,
+      "requestId": "98ed0e57-c4a9-4041-84d2-25e0f28291d4"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans",
+      "status": 201,
+      "requestId": "cc3e9c33-dbda-4b37-ac55-c1f8526d4a2e"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans/f8d3b0be-22ee-426e-90bd-a1f6f34b780a/approvals",
+      "status": 403,
+      "requestId": "2e289b9f-d34a-4244-a714-021027562580",
+      "code": "insufficient_scope"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans/f8d3b0be-22ee-426e-90bd-a1f6f34b780a/approvals",
+      "status": 409,
+      "requestId": "0f5547b1-41b7-4a78-ac1d-242349d7d073",
+      "code": "content_hash_mismatch"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans/f8d3b0be-22ee-426e-90bd-a1f6f34b780a/approvals",
+      "status": 201,
+      "requestId": "e24cd418-9617-476b-9d3e-4a992f600aa9"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/tasks",
+      "status": 200,
+      "requestId": "bad72fb1-d847-4bc1-a1af-8867c81d7294"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/tasks/14dae47a-9ccb-415f-9105-c9ce9d5b9d39",
+      "status": 200,
+      "requestId": "3e985a25-f81b-41a2-8462-eb15ec4bef01"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/tasks/14dae47a-9ccb-415f-9105-c9ce9d5b9d39/status",
+      "status": 409,
+      "requestId": "291ccdcf-c1e6-489e-b0df-4af672398e3b",
+      "code": "stale_task_version"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03",
+      "status": 200,
+      "requestId": "680accb8-ce83-42ae-9dfe-82bfe72d72f7"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03",
+      "status": 200,
+      "requestId": "be39ccc7-bff7-4e86-8282-cfb1ec127438"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03",
+      "status": 409,
+      "requestId": "75f075df-2a27-4ddd-a2ce-3c8862fbe483",
+      "code": "stale_project_version"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03",
+      "status": 200,
+      "requestId": "493af61d-1b80-48a1-839e-c7e51b668c20"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans",
+      "status": 201,
+      "requestId": "fe63fd8f-8380-45d3-ba39-082f3674a552"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans",
+      "status": 201,
+      "requestId": "ef0a8ad3-46af-49ab-8602-59623a56a73c"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans/f8d3b0be-22ee-426e-90bd-a1f6f34b780a",
+      "status": 200,
+      "requestId": "72be0028-d44a-40f7-becb-9a0fc1b1abed"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans/59adcd04-3ca5-4d83-82f3-7eb9787f2e7b/submit-review",
+      "status": 200,
+      "requestId": "024e6153-0b62-41da-86e9-08e92883e911"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans/59adcd04-3ca5-4d83-82f3-7eb9787f2e7b/approvals",
+      "status": 201,
+      "requestId": "9c08043d-05e6-4688-8e4e-1ef2508f58c2"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans/59adcd04-3ca5-4d83-82f3-7eb9787f2e7b/revoke-approval",
+      "status": 201,
+      "requestId": "c881a8c5-47c3-4c3e-b529-fa0e448b1507"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans/59adcd04-3ca5-4d83-82f3-7eb9787f2e7b/publish",
+      "status": 409,
+      "requestId": "a12f512f-4e0a-4a81-aa85-a36599aa6768",
+      "code": "approval_revoked"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/agent/planning-requests",
+      "status": 202,
+      "requestId": "d9a58c38-c457-46ab-bff8-0a1a3bbaacd8"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/operations/aacbb612-360c-4e52-8446-6a93f6add7df/result",
+      "status": 400,
+      "requestId": "10285c82-9760-4c14-b756-26e75be9818c",
+      "code": "invalid_input"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/operations/aacbb612-360c-4e52-8446-6a93f6add7df/result",
+      "status": 400,
+      "requestId": "96beb7d8-1a11-4e89-a116-caa4af7d4291",
+      "code": "invalid_input"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans",
+      "status": 403,
+      "requestId": "af209ed8-85e1-4752-ab56-7d0571397687",
+      "code": "insufficient_scope"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03/plans",
+      "status": 403,
+      "requestId": "33799b79-bd06-43c0-a9ab-dc9a400a7a45",
+      "code": "csrf_required"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03",
+      "status": 401,
+      "requestId": "ef01c3fb-f2e4-4834-8438-596c25f6fe2b",
+      "code": "session_expired"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/7d76a472-2ecf-4c37-9f7a-cad1dbf32a03",
+      "status": 401,
+      "requestId": "355004a9-5781-41e9-84c6-e5a880677c90",
+      "code": "invalid_token"
+    }
+  ],
+  "projectId": "7d76a472-2ecf-4c37-9f7a-cad1dbf32a03",
+  "dataClassification": "Synthetic G3 sandbox data only"
+}

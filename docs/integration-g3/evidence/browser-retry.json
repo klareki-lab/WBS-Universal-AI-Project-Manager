@@ -1,0 +1,17 @@
+{
+  "checks": [
+    {
+      "name": "Ambiguous real committed write shows explicit error",
+      "result": "PASS"
+    },
+    {
+      "name": "Reload and explicit retry reuse original key and recover same project exactly once",
+      "result": "PASS"
+    },
+    {
+      "name": "Denied project read never falls back to demo data",
+      "result": "PASS"
+    }
+  ],
+  "result": "PASS"
+}

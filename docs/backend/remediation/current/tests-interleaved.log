@@ -1,0 +1,118 @@
+
+ RUN  v5.0.5 /Users/admin/Projects/uapm-codex/apps/backend
+
+ ✓ tests/db.test.ts (2 tests) 5ms
+ ✓ tests/adapter.test.ts (1 test) 75ms
+ ✓ tests/contract.test.ts (2 tests) 393ms
+   ✓ validates the canonical OpenAPI 3.1 document and all implemented operation IDs 376ms
+ ✓ tests/admin.test.ts (2 tests) 902ms
+   ✓ refuses user provisioning when required administrative variables are absent 469ms
+   ✓ does not accept privileged or wildcard service scopes 432ms
+stderr | tests/integration.test.ts > real HTTP + PostgreSQL backend > records reliable actor/request IDs and stable list pagination
+{"event":"postgres.client_error","code":"57P01"}
+{"event":"postgres.idle_error","code":"57P01"}
+
+stderr | tests/integration.test.ts > real HTTP + PostgreSQL backend > records reliable actor/request IDs and stable list pagination
+{"event":"postgres.client_error","code":"57P01"}
+{"event":"postgres.idle_error","code":"57P01"}
+
+stderr | tests/integration.test.ts > real HTTP + PostgreSQL backend > records reliable actor/request IDs and stable list pagination
+{"event":"postgres.client_error","code":"57P01"}
+{"event":"postgres.idle_error","code":"57P01"}
+
+ ❯ tests/integration.test.ts (39 tests | 21 failed) 10007ms
+   ❯ real HTTP + PostgreSQL backend (39)
+     ✓ applies migrations once and provisions all canonical entities 662ms
+     ✓ validates login, cookie protection, session expiration and logout 527ms
+     ✓ creates independent owned projects and prevents manipulated IDs and viewer writes 998ms
+     ✓ saves 12-task structured drafts without inventing assignees, dates or effort 400ms
+     ✓ enforces immutable snapshots, approvals and audit records inside PostgreSQL 381ms
+     ✓ requires human approval of the exact hash and records rejection separately 463ms
+     ✓ publishes atomically and remains idempotent across new keys and concurrent commands 454ms
+     ✓ rolls back a mid-publication failure and safely retries the same key 407ms
+     ✓ rejects hash mismatch on publish and stale project approval publication 348ms
+     ✓ detects dependency cycles, unknown keys, duplicate keys and cross-project references 422ms
+     ✓ enforces safe status transitions, dependencies, optimistic concurrency, and filtering 520ms
+     ✓ routes material task edits through a fresh proposal and fresh approval 460ms
+     ✓ idempotently creates projects, refuses changed payload reuse, validates all inputs 308ms
+     ✓ limits service scopes and projects, expiry, disabled identities, and never exposes credentials 378ms
+     ✓ queues durable planning and conversation correlation, service callback creates only drafts 436ms
+     ✓ reclaims interrupted worker leases and retries with the same durable operation ID 540ms
+     ✓ bounds worker failures and exposes explicit terminal operation state 697ms
+     ✓ enforces origin, payload limit, request IDs, security headers, login rate limit and readiness 957ms
+     × records reliable actor/request IDs and stable list pagination 356ms
+     × prevents project metadata lost updates and rejects proposals with invalid dates/assignees 35ms
+     × permits explicitly scoped service publication only after human approval 8ms
+     × rejects publication that would give completed work an incomplete predecessor 9ms
+     × preserves asynchronous leases and fails exhausted interrupted operations explicitly 3ms
+     × freezes archived work and denies cross-project conversations and callbacks 2ms
+     × F2 creation replay requires current membership, not cached historical access 3ms
+     × F2 mutation replay rechecks role, scopes, and concurrent permission changes 4ms
+     × F3 callback rejects original and relabeled stale bases without partial result or success record 4ms
+     × F3 worker cannot relabel work after requirements change during adapter execution 5ms
+     × F3 checks originating authorization and immutable identity/context on both result paths 10ms
+     × F3 accepted results retain original operation provenance and terminal retries stay idempotent 5ms
+     × F5 published callback schema and real HTTP agree for neither, either, both, empty error and unknown fields 4ms
+     × F6 rejects NUL across persisted fields without rows and preserves legitimate Unicode 6ms
+     × P1 disabling and reenabling does not revive an unconsumed approval 9ms
+     × P1 role downgrade and membership removal permanently revoke pending approvals 4ms
+     × P1 explicit human revocation is audited and services cannot revoke 4ms
+     × P1 consumed publication remains historical after approver disable 6ms
+     × P1 publication serializes with a concurrent approver disable and cannot consume revoked approval 5ms
+     × browser CSRF bootstrap survives reload without rotating other tabs and respects authentication 7ms
+     × P1 publication ordered before disable consumes approval without retroactive revocation 7ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 21 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > records reliable actor/request IDs and stable list pagination
+error: the database system is shutting down
+ ❯ node_modules/pg-pool/index.js:45:11
+ ❯ tests/integration.test.ts:140:5
+    138|   const encoded = await passwordHash(password);
+    139|   owner = (
+    140|     await pool.query(
+       |     ^
+    141|       "INSERT INTO users(email,display_name,kind,password_hash) VALUES…
+    142|       [encoded],
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/21]⎯
+
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > prevents project metadata lost updates and rejects proposals with invalid dates/assignees
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > permits explicitly scoped service publication only after human approval
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > rejects publication that would give completed work an incomplete predecessor
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > preserves asynchronous leases and fails exhausted interrupted operations explicitly
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > freezes archived work and denies cross-project conversations and callbacks
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > F2 creation replay requires current membership, not cached historical access
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > F2 mutation replay rechecks role, scopes, and concurrent permission changes
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > F3 callback rejects original and relabeled stale bases without partial result or success record
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > F3 worker cannot relabel work after requirements change during adapter execution
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > F3 checks originating authorization and immutable identity/context on both result paths
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > F3 accepted results retain original operation provenance and terminal retries stay idempotent
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > F5 published callback schema and real HTTP agree for neither, either, both, empty error and unknown fields
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > F6 rejects NUL across persisted fields without rows and preserves legitimate Unicode
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > P1 disabling and reenabling does not revive an unconsumed approval
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > P1 role downgrade and membership removal permanently revoke pending approvals
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > P1 explicit human revocation is audited and services cannot revoke
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > P1 consumed publication remains historical after approver disable
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > P1 publication serializes with a concurrent approver disable and cannot consume revoked approval
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > browser CSRF bootstrap survives reload without rotating other tabs and respects authentication
+ FAIL  tests/integration.test.ts > real HTTP + PostgreSQL backend > P1 publication ordered before disable consumes approval without retroactive revocation
+error: the database system is shutting down
+ ❯ node_modules/pg-pool/index.js:45:11
+ ❯ tests/integration.test.ts:137:3
+    135| }, 30000);
+    136| beforeEach(async () => {
+    137|   await pool.query("TRUNCATE users,projects CASCADE");
+       |   ^
+    138|   const encoded = await passwordHash(password);
+    139|   owner = (
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/21]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  21 failed | 25 passed (46)
+   Start at  20:26:48
+   Duration  10.57s (tests 92%, import 6%, transform 1%)
+
+JSON report written to /Users/admin/Projects/uapm-codex/docs/backend/remediation/current/tests.json

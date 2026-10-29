@@ -1,0 +1,234 @@
+{
+  "name": "UAPM WF-06 — Error and Operation Reporting",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "sub-input",
+      "name": "Sub-workflow input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -620,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize error payloads from any upstream workflow. Strip anything secret-shaped.\nconst r = $input.first().json;\nconst err = r.error || r.err || null;\nconst correlationId = r.correlationId || r.request?.principal?.correlationId || null;\nconst scrub = (v) => {\n  if (!v || typeof v !== 'object') return v;\n  const copy = Array.isArray(v) ? [] : {};\n  for (const [k, val] of Object.entries(v)) {\n    if (/token|secret|password|authorization|api[_-]?key/i.test(k)) copy[k] = '[REDACTED]';\n    else copy[k] = scrub(val);\n  }\n  return copy;\n};\nconst payload = {\n  correlationId,\n  code: err?.code || 'unknown_error',\n  message: 'Workflow failed; inspect authorized execution history',\n  context: scrub(r.context || {}),\n  operationIds: r.operationIds || []\n};\nreturn [{ json: payload }];"
+      },
+      "id": "normalize-error",
+      "name": "Normalize error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.operationIds.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "has-op",
+      "name": "Has operation IDs?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -140,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $json.correlationId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={\n  \"tool\": \"get_operation_status\",\n  \"arguments\": { \"operationId\": \"{{ $json.operationIds[0] }}\" }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "specifyBody": "json"
+      },
+      "id": "fetch-op-status",
+      "name": "Fetch operation status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        120,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = $('Normalize error').item.json;\nconst op = $json;\nconst detail = op && !op.error ? `Last operation ${op.operationId}: state=${op.state}, action=${op.action}` : 'No operation state available.';\nreturn [{ json: {\n  correlationId: err.correlationId,\n  report: `Error ${err.code}: ${err.message}. ${detail}`,\n  code: err.code,\n  retryable: ['rate_limited','backend_unavailable','timeout'].includes(err.code)\n} }];"
+      },
+      "id": "shape-report",
+      "name": "Shape error report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "g3/wf-06",
+        "responseMode": "lastNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "id": "g3-webhook-6",
+      "name": "G3 service webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        600
+      ],
+      "webhookId": "g3-wf-06",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "G3WebhookAuth001",
+          "name": "G3 isolated webhook bearer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw=$input.first().json;\nif(raw.headers){if(raw.headers.authorization!=='Bearer '+$env.UAPM_WEBHOOK_TOKEN)throw new Error('Unauthorized G3 webhook');return [{json:raw.body}];}\nreturn [{json:raw}];"
+      },
+      "id": "entry-packet",
+      "name": "Entry packet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "Sub-workflow input": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize error": {
+      "main": [
+        [
+          {
+            "node": "Has operation IDs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has operation IDs?": {
+      "main": [
+        [
+          {
+            "node": "Fetch operation status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Shape error report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch operation status": {
+      "main": [
+        [
+          {
+            "node": "Shape error report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "G3 service webhook": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry packet": {
+      "main": [
+        [
+          {
+            "node": "Normalize error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-06-error-reporting-v1",
+  "triggerCount": 0,
+  "active": true,
+  "id": "G3Workflow0000006"
+}

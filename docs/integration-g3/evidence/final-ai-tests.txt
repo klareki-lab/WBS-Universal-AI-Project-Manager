@@ -1,0 +1,18 @@
+✔ Separate AI graph preserves native OpenAI credential nodes, no fixtures/tools/approval routes (8.314625ms)
+✔ Strict planner schema rejects malformed JSON, extra authority, scope changes, invalid dependencies and dates (0.942458ms)
+✔ Default locked expense gate and missing credential make zero provider calls (34.792583ms)
+✔ Three-stage success records redacted evidence and lifetime budget blocks all further calls (12.807666ms)
+✔ Concurrent replay is blocked before provider I/O and out-of-order calls consume no budget (9.070208ms)
+✔ Reservations survive restart and crashes; automatic retries cannot buy another invocation (4.38725ms)
+✔ Provider unavailability is bounded, scrubbed and never retried (5.250625ms)
+✔ Real HTTP provider timeout consumes reservation with no retry (18.003083ms)
+✔ Invalid provider response is rejected; oversized/token/tool/model changes never call provider (7.495708ms)
+✔ Stale or unauthorized operation is rejected before any paid reservation (3.257417ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 247.928375

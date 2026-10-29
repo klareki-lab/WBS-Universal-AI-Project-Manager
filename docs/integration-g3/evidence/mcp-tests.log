@@ -1,0 +1,45 @@
+
+> uapm-mcp@0.1.0 test
+> node --import tsx/esm --test --test-isolation=none test/*.test.ts
+
+▶ Read-only access and authorization
+  ✔ list_projects returns only projects the user has access to (65.94975ms)
+  ✔ get_project denies cross-project access (7.546959ms)
+  ✔ get_task denies non-member (5.459459ms)
+  ✔ get_project_progress works for a member (5.0855ms)
+  ✔ project overview resource respects permission model (5.333625ms)
+✔ Read-only access and authorization (96.838375ms)
+▶ MCP initialization and discovery
+  ✔ rejects unauthenticated requests (2.080292ms)
+  ✔ initializes and lists the v1.1 scoped tools (52.509667ms)
+  ✔ lists both resources (8.416833ms)
+  ✔ lists both prompts (9.851375ms)
+✔ MCP initialization and discovery (75.644ms)
+▶ HttpBackendClient against canonical OpenAPI contract
+  ✔ listProjects uses GET /api/v1/projects with limit/offset (4.522916ms)
+  ✔ createPlanDraft sends base_project_version and snapshot in contract shape (2.857541ms)
+  ✔ publishApprovedPlanScoped sends content_hash and interprets succeeded operation (1.925416ms)
+  ✔ createProject refuses — human-only policy guard (0.33825ms)
+  ✔ bodyless request-approval omits JSON content-type (0.848083ms)
+  ✔ updateTaskStatus refuses — human-only policy guard (0.147541ms)
+  ✔ maps backend 409 version_conflict → stale_version (0.881042ms)
+  ✔ dashboard response is mapped to internal progress shape (0.686958ms)
+  ✔ getPlanScoped maps approved status to internal approved (0.783458ms)
+✔ HttpBackendClient against canonical OpenAPI contract (13.886375ms)
+▶ Log redaction
+  ✔ redacts common secret paths (0.552583ms)
+✔ Log redaction (0.600833ms)
+▶ Approval + publication flow (end-to-end against mock backend)
+  ✔ full planner → reviewer → draft → approval → publish → progress → task update (39.228791ms)
+  ✔ get_operation_status returns not_found for bogus operation (4.113666ms)
+  ✔ create_project requires idempotencyKey (3.792917ms)
+✔ Approval + publication flow (end-to-end against mock backend) (48.08325ms)
+﹣ Real backend integration (feat/backend-core, OpenAPI canon) (0.021167ms) # SKIP
+ℹ tests 22
+ℹ suites 6
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1195.868417

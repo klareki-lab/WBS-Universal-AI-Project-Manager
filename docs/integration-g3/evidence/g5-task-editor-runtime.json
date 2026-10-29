@@ -1,0 +1,37 @@
+{
+  "backend": "existing isolated G3 PostgreSQL and localhost:25174",
+  "project_id": "145fd443-eb0f-47e7-9948-5883ecd68634",
+  "task_id": "4ad5f186-6df7-4bbc-b6a7-5c97c775b90c",
+  "plan_id": "e14850d5-60cd-4d7f-a3d4-e8d221d22ee0",
+  "content_hash": "91206a256d8d2602a6a0fd43ee7c53a63b3f32ed859bc4ea8577fd4acb959e77",
+  "manualReplaySameKey": true,
+  "draftCountBeforePublication": 2,
+  "metadataEqualsSubmitted": true,
+  "otherTaskUnchanged": true,
+  "dependenciesPreserved": true,
+  "statusOnlyPersistedAndRestored": true,
+  "unshownMetadataPreserved": true,
+  "originalSnapshotUnchanged": true,
+  "providerRequests": 0,
+  "publishedAfterSyntheticHumanFixtureApproval": true,
+  "approvalNote": "Automated approval only on the dedicated synthetic fixture; owner demo project was not modified.",
+  "ownerProjectIsolation": {
+    "ownerProjectUnchanged": true,
+    "acceptanceCallsBefore": 3,
+    "acceptanceCallsAfter": 3,
+    "runnerExit": 0
+  },
+  "sourceFrontend": "Astra ed50bdd frontend delta + integrated G4/G5 changes",
+  "fixturePersisted": {
+    "plans": 2,
+    "tasks": 2,
+    "planningOperations": 0,
+    "humanIdentityApprovals": 2,
+    "dependencyEdges": 1
+  },
+  "serviceApproval": {
+    "httpStatus": 403,
+    "code": "insufficient_scope",
+    "note": "The active service lacks approvals:write; prior backend tests cover denial even with that scope."
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-29",
+  "frontend": "http://localhost:25174",
+  "backend": "isolated G3 / same-origin loopback proxy",
+  "frontendSource": "feat/frontend 5eea6d66455ae9b5243b10d403a7516fb73c3de6 frontend-only delta with integration planning guidance",
+  "checks": {
+    "humanLogin": true,
+    "kanbanReload": true,
+    "listReload": true,
+    "navigation": {
+      "cycles": 3,
+      "getCount": 7
+    },
+    "realActivity": true,
+    "planHash": true,
+    "approvalEvidence": true,
+    "terminalPollGetCount": 0,
+    "rateLimit": {
+      "retryAfterSeconds": 36,
+      "probes": 84,
+      "recovered": true
+    },
+    "noAI": {
+      "requests": 0,
+      "acceptanceCallsBefore": 3,
+      "acceptanceCallsAfter": 3
+    },
+    "taskEditor": {
+      "readOnlyContent": true,
+      "planRevisionGuidance": true,
+      "statusPersistence": {
+        "taskId": "c2693c97-efe7-40c1-aab1-21a5d0ac8236",
+        "transitions": [
+          "todo -> in_progress (version 2)",
+          "in_progress -> todo (version 3)"
+        ]
+      }
+    },
+    "ownerProject": {
+      "id": "9f6164e8-f8ed-4204-b658-ce3c89590180",
+      "multilingualContentAfterReload": true,
+      "publishedTask": "Analyse der Kundenanfragen",
+      "humanApproval": true,
+      "planVersion": "545864a0-7d31-4fed-908a-7aa854b9cdd8",
+      "sha256": "b07a051a0ff3908ff63c96e25f314e25568c32faf383ad20a7a4a002623c565c",
+      "actualActivity": true
+    }
+  },
+  "limitations": [
+    "A transient database_unavailable occurred on a browser reload; a later reload recovered. Root cause not determined.",
+    "Queued/running labels are covered by controlled component tests; no new live AI operation was created.",
+    "Protection against service approval relies on prior G3 evidence and unchanged backend; no new approval was submitted.",
+    "First runtime browser harness stopped on an incorrect list selector after successful status restoration; a targeted continuation verified list and navigation. The next continuation stopped before 429 because its relative test URL was invalid; corrected targeted 429 continuation passed.",
+    "No new planning requests or provider calls; acceptance ledger remained at three records."
+  ],
+  "frontendUnitTests": {
+    "passed": 74,
+    "failed": 0
+  },
+  "frontendBuild": "PASS"
+}

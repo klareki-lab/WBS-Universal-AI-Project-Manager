@@ -1,0 +1,498 @@
+{
+  "name": "UAPM WF-03 — Planning and Review",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "sub-input",
+      "name": "Sub-workflow input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -700,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Planner agent. Produce a schema-conformant project plan JSON.\n\nUser goal: {{ $json.request.text }}\nDomain hint: {{ $json.decision.rationale }}\n\nReturn STRICT JSON only (no prose) matching PlanDraft:\n{\n  \"summary\": string,\n  \"assumptions\": string[],\n  \"risks\": string[],\n  \"phases\": [{ \"name\": string, \"order\": number, \"description\"?: string }],\n  \"tasks\": [{ \"tempId\": string, \"phaseName\": string, \"title\": string, \"description\"?: string, \"priority\": \"low|medium|high|critical\", \"dependsOn\": string[], \"estimateHours\"?: number, \"definitionOfDone\"?: string, \"owner\"?: string, \"dueDate\"?: string }]\n}\n\nRules:\n- At least 2 phases.\n- Every task has a measurable Definition of Done.\n- Do NOT invent confirmed owners or dates. If missing, add to assumptions.\n- Do NOT call tools.",
+        "options": {
+          "systemMessage": "Return pure JSON only. Max iterations 3.",
+          "maxIterations": 3
+        }
+      },
+      "id": "planner-agent",
+      "name": "Planner agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -440,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "model": "={{ $env.UAPM_MODEL || 'gpt-4.1-mini' }}",
+        "options": {
+          "temperature": 0.2,
+          "maxTokens": 1200
+        }
+      },
+      "id": "planner-llm",
+      "name": "Planner model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -440,
+        460
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "uapm-openai",
+          "name": "UAPM OpenAI (dev)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const plan=typeof $json.output==='string'?JSON.parse($json.output):$json.output;const packet=$('Entry packet').first().json;return [{json:{...packet,plan}}];"
+      },
+      "id": "parse-plan",
+      "name": "Parse planner output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Reviewer agent. Review the plan below and return STRICT JSON with keys:\n{\n  \"ok\": boolean,\n  \"issues\": [{ \"severity\": \"info|warning|error\", \"taskRef\": string|null, \"category\": \"clarity|duplicate|phase|dependency|timeline|owner|dod|unsupported_claim\", \"message\": string, \"suggestion\"?: string }],\n  \"revisedPlan\": PlanDraft | null\n}\nPlan to review:\n{{ JSON.stringify($json.plan) }}\n\nIf issues of severity 'error' exist, provide revisedPlan with fixes. Otherwise revisedPlan = null.\nDo NOT call tools.",
+        "options": {
+          "systemMessage": "Return pure JSON only. Single review pass.",
+          "maxIterations": 3
+        }
+      },
+      "id": "reviewer-agent",
+      "name": "Reviewer agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        80,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "model": "={{ $env.UAPM_MODEL || 'gpt-4.1-mini' }}",
+        "options": {
+          "temperature": 0.1,
+          "maxTokens": 1200
+        }
+      },
+      "id": "reviewer-llm",
+      "name": "Reviewer model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        460
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "uapm-openai",
+          "name": "UAPM OpenAI (dev)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const review=typeof $json.output==='string'?JSON.parse($json.output):$json.output;const packet=$('Parse planner output').first().json;if(!review||(!review.ok&&!review.revisedPlan))throw new Error('Review rejected');return [{json:{...packet,plan:review.revisedPlan||packet.plan,review}}];"
+      },
+      "id": "merge-review",
+      "name": "Merge review (bounded 1 revision)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r=$json,p=r.plan;\nif(!r.operation?.operation_id||!r.operation?.input?.base_project_version)throw new Error('Backend operation required');\nif(!p?.phases?.length||!p?.tasks?.length)throw new Error('Empty plan');\nconst names=new Set(p.phases.map(x=>x.name));\nif(names.size!==p.phases.length||p.tasks.some(t=>!names.has(t.phaseName)))throw new Error('Invalid phase');\nconst keys=new Map(p.phases.map((x,i)=>[x.name,'phase-'+i]));\nconst snapshot={phases:p.phases.map((x,i)=>({key:'phase-'+i,name:x.name,description:x.description||''})),tasks:p.tasks.map(t=>({key:t.tempId,phase_key:keys.get(t.phaseName),title:t.title,description:t.description||'',priority:t.priority==='critical'?'urgent':t.priority||'medium',definition_of_done:t.definitionOfDone||'',depends_on:t.dependsOn||[],assignee_id:null,start_date:null,due_date:t.dueDate||null,estimated_effort:t.estimateHours??null}))};\nreturn [{json:{...r,payload:{result:{base_project_version:r.operation.input.base_project_version,snapshot}}}}];"
+      },
+      "id": "validate-plan",
+      "name": "Validate plan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MCP_UAPM_URL }}/call-tool",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "=Bearer {{ $env.MCP_UAPM_SERVICE_TOKEN }}"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "={{ $json.operation.request_id }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "={{ JSON.stringify({tool:'store_agent_result',arguments:{projectId:$json.operation.project_id,operationId:$json.operation.operation_id,requestId:$json.operation.request_id,baseProjectVersion:$json.operation.input.base_project_version,payload:$json.payload,idempotencyKey:'g3-result-'+$json.operation.operation_id} }) }}",
+        "options": {
+          "timeout": 15000
+        },
+        "specifyBody": "json"
+      },
+      "id": "save-draft",
+      "name": "Save draft via MCP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "if($json.error)throw new Error('MCP result rejected');return [{json:{response:'Validated plan stored as immutable draft',correlationId:$('Validate plan').first().json.operation.request_id,operationIds:[$json.id],planVersionId:$json.result?.plan_version_id}}];"
+      },
+      "id": "shape-output",
+      "name": "Shape output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "g3/wf-03",
+        "responseMode": "lastNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "id": "g3-webhook-3",
+      "name": "G3 service webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        600
+      ],
+      "webhookId": "g3-wf-03",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "G3WebhookAuth001",
+          "name": "G3 isolated webhook bearer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw=$input.first().json;\nif(raw.headers){if(raw.headers.authorization!=='Bearer '+$env.UAPM_WEBHOOK_TOKEN)throw new Error('Unauthorized G3 webhook');return [{json:raw.body}];}\nreturn [{json:raw}];"
+      },
+      "id": "entry-packet",
+      "name": "Entry packet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $env.UAPM_PLANNING_MODE }}",
+              "rightValue": "fixture",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fixture-planner",
+      "name": "Fixture mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        500,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{output:\"{\\\"summary\\\": \\\"SYNTHETIC G3 project plan\\\", \\\"assumptions\\\": [\\\"Synthetische Testdaten\\\"], \\\"risks\\\": [], \\\"phases\\\": [{\\\"name\\\": \\\"Planung\\\", \\\"order\\\": 0}, {\\\"name\\\": \\\"Umsetzung\\\", \\\"order\\\": 1}], \\\"tasks\\\": [{\\\"tempId\\\": \\\"g3-briefing\\\", \\\"phaseName\\\": \\\"Planung\\\", \\\"title\\\": \\\"SYNTHETISCH: Briefing prüfen\\\", \\\"description\\\": \\\"Reproduzierbare G3-Testaufgabe\\\", \\\"priority\\\": \\\"medium\\\", \\\"dependsOn\\\": [], \\\"definitionOfDone\\\": \\\"Briefing dokumentiert\\\"}, {\\\"tempId\\\": \\\"g3-umsetzung\\\", \\\"phaseName\\\": \\\"Umsetzung\\\", \\\"title\\\": \\\"SYNTHETISCH: Ergebnis validieren\\\", \\\"description\\\": \\\"Persistierte Akzeptanzaufgabe\\\", \\\"priority\\\": \\\"high\\\", \\\"dependsOn\\\": [\\\"g3-briefing\\\"], \\\"definitionOfDone\\\": \\\"Ergebnis geprüft\\\"}]}\"}}];"
+      },
+      "id": "fixture-planner",
+      "name": "Fixture Planner",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{output:JSON.stringify({ok:true,issues:[],revisedPlan:null})}}];"
+      },
+      "id": "fixture-reviewer",
+      "name": "Fixture Reviewer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $env.UAPM_PLANNING_MODE }}",
+              "rightValue": "fixture",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fixture-review",
+      "name": "Fixture review?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        500,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "Sub-workflow input": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planner model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Planner agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planner agent": {
+      "main": [
+        [
+          {
+            "node": "Parse planner output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse planner output": {
+      "main": [
+        [
+          {
+            "node": "Fixture review?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewer model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reviewer agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewer agent": {
+      "main": [
+        [
+          {
+            "node": "Merge review (bounded 1 revision)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge review (bounded 1 revision)": {
+      "main": [
+        [
+          {
+            "node": "Validate plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate plan": {
+      "main": [
+        [
+          {
+            "node": "Save draft via MCP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save draft via MCP": {
+      "main": [
+        [
+          {
+            "node": "Shape output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "G3 service webhook": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry packet": {
+      "main": [
+        [
+          {
+            "node": "Fixture mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture mode?": {
+      "main": [
+        [
+          {
+            "node": "Fixture Planner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Planner agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture Planner": {
+      "main": [
+        [
+          {
+            "node": "Parse planner output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture review?": {
+      "main": [
+        [
+          {
+            "node": "Fixture Reviewer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reviewer agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture Reviewer": {
+      "main": [
+        [
+          {
+            "node": "Merge review (bounded 1 revision)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-03-planning-review-v1",
+  "triggerCount": 0,
+  "active": true,
+  "id": "G3Workflow0000003"
+}

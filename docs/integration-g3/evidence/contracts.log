@@ -1,0 +1,7 @@
+
+> @uapm/backend@1.1.0 contracts
+> tsx src/contracts.ts && openapi-typescript ../../packages/contracts/openapi.yaml -o ../../packages/contracts/types.ts
+
+Generated 28 paths, 43 schemas
+✨ openapi-typescript 7.13.0
+🚀 ../../packages/contracts/openapi.yaml → ../../packages/contracts/types.ts [103.5ms]

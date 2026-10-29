@@ -1,0 +1,31 @@
+{
+  "checks": [
+    {
+      "name": "React manual plan creation and immutable revision history",
+      "result": "PASS"
+    },
+    {
+      "name": "Human rejection through React",
+      "result": "PASS"
+    },
+    {
+      "name": "React approval history displays permanent revocation and blocks publication",
+      "result": "PASS"
+    },
+    {
+      "name": "Revocation history persists across reload",
+      "result": "PASS"
+    }
+  ],
+  "httpErrors": [
+    {
+      "path": "/api/v1/auth/session",
+      "status": 401
+    },
+    {
+      "path": "/api/v1/auth/session",
+      "status": 401
+    }
+  ],
+  "result": "PASS"
+}

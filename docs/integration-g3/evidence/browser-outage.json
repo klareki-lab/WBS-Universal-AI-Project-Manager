@@ -1,0 +1,13 @@
+{
+  "checks": [
+    {
+      "name": "Actual G3 PostgreSQL outage gives readiness 503 and explicit React error without demo fallback",
+      "result": "PASS"
+    },
+    {
+      "name": "Same running backend recovers after G3 database restart; human session is restored",
+      "result": "PASS"
+    }
+  ],
+  "result": "PASS"
+}

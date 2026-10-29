@@ -1,0 +1,511 @@
+{
+  "name": "UAPM WF-02 — Multi-Agent Core",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "g3/wf-02",
+        "responseMode": "lastNode",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "id": "service-trigger",
+      "name": "Service webhook (service-to-service)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        300
+      ],
+      "webhookId": "g3-wf-02",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "G3WebhookAuth001",
+          "name": "G3 isolated webhook bearer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "subworkflow-input",
+      "name": "Sub-workflow input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r=$input.first().json;if(!r.request?.projectId||!r.request?.principal?.correlationId)throw new Error('Missing project or request identity');return [{json:r}];"
+      },
+      "id": "prepare-request",
+      "name": "Prepare request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Coordinator agent for the Universal AI Project Manager.\nUser request: {{ $json.request.text }}\nSession: {{ $json.request.sessionId }}\n\nDecide the intent and respond strictly as JSON with keys:\n  intent: one of 'plan', 'review', 'status', 'change', 'clarify'\n  projectId: string | null (if the user named one)\n  rationale: short string\n  question: string | null (only when intent='clarify')\n\nRules:\n- Do NOT invent project data.\n- Do NOT claim human approval was granted.\n- If intent is unclear or project is missing, choose 'clarify'.\n- Return JSON only, no prose.",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Return pure JSON. Max iterations 3.",
+          "maxIterations": 3
+        }
+      },
+      "id": "coordinator-agent",
+      "name": "Coordinator agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        20,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "model": "={{ $env.UAPM_MODEL || 'gpt-4.1-mini' }}",
+        "options": {
+          "temperature": 0.2,
+          "maxTokens": 1200
+        }
+      },
+      "id": "coordinator-llm",
+      "name": "Coordinator model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        20,
+        580
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "uapm-openai",
+          "name": "UAPM OpenAI (dev)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const decision=typeof $json.output==='string'?JSON.parse($json.output):$json.output;const packet=$('Prepare request').first().json;if(decision.projectId!==packet.request.projectId)throw new Error('Coordinator cannot change project scope');return [{json:{...packet,decision}}];"
+      },
+      "id": "parse-decision",
+      "name": "Parse decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.decision.intent }}",
+                    "rightValue": "plan",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.decision.intent }}",
+                    "rightValue": "status",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.decision.intent }}",
+                    "rightValue": "change",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "route-intent",
+      "name": "Route intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        500,
+        390
+      ],
+      "parameters.rules.values": []
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "G3Workflow0000003",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "invoke-planning",
+      "name": "Invoke WF-03 Planning & Review",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        740,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "G3Workflow0000004",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "invoke-read",
+      "name": "Invoke WF-04 Read Ops",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        740,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "G3Workflow0000005",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "invoke-mutation",
+      "name": "Invoke WF-05 Mutation Executor",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        740,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $json.decision; return [{ json: { response: `Clarification needed: ${d.question || d.rationale}`, correlationId: $('Prepare request').item.json.request.principal.correlationId, operationIds: [] } }];"
+      },
+      "id": "clarify",
+      "name": "Clarify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nreturn [{ json: { response: r.response || r.summary || 'Done.', correlationId: r.correlationId || $('Prepare request').item.json.request.principal.correlationId, operationIds: r.operationIds || [] } }];"
+      },
+      "id": "shape-core-output",
+      "name": "Shape core output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw=$input.first().json;\nif(raw.headers){if(raw.headers.authorization!=='Bearer '+$env.UAPM_WEBHOOK_TOKEN)throw new Error('Unauthorized G3 webhook');return [{json:raw.body}];}\nreturn [{json:raw}];"
+      },
+      "id": "entry-packet",
+      "name": "Entry packet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r=$input.first().json;return [{json:{output:JSON.stringify({intent:r.request.intent||'plan',projectId:r.request.projectId,rationale:'Synthetic deterministic G3 orchestration fixture'})}}];"
+      },
+      "id": "fixture-coordinator",
+      "name": "Fixture Coordinator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $env.UAPM_PLANNING_MODE }}",
+              "rightValue": "fixture",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fixture-mode",
+      "name": "Fixture mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        500,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "Service webhook (service-to-service)": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub-workflow input": {
+      "main": [
+        [
+          {
+            "node": "Entry packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare request": {
+      "main": [
+        [
+          {
+            "node": "Fixture mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coordinator model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coordinator agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coordinator agent": {
+      "main": [
+        [
+          {
+            "node": "Parse decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse decision": {
+      "main": [
+        [
+          {
+            "node": "Route intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route intent": {
+      "main": [
+        [
+          {
+            "node": "Invoke WF-03 Planning & Review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invoke WF-04 Read Ops",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invoke WF-05 Mutation Executor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clarify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoke WF-03 Planning & Review": {
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoke WF-04 Read Ops": {
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoke WF-05 Mutation Executor": {
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clarify": {
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entry packet": {
+      "main": [
+        [
+          {
+            "node": "Prepare request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture mode?": {
+      "main": [
+        [
+          {
+            "node": "Fixture Coordinator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Coordinator agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture Coordinator": {
+      "main": [
+        [
+          {
+            "node": "Parse decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-02-multi-agent-core-v1",
+  "triggerCount": 1,
+  "active": true,
+  "id": "G3Workflow0000002"
+}
