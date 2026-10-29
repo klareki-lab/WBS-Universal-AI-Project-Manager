@@ -6,7 +6,10 @@ const state=vi.hoisted(()=>({assigned:true}));
 const userId='99999999-9999-4999-8999-999999999999';
 vi.mock('../api',()=>({isDemoMode:false,projectApi:{listTasks:vi.fn(),listMembers:vi.fn()}}));
 vi.mock('../context/AppContext',()=>({useApp:()=>({projects:[{id:'p',name:'Project',description:'',targetDate:''}],refresh:vi.fn(),loading:false})}));
-vi.mock('../utils/useReadResource',()=>({useReadResource:()=>({loading:false,error:null,reload:vi.fn(),data:{members:[],tasks:[{id:'task',projectId:'p',phaseId:'phase',title:'Assigned task',description:'',priority:'medium',status:'todo',dependsOn:[],version:1,assigneeId:state.assigned?'99999999-9999-4999-8999-999999999999':undefined}]}})}));
+vi.mock('../utils/useReadResource',()=>({useReadResource:(key:string)=>({
+ loading:false,error:null,reload:vi.fn(),
+ data:key.startsWith('board-members:')?[]:{tasks:[{id:'task',projectId:'p',phaseId:'phase',title:'Assigned task',description:'',priority:'medium',status:'todo',dependsOn:[],version:1,assigneeId:state.assigned?'99999999-9999-4999-8999-999999999999':undefined}]}
+})}));
 beforeEach(()=>{state.assigned=true});
 const show=()=>render(<MemoryRouter initialEntries={['/projects/p/board']}><Routes><Route path="/projects/:projectId/board" element={<Board/>}/></Routes></MemoryRouter>);
 describe('persisted assignee without a directory lookup',()=>{

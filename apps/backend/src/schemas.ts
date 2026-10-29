@@ -108,6 +108,7 @@ export const metadataUpdate = z.strictObject({
   ...Object.fromEntries(
     Object.entries(taskFields).map(([k, v]) => [k, v.optional()]),
   ),
+  depends_on: z.array(uuid).max(500).optional(),
 });
 export const planningRequest = z.strictObject({
   prompt: string().trim().min(1).max(20000),
@@ -279,6 +280,15 @@ export const collection = (item: z.ZodType) =>
     limit: z.number().int(),
     offset: z.number().int(),
   });
+
+export const memberResponse = z.object({
+  user_id: uuid,
+  email: string(),
+  display_name: string(),
+  kind: z.enum(["human", "service"]),
+  role: z.enum(["owner", "editor", "viewer"]),
+  disabled: z.boolean(),
+});
 
 export const revocationRequest = z.strictObject({ reason: longText.min(1) });
 export const revocationResponse = z.object({

@@ -20,7 +20,25 @@ describe('task metadata is a backend draft, not a direct task overwrite',()=>{
  it('sends Unicode and multiline descriptions without trimming or normalizing',async()=>{
   await auth();const description='  \u0422\u0435\u043a\u0441\u0442 / Gr\u00f6\u00dfe / English\n e\u0301 & \u201cquotes\u201d.  ';readThenWrite(ok(plan,201));await createTaskChange(task,{description});expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toEqual({...metadata,description});
  });
- it.each(['status','dependsOn','version'])('rejects unsupported %s rather than silently ignoring it',async key=>{await expect(createTaskChange(task,{[key]:'x'} as TaskContentChanges)).rejects.toThrow('nichts gesendet');expect(fetchMock).not.toHaveBeenCalled()});
+ it.each(['status','version'])('rejects unsupported %s rather than silently ignoring it',async key=>{await expect(createTaskChange(task,{[key]:'x'} as TaskContentChanges)).rejects.toThrow('nichts gesendet');expect(fetchMock).not.toHaveBeenCalled()});
+ it('sends metadata, assignee and predecessors together in one immutable draft',async()=>{
+  await auth();readThenWrite(ok(plan,201));
+  await createTaskChange(task,{title:'Review updates',assigneeId:null,dependsOn:['first-task','third-task']});
+  expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toEqual({...metadata,title:'Review updates',assignee_id:null,depends_on:['first-task','third-task']});
+  expect(task.dependsOn).toEqual(['first-task']);
+ });
+ it('sends an explicit empty dependency array when all predecessors are removed',async()=>{
+  await auth();readThenWrite(ok(plan,201));await createTaskChange(task,{dependsOn:[]});
+  expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toEqual({...metadata,depends_on:[]});
+ });
+ it('refuses duplicate and self edges without submitting a PATCH',async()=>{
+  await auth();fetchMock.mockResolvedValueOnce(ok(stored));
+  await expect(createTaskChange(task,{dependsOn:['second-task']})).rejects.toThrow('Ungültige Abhängigkeiten');
+  expect(fetchMock).toHaveBeenCalledOnce();
+  fetchMock.mockResolvedValueOnce(ok(stored));
+  await expect(createTaskChange(task,{dependsOn:['first-task','first-task']})).rejects.toThrow('Ungültige Abhängigkeiten');
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+ });
  it('does not substitute a fresh task version to bypass a concurrent change',async()=>{
   await auth();fetchMock.mockResolvedValueOnce(ok({...stored,version:8}));await expect(createTaskChange(task,{description:'new'})).rejects.toMatchObject({status:409,code:'stale_task_version'});expect(fetchMock).toHaveBeenCalledOnce();expect(fetchMock.mock.calls[0][1]?.method).toBe('GET');
  });
@@ -39,5 +57,8 @@ describe('task metadata is a backend draft, not a direct task overwrite',()=>{
  it('omits unchanged fields from user intent and represents cleared optional fields as null',()=>{
   expect(taskContentChanges(task,{title:'Original',description:'Old content',priority:'medium',dueDate:'2026-12-15',assigneeId:'existing-user'})).toEqual({});
   expect(taskContentChanges(task,{description:'  Changed  ',dueDate:'',assigneeId:''})).toEqual({description:'  Changed  ',dueDate:null,assigneeId:null});
+  expect(taskContentChanges(task,{dependsOn:['first-task']})).toEqual({});
+  expect(taskContentChanges(task,{dependsOn:[]})).toEqual({dependsOn:[]});
+  expect(taskContentChanges(task,{dependsOn:['third-task','first-task']})).toEqual({dependsOn:['third-task','first-task']});
  });
 });

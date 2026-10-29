@@ -88,7 +88,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Create a material-change proposal; no direct task mutation */
+        /** Create a material-change proposal (metadata and/or dependencies); no direct task mutation */
         patch: operations["taskMetadata"];
         trace?: never;
     };
@@ -107,6 +107,23 @@ export interface paths {
         head?: never;
         /** Transition status with version and dependency checks */
         patch: operations["taskStatus"];
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List project members for assignee picker and collaboration UX */
+        get: operations["listProjectMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/projects/{projectId}/tasks/{taskId}/dependencies": {
@@ -808,6 +825,22 @@ export interface components {
             estimated_effort: number | null;
             /** @default  */
             definition_of_done: string;
+            depends_on?: string[];
+        };
+        listProjectMembersResponse: {
+            items: {
+                /** Format: uuid */
+                user_id: string;
+                email: string;
+                display_name: string;
+                /** @enum {string} */
+                kind: "human" | "service";
+                /** @enum {string} */
+                role: "owner" | "editor" | "viewer";
+                disabled: boolean;
+            }[];
+            limit: number;
+            offset: number;
         };
         dependenciesResponse: {
             items: {
@@ -2511,6 +2544,121 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["taskStatusResponse"];
+                };
+            };
+            /** @description Invalid input */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden or CSRF failure */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Resource unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description State/version/idempotency conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Request failure */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listProjectMembers: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["listProjectMembersResponse"];
                 };
             };
             /** @description Invalid input */

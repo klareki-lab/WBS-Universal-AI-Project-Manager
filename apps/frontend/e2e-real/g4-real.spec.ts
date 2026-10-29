@@ -46,7 +46,7 @@ test('real published task, version conflict, status update, audit and logout (no
  await page.reload();const button=page.getByRole('button',{name:'Aufgabe \u00f6ffnen: \u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 / Pr\u00fcfung'});await button.click();
  const current=await (await page.request.get(`/api/v1/projects/${id}/tasks`)).json();const task=current.items[0];
  await command(page,`/api/v1/projects/${id}/tasks/${task.id}/status`,{version:task.version,status:'in_progress'},'PATCH');
- await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('done');await page.getByRole('button',{name:'Status im Backend speichern'}).click();await expect(page.getByRole('dialog').getByRole('alert')).toContainText('Versionskonflikt');
+ await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('done');await page.getByRole('button',{name:'Status im Backend speichern'}).click();await expect(page.getByRole('dialog').getByRole('alert').filter({hasText:'Versionskonflikt'})).toContainText('Versionskonflikt');
  await page.reload();await button.click();await expect(page.getByRole('dialog').getByLabel('Titel')).toHaveAttribute('readonly');await page.getByRole('dialog').getByLabel('Status',{exact:true}).selectOption('done');await page.getByRole('button',{name:'Status im Backend speichern'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
  await page.getByLabel('Statusfilter').selectOption('done');await expect(button).toBeVisible();
  const search=await page.request.get(`/api/v1/projects/${id}/tasks?q=${encodeURIComponent('\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430')}`);expect(search.ok()).toBe(true);expect((await search.json()).items[0].status).toBe('done');

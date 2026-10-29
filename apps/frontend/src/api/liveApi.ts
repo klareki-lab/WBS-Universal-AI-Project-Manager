@@ -1,6 +1,25 @@
+import type {ReadOptions} from '../live/readCoordinator';
 import {activityNames} from '../i18n/g4';
-import type {ProjectApi,Project,PlanVersion,Task,NewProjectInput,OperationalTaskPatch,TaskEdit,TaskStatus,Approval,ActivityEvent,OperationJob,AppCapabilities} from './types';
-import {api,activeSession,login,logout,session,type Plan,type Project as ServerProject,type Task as ServerTask} from '../live/client';
+import type {ProjectApi,Project,PlanVersion,Task,User,NewProjectInput,OperationalTaskPatch,TaskEdit,TaskStatus,Approval,ActivityEvent,OperationJob,AppCapabilities} from './types';
+import {api,activeSession,login,logout,session,type Plan,type Project as ServerProject,type Task as ServerTask,type Page,type ProjectMember as ServerMember} from '../live/client';
+/**
+ * The G6 collection contract is offset/limit based (100 maximum).
+ * A full directory is necessary to avoid treating users on later pages as revoked.
+ * Never silently substitute an incomplete result.
+ */
+async function allPages<T>(load:(offset:number)=>Promise<Page<T>>,options:ReadOptions={}):Promise<T[]> {
+ const items:T[]=[];const pageSize=100;
+ for(let offset=0;offset<=100000;offset+=pageSize){
+  if(options.signal?.aborted)throw new DOMException('Leseanfrage abgebrochen','AbortError');
+  const page=await load(offset);
+  if(!page||!Array.isArray(page.items)||page.items.length>pageSize||page.offset!==offset)
+    throw new Error('Unvollständige paginierte Backend-Antwort. Daten nicht übernommen.');
+  items.push(...page.items);
+  if(page.items.length<pageSize)return items;
+ }
+ throw new Error('Mitglieder- oder Aufgabenverzeichnis überschreitet den erlaubten Bereich. Keine Teildaten übernommen.');
+}
+const member=(m:ServerMember):User=>({id:m.user_id,displayName:m.display_name,email:m.email,kind:m.kind,role:m.role,disabled:m.disabled});
 const unsupported=(name:string):never=>{throw new Error(name+' wird von der aktuellen Backend-API noch nicht unterstützt. Keine Änderung wurde gespeichert.')};
 const mp=(p:ServerProject):Project=>({id:p.id,name:p.name,description:p.description,type:'custom',targetDate:'',constraints:[],status:p.status,progress:0,createdAt:p.created_at,approvedPlanVersionId:p.published_plan_id??undefined});
 const mt=(t:ServerTask):Task=>({id:t.id,projectId:t.project_id,phaseId:t.phase_id,title:t.title,description:t.description,status:t.status,priority:t.priority,estimateDays:0,dueDate:t.due_date??undefined,dependsOn:[],assigneeId:t.assignee_id??undefined,updatedAt:undefined,version:t.version});
@@ -10,10 +29,20 @@ export const liveApi:ProjectApi={
  async listProjects(options){return (await api.projects(options)).items.map(mp)},
  async getProject(id,options){return mp(await api.project(id,options))},
  async createProject(input:NewProjectInput){if(input.budget||input.targetDate||input.constraints.length)unsupported('Budget, Frist oder Projektbedingungen');const p=await api.createProject(input.name,input.description);return {project:mp(p),plan:{id:'',projectId:p.id,version:0,status:'draft',createdAt:p.created_at,source:'proposal',phases:[],tasks:[],warnings:[]}}},
- async listTasks(id,options){const tasks=(await api.tasks(id,options)).items;if(options?.includeDependencies===false)return tasks.map(mt);const plans=await Promise.all([...new Set(tasks.map(t=>t.source_plan_id))].map(pid=>api.plan(id,pid,options)));const ids=new Map(tasks.map(t=>[t.source_key,t.id]));return tasks.map(t=>({...mt(t),dependsOn:(plans.find(p=>p.id===t.source_plan_id)?.snapshot.tasks.find(s=>s.key===t.source_key)?.depends_on??[]).map(key=>ids.get(key)).filter((id):id is string=>Boolean(id))}))},
+ async listTasks(id,options){const tasks=await allPages(offset=>api.tasks(id,options,offset),options);return tasks.map(mt)},
  async updateTask(pid,tid,patch:OperationalTaskPatch,expectedVersion){const keys=Object.keys(patch);if(keys.length!==1||!('status'in patch)||!patch.status)unsupported('Direkte Metadatenänderung');if(!Number.isInteger(expectedVersion)||!expectedVersion)throw new Error('Aufgabenversion fehlt. Bitte Aufgabe erneut laden.');return mt(await api.status(pid,{id:tid,version:expectedVersion},patch.status as TaskStatus))},
  async createTask(){return unsupported('Aufgabe ohne veröffentlichten Plan erstellen')},
- async listMembers(){return []},
+ async listMembers(pid,options){
+  const rows=await allPages(offset=>api.members(pid,options,offset),options);
+  const unique=new Map<string,User>();
+  for(const m of rows){
+    if(!m||typeof m.user_id!=='string'||typeof m.display_name!=='string'||typeof m.disabled!=='boolean'
+      ||!['human','service'].includes(m.kind)||!['owner','editor','viewer'].includes(m.role))
+      throw new Error('Ungültige Mitgliederdaten vom Backend. Keine Demo-Nutzer eingesetzt.');
+    unique.set(m.user_id,member(m));
+  }
+  return [...unique.values()];
+ },
  async getPlan(vid){return unsupported('Plan ohne Projekt-ID abrufen: '+vid)},
  async listPlans(pid,options){return (await api.plans(pid,options)).items.map(mplan)},
  async createDraftFromApproved(){return unsupported('Entwurf aus genehmigtem Plan erstellen')},

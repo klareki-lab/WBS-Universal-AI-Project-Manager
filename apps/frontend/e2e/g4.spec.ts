@@ -30,6 +30,10 @@ async function fixture(page:Page,hook?:(r:Route,path:string)=>Promise<boolean>){
      task.status=body.status;task.version++;return route.fulfill({json:task});
    }
    if(method!=='GET'){unexpected.push(path);return route.fulfill(error(400,'unexpected_write'));}
+   // G6 adds read-only project-scoped collections. These are controlled fixtures,
+   // never real members or persisted relations.
+   if(path.endsWith('/members'))return route.fulfill({json:{items:[],limit:100,offset:0}});
+   if(path.endsWith('/dependencies'))return route.fulfill({json:{items:[]}});
    if(path.endsWith('/activity'))return route.fulfill({json:{items:[{id:'event-'+pid,project_id:pid,type:'project.created',created_at:now}],limit:100,offset:0}});
    if(path.endsWith('/operations'))return route.fulfill({json:{items:[{id:'job-'+pid,project_id:pid,kind:'publish',status:'succeeded',error:null,result:{task_count:1},created_at:now}],limit:100,offset:0}});
    if(path.endsWith('/approvals'))return route.fulfill({json:{items:[],revocations:[]}});

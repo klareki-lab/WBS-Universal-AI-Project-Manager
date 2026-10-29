@@ -23,10 +23,10 @@ if (!url)
   );
 const parsed = new URL(url);
 if (
-  parsed.pathname !== "/uapm_test" ||
+  !["/uapm_test", "/uapm_g7_test"].includes(parsed.pathname) ||
   !["localhost", "127.0.0.1", "postgres"].includes(parsed.hostname)
 )
-  throw new Error("Refusing to reset a database outside local uapm_test");
+  throw new Error("Refusing to reset a database outside the explicitly named local test databases");
 const pool = makePool(url);
 let app: FastifyInstance,
   base: string,
@@ -1667,4 +1667,266 @@ describe("configured automation project assignment", () => {
       }
     },
   );
+});
+
+describe("G6 — task relations and member directory", () => {
+  it("returns the project member directory with role and account state", async () => {
+    const p = await project();
+    await pool.query(
+      "INSERT INTO project_members(project_id,user_id,role) VALUES($1,$2,'editor')",
+      [p.id, other],
+    );
+    const r = await request("GET", pp(p.id) + "/members");
+    expect(r.status, JSON.stringify(r.body)).toBe(200);
+    expect(r.body.items).toHaveLength(2);
+    const owners = r.body.items.filter((m: any) => m.role === "owner");
+    expect(owners).toHaveLength(1);
+    expect(owners[0]).toMatchObject({
+      user_id: owner,
+      email: "owner@example.test",
+      kind: "human",
+      disabled: false,
+    });
+    const editor = r.body.items.find((m: any) => m.user_id === other)!;
+    expect(editor.role).toBe("editor");
+  });
+  it("isolates members per project and refuses non-members with 404", async () => {
+    const a = await project("A"),
+      b = await project("B");
+    await pool.query(
+      "INSERT INTO project_members(project_id,user_id,role) VALUES($1,$2,'editor')",
+      [a.id, other],
+    );
+    const resp = await request("GET", pp(b.id) + "/members");
+    expect(resp.body.items).toHaveLength(1);
+    expect(resp.body.items[0].user_id).toBe(owner);
+    const otherLogin = await request(
+      "POST",
+      "/api/v1/auth/login",
+      { email: "other@example.test", password },
+      {},
+    );
+    expect(
+      (
+        await request("GET", pp(b.id) + "/members", undefined, {
+          cookie: otherLogin.headers.get("set-cookie")!.split(";")[0],
+          csrf: otherLogin.body.csrf_token,
+        })
+      ).status,
+    ).toBe(404);
+  });
+  it("edits task dependencies through a new plan draft that requires human approval before publication", async () => {
+    const { p, job } = await published(),
+      t1 = job.result.task_ids["task-1"],
+      t4 = job.result.task_ids["task-4"],
+      t5 = job.result.task_ids["task-5"];
+    // Replace task-5's predecessor set with just [task-1] (fixture chain is 1→2→3→4→5).
+    const task5 = (await request("GET", pp(p.id) + `/tasks/${t5}`)).body;
+    const edit = await request("PATCH", pp(p.id) + `/tasks/${t5}`, {
+      version: task5.version,
+      depends_on: [t1],
+    });
+    expect(edit.status, JSON.stringify(edit.body)).toBe(201);
+    expect(edit.body.status).toBe("draft");
+    // Published task is unchanged until this exact plan is approved and published.
+    expect(
+      (await request("GET", pp(p.id) + `/tasks/${t5}/dependencies`)).body.items,
+    ).toEqual([
+      expect.objectContaining({ task_id: t5, depends_on_id: t4 }),
+    ]);
+    // Publishing without approval is rejected.
+    expect(
+      (
+        await request("POST", pp(p.id) + `/plans/${edit.body.id}/publish`, {
+          content_hash: edit.body.content_hash,
+        })
+      ).status,
+    ).toBe(409);
+    await request("POST", pp(p.id) + `/plans/${edit.body.id}/request-approval`);
+    expect(
+      (
+        await request("POST", pp(p.id) + `/plans/${edit.body.id}/approvals`, {
+          content_hash: edit.body.content_hash,
+          decision: "approved",
+        })
+      ).status,
+    ).toBe(201);
+    expect(
+      (
+        await request("POST", pp(p.id) + `/plans/${edit.body.id}/publish`, {
+          content_hash: edit.body.content_hash,
+        })
+      ).status,
+    ).toBe(200);
+    const deps = (
+      await request("GET", pp(p.id) + `/tasks/${t5}/dependencies`)
+    ).body.items;
+    expect(deps).toEqual([
+      expect.objectContaining({ task_id: t5, depends_on_id: t1 }),
+    ]);
+    expect(await count("change_proposals", p.id)).toBe(1);
+    const activity = (await request("GET", pp(p.id) + "/activity")).body.items
+      .map((e: any) => e.type)
+      .filter((t: string) =>
+        ["change_proposal.created", "plan.published"].includes(t),
+      );
+    expect(activity).toContain("change_proposal.created");
+    expect(activity).toContain("plan.published");
+  });
+  it("rejects invalid dependency inputs: self, cycles, duplicates, nonexistent and cross-project references", async () => {
+    const { p, job } = await published(),
+      t1 = job.result.task_ids["task-1"],
+      t3 = job.result.task_ids["task-3"];
+    const invalid = async (depends_on: unknown, code: string) => {
+      const r = await request("PATCH", pp(p.id) + `/tasks/${t3}`, {
+        version: 1,
+        depends_on,
+      });
+      expect(r.status, JSON.stringify(r.body)).toBe(400);
+      expect(r.body.error.code).toBe(code);
+    };
+    await invalid([t3], "self_dependency_not_allowed");
+    await invalid([t1, t1], "duplicate_dependency");
+    await invalid([randomUUID()], "invalid_dependency_reference");
+    // Cross-project: use a task UUID from an unrelated project.
+    const { job: otherJob } = await published();
+    await invalid(
+      [otherJob.result.task_ids["task-1"]],
+      "invalid_dependency_reference",
+    );
+    // Cycle: task-1 cannot depend on task-3 (which already depends on task-2 → task-1).
+    const cycle = await request("PATCH", pp(p.id) + `/tasks/${t1}`, {
+      version: 1,
+      depends_on: [t3],
+    });
+    expect(cycle.status).toBe(400);
+    expect(cycle.body.error.code).toBe("invalid_plan");
+    expect(cycle.body.error.message).toMatch(/cycle/i);
+  });
+  it("detects stale task versions and keeps concurrent drafts independent and immutable", async () => {
+    const { p, job } = await published(),
+      t4 = job.result.task_ids["task-4"],
+      t1 = job.result.task_ids["task-1"];
+    const stale = await request("PATCH", pp(p.id) + `/tasks/${t4}`, {
+      version: 99,
+      depends_on: [t1],
+    });
+    expect(stale.status).toBe(409);
+    expect(stale.body.error.code).toBe("stale_task_version");
+    const [a, b] = await Promise.all([
+      request("PATCH", pp(p.id) + `/tasks/${t4}`, {
+        version: 1,
+        depends_on: [t1],
+      }),
+      request("PATCH", pp(p.id) + `/tasks/${t4}`, {
+        version: 1,
+        title: "Parallel rename",
+      }),
+    ]);
+    expect([a.status, b.status].every((s) => s === 201)).toBe(true);
+    expect(a.body.id).not.toBe(b.body.id);
+    expect(a.body.content_hash).not.toBe(b.body.content_hash);
+    // Both proposals are independent immutable drafts; the published task is still untouched.
+    const published4 = (await request("GET", pp(p.id) + `/tasks/${t4}`)).body;
+    expect(published4.version).toBe(1);
+    expect(published4.title).toMatch(/Review scope/);
+  });
+  it("E2E — three tasks with two dependency edges flow from draft to Kanban", async () => {
+    const p = await project("E2E");
+    const input = fresh();
+    input.snapshot.tasks = input.snapshot.tasks.slice(0, 3).map((t: any) => ({
+      ...t,
+      depends_on: [],
+    }));
+    const plan = await draft(p.id, input);
+    expect(
+      (await request("POST", pp(p.id) + `/plans/${plan.id}/submit-review`))
+        .status,
+    ).toBe(200);
+    expect(
+      (
+        await request("POST", pp(p.id) + `/plans/${plan.id}/approvals`, {
+          content_hash: plan.content_hash,
+          decision: "approved",
+        })
+      ).status,
+    ).toBe(201);
+    const pub = await request("POST", pp(p.id) + `/plans/${plan.id}/publish`, {
+      content_hash: plan.content_hash,
+    });
+    expect(pub.status, JSON.stringify(pub.body)).toBe(200);
+    const [t1, t2, t3] = [
+      pub.body.result.task_ids["task-1"],
+      pub.body.result.task_ids["task-2"],
+      pub.body.result.task_ids["task-3"],
+    ];
+    await pool.query(
+      "INSERT INTO project_members(project_id,user_id,role) VALUES($1,$2,'editor')",
+      [p.id, other],
+    );
+    // Add dependency edges t2→t1 and t3→t2 and change assignee on t2.
+    const d2 = await request("PATCH", pp(p.id) + `/tasks/${t2}`, {
+      version: 1,
+      depends_on: [t1],
+      assignee_id: other,
+    });
+    expect(d2.status, JSON.stringify(d2.body)).toBe(201);
+    await request("POST", pp(p.id) + `/plans/${d2.body.id}/request-approval`);
+    await request("POST", pp(p.id) + `/plans/${d2.body.id}/approvals`, {
+      content_hash: d2.body.content_hash,
+      decision: "approved",
+    });
+    expect(
+      (
+        await request("POST", pp(p.id) + `/plans/${d2.body.id}/publish`, {
+          content_hash: d2.body.content_hash,
+        })
+      ).status,
+    ).toBe(200);
+    const t3current = (await request("GET", pp(p.id) + `/tasks/${t3}`)).body;
+    const d3 = await request("PATCH", pp(p.id) + `/tasks/${t3}`, {
+      version: t3current.version,
+      depends_on: [t2],
+    });
+    await request("POST", pp(p.id) + `/plans/${d3.body.id}/request-approval`);
+    await request("POST", pp(p.id) + `/plans/${d3.body.id}/approvals`, {
+      content_hash: d3.body.content_hash,
+      decision: "approved",
+    });
+    expect(
+      (
+        await request("POST", pp(p.id) + `/plans/${d3.body.id}/publish`, {
+          content_hash: d3.body.content_hash,
+        })
+      ).status,
+    ).toBe(200);
+    // Kanban-visible state matches the two edges.
+    const dep2 = (await request("GET", pp(p.id) + `/tasks/${t2}/dependencies`))
+      .body.items;
+    const dep3 = (await request("GET", pp(p.id) + `/tasks/${t3}/dependencies`))
+      .body.items;
+    expect(dep2).toHaveLength(1);
+    expect(dep2[0].depends_on_id).toBe(t1);
+    expect(dep3).toHaveLength(1);
+    expect(dep3[0].depends_on_id).toBe(t2);
+    expect((await request("GET", pp(p.id) + `/tasks/${t2}`)).body.assignee_id).toBe(
+      other,
+    );
+    const members = (await request("GET", pp(p.id) + "/members")).body.items;
+    expect(members.map((m: any) => m.user_id).sort()).toEqual(
+      [owner, other].sort(),
+    );
+    // Status transition respects the new dependency: t3 can only start after t1 → t2 are done.
+    const t3final = (await request("GET", pp(p.id) + `/tasks/${t3}`)).body;
+    expect(
+      (
+        await request("PATCH", pp(p.id) + `/tasks/${t3}/status`, {
+          version: t3final.version,
+          status: "in_progress",
+        })
+      ).body.error.code,
+    ).toBe("dependencies_incomplete");
+    expect(await count("change_proposals", p.id)).toBe(2);
+    expect(await count("plan_versions", p.id)).toBe(3);
+  });
 });
