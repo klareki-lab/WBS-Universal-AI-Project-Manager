@@ -1,0 +1,399 @@
+{
+  "name": "UAPM WF-02 — Multi-Agent Core",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "uapm-multi-agent-core",
+        "responseMode": "lastNode",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "id": "service-trigger",
+      "name": "Service webhook (service-to-service)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uapm-service-auth",
+          "name": "UAPM service header auth"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "subworkflow-input",
+      "name": "Sub-workflow input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "options": {}
+      },
+      "id": "merge-entry",
+      "name": "Merge entry",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -420,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Attach correlation + default principal.\nconst r = $input.first().json.request || $input.first().json;\nconst correlationId = r.principal?.correlationId || crypto.randomUUID();\nreturn [{ json: { request: { ...r, principal: { ...(r.principal||{}), correlationId } } } }];"
+      },
+      "id": "prepare-request",
+      "name": "Prepare request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Coordinator agent for the Universal AI Project Manager.\nUser request: {{ $json.request.text }}\nSession: {{ $json.request.sessionId }}\n\nDecide the intent and respond strictly as JSON with keys:\n  intent: one of 'plan', 'review', 'status', 'change', 'clarify'\n  projectId: string | null (if the user named one)\n  rationale: short string\n  question: string | null (only when intent='clarify')\n\nRules:\n- Do NOT invent project data.\n- Do NOT claim human approval was granted.\n- If intent is unclear or project is missing, choose 'clarify'.\n- Return JSON only, no prose.",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Return pure JSON. Max iterations 3."
+        }
+      },
+      "id": "coordinator-agent",
+      "name": "Coordinator agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        20,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "model": "={{ $env.UAPM_MODEL || 'gpt-4.1-mini' }}",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "coordinator-llm",
+      "name": "Coordinator model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        20,
+        580
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "uapm-openai",
+          "name": "UAPM OpenAI (dev)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse coordinator JSON output. Guard against malformed output.\nlet decision;\ntry { decision = typeof $json.output === 'string' ? JSON.parse($json.output) : $json.output; } catch { decision = { intent: 'clarify', question: 'Could you restate your request?', projectId: null, rationale: 'malformed coordinator output' }; }\nconst request = $('Prepare request').item.json.request;\nreturn [{ json: { request, decision } }];"
+      },
+      "id": "parse-decision",
+      "name": "Parse decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        390
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.decision.intent }}",
+              "rightValue": "plan",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "route-intent",
+      "name": "Route intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        500,
+        390
+      ],
+      "parameters.rules.values": []
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.UAPM_WF_PLANNING_REVIEW_ID }}",
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "request": "={{ $json.request }}",
+            "decision": "={{ $json.decision }}"
+          }
+        }
+      },
+      "id": "invoke-planning",
+      "name": "Invoke WF-03 Planning & Review",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        740,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.UAPM_WF_READ_OPS_ID }}",
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "request": "={{ $json.request }}",
+            "decision": "={{ $json.decision }}"
+          }
+        }
+      },
+      "id": "invoke-read",
+      "name": "Invoke WF-04 Read Ops",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        740,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.UAPM_WF_MUTATION_ID }}",
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "request": "={{ $json.request }}",
+            "decision": "={{ $json.decision }}"
+          }
+        }
+      },
+      "id": "invoke-mutation",
+      "name": "Invoke WF-05 Mutation Executor",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        740,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $json.decision; return [{ json: { response: `Clarification needed: ${d.question || d.rationale}`, correlationId: $('Prepare request').item.json.request.principal.correlationId, operationIds: [] } }];"
+      },
+      "id": "clarify",
+      "name": "Clarify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nreturn [{ json: { response: r.response || r.summary || 'Done.', correlationId: r.correlationId || $('Prepare request').item.json.request.principal.correlationId, operationIds: r.operationIds || [] } }];"
+      },
+      "id": "shape-core-output",
+      "name": "Shape core output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Service webhook (service-to-service)": {
+      "main": [
+        [
+          {
+            "node": "Merge entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub-workflow input": {
+      "main": [
+        [
+          {
+            "node": "Merge entry",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge entry": {
+      "main": [
+        [
+          {
+            "node": "Prepare request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare request": {
+      "main": [
+        [
+          {
+            "node": "Coordinator agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coordinator model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coordinator agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coordinator agent": {
+      "main": [
+        [
+          {
+            "node": "Parse decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse decision": {
+      "main": [
+        [
+          {
+            "node": "Route intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route intent": {
+      "main": [
+        [
+          {
+            "node": "Invoke WF-03 Planning & Review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invoke WF-04 Read Ops",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invoke WF-05 Mutation Executor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clarify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoke WF-03 Planning & Review": {
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoke WF-04 Read Ops": {
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoke WF-05 Mutation Executor": {
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clarify": {
+      "main": [
+        [
+          {
+            "node": "Shape core output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "wf-02-multi-agent-core-v1",
+  "triggerCount": 1,
+  "active": false
+}

@@ -1,0 +1,67 @@
+name: uapm-mcp-dev
+
+networks:
+  uapm-mcp-net:
+    driver: bridge
+
+volumes:
+  uapm-n8n-data: {}
+
+services:
+  mcp:
+    build:
+      context: ../../apps/mcp-server
+      dockerfile: Dockerfile
+    image: uapm-mcp:dev
+    container_name: uapm-mcp
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      MCP_PORT: "3002"
+      MCP_HOST: "0.0.0.0"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      UAPM_BACKEND_MODE: "${UAPM_BACKEND_MODE:-mock}"
+      UAPM_BACKEND_BASE_URL: "${UAPM_BACKEND_BASE_URL:-}"
+      UAPM_BACKEND_SERVICE_TOKEN: "${UAPM_BACKEND_SERVICE_TOKEN:-}"
+      UAPM_MCP_SERVICE_TOKEN: "${UAPM_MCP_SERVICE_TOKEN:-change-me-dev-only}"
+      UAPM_REQUEST_TIMEOUT_MS: "${UAPM_REQUEST_TIMEOUT_MS:-10000}"
+      UAPM_MAX_RETRIES: "${UAPM_MAX_RETRIES:-2}"
+      UAPM_MAX_PAGE_SIZE: "${UAPM_MAX_PAGE_SIZE:-100}"
+    ports:
+      - "127.0.0.1:13082:3002"
+    networks:
+      - uapm-mcp-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3002/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  n8n:
+    # Dedicated local-dev n8n (NOT connected to any production instance).
+    image: n8nio/n8n:1.74.0
+    container_name: uapm-n8n-dev
+    restart: unless-stopped
+    environment:
+      N8N_HOST: "${N8N_HOST:-127.0.0.1}"
+      N8N_PORT: "5678"
+      N8N_PROTOCOL: "${N8N_PROTOCOL:-http}"
+      N8N_ENCRYPTION_KEY: "${N8N_ENCRYPTION_KEY:-change-me-n8n-key-32-chars-min__}"
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: "${N8N_BASIC_AUTH_USER:-admin}"
+      N8N_BASIC_AUTH_PASSWORD: "${N8N_BASIC_AUTH_PASSWORD:-change-me}"
+      N8N_SECURE_COOKIE: "false"
+      # Important: isolated from the shared Klare KI MCP (port 8100).
+      MCP_UAPM_URL: "http://mcp:3002/mcp"
+      MCP_UAPM_SERVICE_TOKEN: "${UAPM_MCP_SERVICE_TOKEN:-change-me-dev-only}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      UAPM_MODEL: "${UAPM_MODEL:-gpt-4.1-mini}"
+    ports:
+      - "127.0.0.1:15682:5678"
+    networks:
+      - uapm-mcp-net
+    volumes:
+      - uapm-n8n-data:/home/node/.n8n
+    depends_on:
+      mcp:
+        condition: service_healthy
