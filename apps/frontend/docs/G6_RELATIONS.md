@@ -66,3 +66,13 @@ accurately but cannot be selected as a new assignee. True removed-ID warning
 is additionally unit-tested with a stale or unavailable directory entry.
 For full removal, the organization must first reassign or unassign the task
 via the immutable plan/approval/publication flow.
+
+## Test-isolation decision
+
+The G6 browser gate runs its own full-member/dependency acceptance on a fresh
+isolated G6 database, not a second legacy task-metadata browser spec after it.
+Both specs share the one human account's 120-request rate window; a sequential
+second workload can hit the unchanged backend limiter and confound acceptance.
+The previously verified task metadata/unit G4 scenarios remain independently
+covered by the G4 pinned-backend run and frontend unit/browser gate. Do not
+relax request throttling or swap identities to bypass rate limits.
