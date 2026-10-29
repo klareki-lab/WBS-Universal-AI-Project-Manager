@@ -1,15 +1,18 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {Link,useParams} from 'react-router-dom';
+import {Link,useParams,useSearchParams} from 'react-router-dom';
 import {api,type Plan,type Operation} from '../live/client';
 import {type ReadOptions,isAbort} from '../live/readCoordinator';
 import {useReadResource} from '../utils/useReadResource';
 import {explainError} from '../api/errors';
 import {g4,planningFailureMessage} from '../i18n/g4';
+import {taskEditing} from '../i18n/taskEditing';
+import {de} from '../i18n/de';
 import {Card,PageHeader,StatusBadge,ErrorState} from '../components/UI';
 type History=Awaited<ReturnType<typeof api.approvalHistory>>;
 const emptyHistory:History={items:[],revocations:[]};
 export default function LivePlanWorkspace(){
  const {projectId=''}=useParams();
+ const [searchParams]=useSearchParams();const requestedPlan=searchParams.get('plan')??'';
  const [selected,setSelected]=useState('');
  const [prompt,setPrompt]=useState(''),[title,setTitle]=useState(''),[comment,setComment]=useState(''),[confirmed,setConfirmed]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const submitting=useRef(false),currentProject=useRef(projectId);currentProject.current=projectId;
@@ -19,10 +22,13 @@ export default function LivePlanWorkspace(){
  const [polled,setPolled]=useState<{projectId:string;jobs:Operation[]}>({projectId,jobs:[]});
  const jobs=polled.projectId===projectId&&polled.jobs.length?polled.jobs:read.data?.jobs??[];
  const latestPlanning=jobs.find(j=>j.kind==='planning');
- const plan:Plan|undefined=plans.find(p=>p.id===selected)??plans[0];
+ // A receipt links an exact stored ID; never silently approve a different/latest plan.
+ const desiredId=selected||requestedPlan;
+ const plan:Plan|undefined=desiredId?plans.find(p=>p.id===desiredId):plans[0];
  const historyLoader=useCallback((options:ReadOptions)=>plan?api.approvalHistory(projectId,plan.id,options):Promise.resolve(emptyHistory),[projectId,plan?.id,plan?.status]);
  const historyRead=useReadResource('approvals:'+projectId+':'+(plan?.id??'')+':'+(plan?.status??''),historyLoader);
  const history=historyRead.data??emptyHistory,revoked=history.revocations.length>0;
+ useEffect(()=>setSelected(''),[requestedPlan]);
  useEffect(()=>{setSelected('');setPrompt('');setTitle('');setComment('');setNotice('');setError('');setConfirmed(false);setPolled({projectId,jobs:[]});},[projectId]);
  useEffect(()=>{if(read.data)setPolled({projectId,jobs:read.data.jobs});},[projectId,read.data]);
  useEffect(()=>setConfirmed(false),[projectId,plan?.id,plan?.content_hash,plan?.status]);
@@ -55,9 +61,9 @@ export default function LivePlanWorkspace(){
  <div className="grid gap-5 xl:grid-cols-2"><div className="space-y-5"><Card className="p-6"><h2 className="text-lg font-bold">AI-Planung anfordern</h2><p className="my-3 text-sm text-slate-500">Eine Modellantwort ist keine menschliche Freigabe. {g4.aiLanguage}</p><label className="field-label">Planungsziel<textarea className="field-input" value={prompt} onChange={e=>setPrompt(e.target.value)}/></label><button className="btn-primary mt-3" disabled={busy||!prompt.trim()} onClick={()=>void act(()=>api.planning(projectId,prompt),g4.planningSubmitted)}>Planung anfordern</button><ul className="mt-4 text-sm">{jobs.map(j=><li key={j.id}>{j.kind==='publish'?'Veröffentlichung':'Planung'}: <StatusBadge status={j.status}/> {j.status==='failed'&&j.kind==='planning'?<span role="alert" className="block text-red-700">{planningFailureMessage(j.error)}</span>:j.error??''}<span className="block font-mono text-xs">{j.id}</span></li>)}</ul></Card>
  <Card className="p-6"><h2 className="font-bold">Entwurf / Revision erstellen</h2><p className="my-3 text-sm">Eine Revision kopiert den gewählten Snapshot und ändert den Titel der ersten Aufgabe. Frühere Versionen bleiben erhalten.</p><label className="field-label">Aufgabentitel<input className="field-input" value={title} onChange={e=>setTitle(e.target.value)}/></label><button className="btn-secondary mt-3" disabled={busy||!project||(!plan&&!title.trim())} onClick={()=>void act(draft,'Neue unveränderliche Entwurfsversion erstellt.')}>Neue Entwurfsversion</button></Card>
  <Card className="p-6"><h2 className="font-bold">Versionshistorie</h2>{plans.map(p=><button key={p.id} onClick={()=>setSelected(p.id)} className="my-2 block w-full rounded-lg border p-3 text-left" aria-pressed={plan?.id===p.id}>v{p.number} · <StatusBadge status={p.status}/><span className="block font-mono text-xs">{p.id}</span></button>)}</Card></div>
- <div className="space-y-5"><Card className="p-6">{plan?<><div className="flex justify-between"><h2 className="text-lg font-bold">Fixierter Snapshot v{plan.number}</h2><StatusBadge status={plan.status}/></div><p className="mt-3 break-all font-mono text-xs" data-testid="plan-version-id">{plan.id}</p><p className="mt-2 break-all font-mono text-xs" data-testid="plan-hash">SHA-256: {plan.content_hash}</p><ul className="my-5 space-y-3">{plan.snapshot.tasks.map(t=><li key={t.key} className="rounded-xl bg-slate-50 p-3"><strong>{t.title}</strong><p className="text-sm">{t.description}</p></li>)}</ul>
+ <div className="space-y-5"><Card className="p-6">{plan?<><div className="flex justify-between"><h2 className="text-lg font-bold">Fixierter Snapshot v{plan.number}</h2><StatusBadge status={plan.status}/></div><p className="mt-3 break-all font-mono text-xs" data-testid="plan-version-id">{plan.id}</p><p className="mt-2 break-all font-mono text-xs" data-testid="plan-hash">SHA-256: {plan.content_hash}</p><ul className="my-5 space-y-3">{plan.snapshot.tasks.map(t=><li key={t.key} className="rounded-xl bg-slate-50 p-3"><strong>{t.title}</strong><p className="whitespace-pre-wrap text-sm">{t.description}</p><p className="mt-2 text-xs">{de.editor.priority}: {de.taskPriority[t.priority]} · {de.editor.date}: {t.due_date??'–'}</p><p className="break-all text-xs">{de.v2.board.assignee}: {t.assignee_id??de.v2.board.unassigned}</p></li>)}</ul>
  {plan.status==='draft'&&<button className="btn-primary" disabled={busy} onClick={()=>void act(()=>api.review(projectId,plan.id),'Zur Prüfung eingereicht.')}>Review einreichen</button>}
  {plan.status==='in_review'&&<><label className="field-label">Kommentar<textarea className="field-input" value={comment} onChange={e=>setComment(e.target.value)}/></label><label className="my-4 flex gap-3"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/><span>Ich genehmige ausdrücklich diese exakte Version und den oben angezeigten Hash.</span></label><div className="flex gap-3"><button className="btn-primary" disabled={busy||!confirmed} onClick={()=>void act(()=>api.decision(projectId,plan,'approved',comment),'Version menschlich freigegeben.')}>Version freigeben</button><button className="btn-secondary" disabled={busy} onClick={()=>void act(()=>api.decision(projectId,plan,'rejected',comment),'Version abgelehnt.')}>Version ablehnen</button></div></>}
- {plan.status==='approved'&&<div className="flex gap-3"><button className="btn-primary" disabled={busy||revoked} onClick={()=>void act(async()=>{const result=await api.publish(projectId,plan);if(result.status!=='succeeded')throw new Error('Veröffentlichung noch nicht bestätigt: '+result.id+' / '+result.status);},'Plan veröffentlicht. Aufgaben sind im Kanban gespeichert.')}>Plan veröffentlichen</button><button className="btn-secondary" disabled={busy} onClick={()=>void act(()=>api.revoke(projectId,plan.id,comment||'Menschlicher Widerruf'),'Freigabe dauerhaft widerrufen.')}>Freigabe widerrufen</button></div>}</>:<p>Noch kein Plan. Planung anfordern oder Entwurf erstellen.</p>}</Card>
+ {plan.status==='approved'&&<div className="flex gap-3"><button className="btn-primary" disabled={busy||revoked} onClick={()=>void act(async()=>{const result=await api.publish(projectId,plan);if(result.status!=='succeeded')throw new Error('Veröffentlichung noch nicht bestätigt: '+result.id+' / '+result.status);},'Plan veröffentlicht. Aufgaben sind im Kanban gespeichert.')}>Plan veröffentlichen</button><button className="btn-secondary" disabled={busy} onClick={()=>void act(()=>api.revoke(projectId,plan.id,comment||'Menschlicher Widerruf'),'Freigabe dauerhaft widerrufen.')}>Freigabe widerrufen</button></div>}</>:<p>{desiredId?taskEditing.notFound:'Noch kein Plan. Planung anfordern oder Entwurf erstellen.'}</p>}</Card>
  <Card className="p-6"><h2 className="font-bold">Freigabehistorie</h2>{history.items.map(a=><p className="mt-3 rounded-lg border p-3 text-sm" key={a.id}><StatusBadge status={a.decision}/> · {a.created_at}<span className="block font-mono text-xs">{a.plan_version_id}</span>{history.revocations.filter(r=>r.approval_id===a.id).map((r,i)=><strong key={i} className="block text-red-700">Widerrufen: {r.reason} ({r.source})</strong>)}</p>)}</Card></div></div></>;
 }
