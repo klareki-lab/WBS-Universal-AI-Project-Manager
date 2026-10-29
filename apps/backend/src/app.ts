@@ -364,6 +364,26 @@ export async function buildApp(config: Config) {
           [p.projectId],
         )
       ).rows;
+      if (b.depends_on !== undefined) {
+        ensure(
+          !b.depends_on.includes(task.id),
+          400,
+          "self_dependency_not_allowed",
+        );
+        ensure(
+          new Set(b.depends_on).size === b.depends_on.length,
+          400,
+          "duplicate_dependency",
+        );
+        const ids = new Set(all.map((t) => t.id));
+        for (const dep of b.depends_on)
+          ensure(ids.has(dep), 400, "invalid_dependency_reference");
+      }
+      const bodyOverrides = Object.fromEntries(
+        Object.entries(b).filter(
+          ([k]) => k !== "version" && k !== "depends_on",
+        ),
+      );
       const phases = Array.from(
         new Map(
           all.map((t) => [
@@ -382,14 +402,13 @@ export async function buildApp(config: Config) {
         task_id: t.id,
         expected_version: t.version,
         ...Object.fromEntries(Object.keys(s.taskFields).map((k) => [k, t[k]])),
-        ...(t.id === task.id
-          ? Object.fromEntries(
-              Object.entries(b).filter(([k]) => k !== "version"),
-            )
-          : {}),
-        depends_on: edges
-          .filter((e) => e.task_id === t.id)
-          .map((e) => e.depends_on_id),
+        ...(t.id === task.id ? bodyOverrides : {}),
+        depends_on:
+          t.id === task.id && b.depends_on !== undefined
+            ? b.depends_on
+            : edges
+                .filter((e) => e.task_id === t.id)
+                .map((e) => e.depends_on_id),
       }));
       return d.createPlan(
         c,
@@ -401,6 +420,16 @@ export async function buildApp(config: Config) {
         "Task metadata update",
       );
     },
+    listProjectMembers: async (c, p, _b, q) =>
+      page(
+        (
+          await c.db.query(
+            "SELECT u.id AS user_id,u.email,u.display_name,u.kind,u.disabled,m.role FROM project_members m JOIN users u ON u.id=m.user_id WHERE m.project_id=$1 ORDER BY u.display_name,u.id LIMIT $2 OFFSET $3",
+            [p.projectId, q.limit, q.offset],
+          )
+        ).rows,
+        q,
+      ),
     dependencies: async (c, p) => {
       await handlers.getTask(c, p, null, null);
       return {

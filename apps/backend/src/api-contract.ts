@@ -89,11 +89,20 @@ export const specs: Record<string, Spec> = {
   taskMetadata: {
     method: "PATCH",
     url: p + "/tasks/:taskId",
-    summary: "Create a material-change proposal; no direct task mutation",
+    summary:
+      "Create a material-change proposal (metadata and/or dependencies); no direct task mutation",
     body: s.metadataUpdate,
     response: s.planResponse,
     scope: "plans:write",
     status: 201,
+  },
+  listProjectMembers: {
+    method: "GET",
+    url: p + "/members",
+    summary: "List project members for assignee picker and collaboration UX",
+    query: s.pageQuery,
+    response: s.collection(s.memberResponse),
+    scope: "read",
   },
   dependencies: {
     method: "GET",

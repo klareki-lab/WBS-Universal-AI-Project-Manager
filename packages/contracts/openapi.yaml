@@ -715,7 +715,8 @@ paths:
                 $ref: "#/components/schemas/Error"
     patch:
       operationId: taskMetadata
-      summary: Create a material-change proposal; no direct task mutation
+      summary: Create a material-change proposal (metadata and/or dependencies); no
+        direct task mutation
       tags:
         - Core
       security:
@@ -937,6 +938,109 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/taskStatusRequest"
+  /api/v1/projects/{projectId}/members:
+    get:
+      operationId: listProjectMembers
+      summary: List project members for assignee picker and collaboration UX
+      tags:
+        - Core
+      security:
+        - cookieAuth: []
+        - serviceBearer: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 50
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            default: 0
+            type: integer
+            minimum: 0
+            maximum: 100000
+      x-service-scope: read
+      x-required-service-scopes:
+        - read
+      x-human-only: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listProjectMembersResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden or CSRF failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: State/version/idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /api/v1/projects/{projectId}/tasks/{taskId}/dependencies:
     get:
       operationId: dependencies
@@ -4157,8 +4261,67 @@ components:
           type: string
           maxLength: 20000
           pattern: ^[^\u0000\uD800-\uDFFF]*$
+        depends_on:
+          maxItems: 500
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
       required:
         - version
+      additionalProperties: false
+    listProjectMembersResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              email:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              display_name:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              kind:
+                type: string
+                enum:
+                  - human
+                  - service
+              role:
+                type: string
+                enum:
+                  - owner
+                  - editor
+                  - viewer
+              disabled:
+                type: boolean
+            required:
+              - user_id
+              - email
+              - display_name
+              - kind
+              - role
+              - disabled
+            additionalProperties: false
+        limit:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        offset:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+      required:
+        - items
+        - limit
+        - offset
       additionalProperties: false
     dependenciesResponse:
       type: object
