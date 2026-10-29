@@ -174,7 +174,7 @@ describe("real HTTP + PostgreSQL backend", () => {
   it("applies migrations once and provisions all canonical entities", async () => {
     await migrate(pool);
     expect((await pool.query("SELECT * FROM schema_migrations")).rowCount).toBe(
-      4,
+      6,
     );
     for (const table of [
       "users",

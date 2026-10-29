@@ -29,7 +29,7 @@ export interface OperationJob { id: string; projectId: string; type: 'plan-analy
 export interface AgentConversation { id: string; projectId: string; createdAt: string; messages: AgentMessage[]; }
 export interface AgentMessage { id: string; role: 'user' | 'assistant'; text: string; kind: 'question' | 'read_only' | 'proposal'; createdAt: string; proposalId?: string; simulated: boolean; }
 export interface AppCapabilities { mode: 'mock' | 'live'; persistence: boolean; aiAvailable: boolean; integrations: { name: string; connected: boolean; optional: true }[]; }
-export interface NewProjectInput { name: string; description: string; type: ProjectType; targetDate: string; budget?: number; constraints: string[]; }
+export interface NewProjectInput { goals?:string; requirements?:string; startDate?:string; endDate?:string; name: string; description: string; type: ProjectType; targetDate: string; budget?: number; constraints: string[]; }
 export type TaskEdit = Pick<Task, 'title' | 'description' | 'priority' | 'status' | 'estimateDays' | 'dueDate' | 'dependsOn'>;
 export type OperationalTaskPatch = Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'dueDate' | 'dependsOn' | 'assigneeId'>>;
 export interface PlanningReply { message: string; generatedBy: 'local-demo-rule'; }

@@ -40,6 +40,8 @@ export const g4 = {
 } as const;
 
 export const activityNames: Record<string,string> = {
+ 'company.attached': 'Unternehmensverzeichnis verbunden',
+ 'member.added': 'Teammitglied hinzugefügt', 'member.role_changed': 'Rolle im Projektteam geändert', 'member.removed': 'Teammitglied entfernt',
  'project.created': 'Projekt erstellt', 'project.updated': 'Projekt aktualisiert',
  'task.status_changed': 'Aufgabenstatus ge\u00e4ndert', 'task.status_updated': 'Aufgabenstatus aktualisiert',
  'plan.created': 'Planentwurf erstellt', 'plan.review_requested': 'Plan zur Pr\u00fcfung eingereicht',
@@ -52,6 +54,9 @@ export const activityNames: Record<string,string> = {
 
 /** Preserve the integration owner's d22b0c3 safe planning-failure guidance. */
 export const planningFailureMessage = (code: string | null): string =>
+  code === 'Retry budget exhausted' ? 'Die Planung wurde nach mehreren Versuchen beendet. Bitte den Dienst prüfen und bei Bedarf eine neue Planung anfordern.' :
+  code === 'Automation delivery or result validation failed' ? 'Die Planung konnte nicht zugestellt oder ihr Ergebnis nicht verarbeitet werden. Bitte den Dienst prüfen.' :
+  code === 'Automation failed' ? 'Der Planungsdienst konnte den Auftrag nicht abschließen. Bitte den Dienst prüfen.' :
   code === 'AI_BUDGET_EXHAUSTED' ? 'Das freigegebene AI-Budget ist ausgesch\u00f6pft. Bitte die verantwortliche Person um eine Budgetentscheidung bitten.' :
   code === 'AI_CONCURRENCY_LIMIT' ? 'Der AI-Dienst bearbeitet bereits mehrere Anfragen. Bitte sp\u00e4ter eine neue Planung anfordern.' :
   'Die AI-Planung ist fehlgeschlagen. Dienst und Konfiguration pr\u00fcfen, dann bei Bedarf eine neue Planung anfordern.';

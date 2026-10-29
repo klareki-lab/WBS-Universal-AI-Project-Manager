@@ -1,0 +1,9 @@
+{
+  "environment": "dedicated synthetic G8 PostgreSQL and local backend",
+  "teamMembers": 3,
+  "priorSyntheticProjectsUnchanged": true,
+  "unauthorizedStatus": 403,
+  "draftAssignmentHiddenBeforePublication": true,
+  "publishedAssignmentPersistedAfterReload": true,
+  "paidProviderRequests": 0
+}

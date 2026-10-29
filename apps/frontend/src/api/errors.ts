@@ -22,6 +22,13 @@ export const explainError = (error: unknown): string => {
       duplicate_dependency:'Diese Abhängigkeit wurde mehrfach ausgewählt.',
       invalid_dependency_reference:'Mindestens eine abhängige Aufgabe gehört nicht zu diesem Projekt oder ist nicht mehr verfügbar.',
       invalid_assignee:'Die ausgewählte Person ist kein aktives menschliches Projektmitglied mehr. Bitte die Mitgliederliste neu laden.',
+      invalid_employee:'Diese Person gehört nicht zum Unternehmen oder ist nicht aktiv.',
+      company_not_configured:'Für dieses Projekt ist noch kein Unternehmensverzeichnis eingerichtet.',
+      company_access_required:'Dein Zugang zum Unternehmensverzeichnis ist nicht mehr aktiv.',
+      owner_required:'Nur die Projektleitung kann das Projektteam verwalten.',
+      owner_role_fixed:'Die Rolle der Projektleitung kann hier nicht geändert werden.',
+      member_assigned:'Diese Person ist noch Aufgaben zugewiesen. Bitte die Aufgaben zuerst neu zuweisen und den Plan veröffentlichen.',
+      company_selection_required:'Bitte zuerst ein Unternehmen für dein Konto auswählen lassen.',
       dependencies_incomplete:'Die Vorgängeraufgaben sind noch nicht abgeschlossen.',
     };
     const message=code==='invalid_plan'&&/cycle|zyklus|kreis/i.test(error.message)

@@ -12,7 +12,7 @@ async function login(page:Page){
  await expect(page.getByRole('heading',{name:'Projekte klar steuern. Menschen entscheiden.'})).toBeVisible();
 }
 async function create(page:Page,name:string,description:string){
- await page.getByRole('link',{name:'Neues Projekt',exact:true}).click();await page.getByLabel('Projektname',{exact:true}).fill(name);await page.getByLabel('Was m\u00f6chtest du erreichen?').fill(description);await page.getByRole('button',{name:'Projekt erstellen'}).click();
+ await page.getByRole('link',{name:'Neues Projekt',exact:true}).click();await page.getByRole('button',{name:'Mit Beschreibung starten'}).click();await page.getByLabel('Projektname',{exact:true}).fill(name);await page.getByLabel('Was m\u00f6chtest du erreichen?').fill(description);await page.getByRole('button',{name:'Projekt erstellen'}).click();
  await expect(page).toHaveURL(/\/projects\/[^/]+\/board$/);return new URL(page.url()).pathname.split('/')[2];
 }
 async function command(page:Page,path:string,body:unknown,method='POST'){
@@ -57,10 +57,10 @@ test('real published task, version conflict, status update, audit and logout (no
 });
 
 test('unknown real project-write outcome retains durable key and creates exactly one project',async({page})=>{
- await login(page);await page.getByRole('link',{name:'Neues Projekt',exact:true}).click();const name='G4 lost response',description='Unknown outcome recovery without a duplicate project.';let intercepted=false;
+ await login(page);await page.getByRole('link',{name:'Neues Projekt',exact:true}).click();await page.getByRole('button',{name:'Mit Beschreibung starten'}).click();const name='G4 lost response',description='Unknown outcome recovery without a duplicate project.';let intercepted=false;
  await page.route('**/api/v1/projects',async route=>{if(route.request().method()==='POST'&&!intercepted){intercepted=true;const response=await route.fetch();expect(response.status()).toBe(201);await route.abort('failed');}else await route.continue();});
  await page.getByLabel('Projektname',{exact:true}).fill(name);await page.getByLabel('Was m\u00f6chtest du erreichen?').fill(description);await page.getByRole('button',{name:'Projekt erstellen'}).click();await expect(page.getByRole('alert')).toContainText('Ergebnis unbekannt');
- await page.reload();await page.getByLabel('Projektname',{exact:true}).fill(name);await page.getByLabel('Was m\u00f6chtest du erreichen?').fill(description);await page.getByRole('button',{name:'Projekt erstellen'}).click();await expect(page).toHaveURL(/\/board$/);
+ await page.reload();await page.getByRole('button',{name:'Mit Beschreibung starten'}).click();await page.getByLabel('Projektname',{exact:true}).fill(name);await page.getByLabel('Was m\u00f6chtest du erreichen?').fill(description);await page.getByRole('button',{name:'Projekt erstellen'}).click();await expect(page).toHaveURL(/\/board$/);
  const projects=await (await page.request.get('/api/v1/projects?limit=100&offset=0')).json();expect(projects.items.filter((p:{name:string})=>p.name===name)).toHaveLength(1);
  await page.context().clearCookies();await page.reload();await expect(page.getByRole('button',{name:'Anmelden',exact:true})).toBeVisible();evidence.checks.push('Response lost after real commit: explicit replay after reload recovered original project; one row; 401 session loss distinct');
 });

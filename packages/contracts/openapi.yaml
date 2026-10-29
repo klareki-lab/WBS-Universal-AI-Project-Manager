@@ -1041,6 +1041,426 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /api/v1/projects/{projectId}/company:
+    post:
+      operationId: attachProjectCompany
+      summary: Owner links a legacy project to their sole explicitly assigned company
+      tags:
+        - Core
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 200
+            pattern: ^[A-Za-z0-9_.:-]+$
+        - name: X-CSRF-Token
+          in: header
+          required: false
+          description: Mandatory with cookie authentication on mutations; obtain from login.
+          schema:
+            type: string
+      x-service-scope: projects:write
+      x-required-service-scopes:
+        - projects:write
+      x-human-only: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/attachProjectCompanyResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden or CSRF failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: State/version/idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/projects/{projectId}/employees:
+    get:
+      operationId: listCompanyEmployees
+      summary: List employees of this project's company for its owner
+      tags:
+        - Core
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 50
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            default: 0
+            type: integer
+            minimum: 0
+            maximum: 100000
+      x-service-scope: read
+      x-required-service-scopes:
+        - read
+      x-human-only: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/listCompanyEmployeesResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden or CSRF failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: State/version/idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/projects/{projectId}/members/{userId}:
+    post:
+      operationId: putProjectMember
+      summary: Owner adds an employee or changes their role
+      tags:
+        - Core
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 200
+            pattern: ^[A-Za-z0-9_.:-]+$
+        - name: X-CSRF-Token
+          in: header
+          required: false
+          description: Mandatory with cookie authentication on mutations; obtain from login.
+          schema:
+            type: string
+      x-service-scope: projects:write
+      x-required-service-scopes:
+        - projects:write
+      x-human-only: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/putProjectMemberResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden or CSRF failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: State/version/idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/putProjectMemberRequest"
+  /api/v1/projects/{projectId}/members/{userId}/remove:
+    post:
+      operationId: removeProjectMember
+      summary: Owner removes an unassigned project member
+      tags:
+        - Core
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 200
+            pattern: ^[A-Za-z0-9_.:-]+$
+        - name: X-CSRF-Token
+          in: header
+          required: false
+          description: Mandatory with cookie authentication on mutations; obtain from login.
+          schema:
+            type: string
+      x-service-scope: projects:write
+      x-required-service-scopes:
+        - projects:write
+      x-human-only: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/removeProjectMemberResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden or CSRF failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: State/version/idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "415":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Request failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /api/v1/projects/{projectId}/tasks/{taskId}/dependencies:
     get:
       operationId: dependencies
@@ -3262,6 +3682,26 @@ components:
         description:
           type: string
           pattern: ^[^\u0000\uD800-\uDFFF]*$
+        goals:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        requirements:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        start_date:
+          default: null
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
+        end_date:
+          default: null
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
         status:
           type: string
           enum:
@@ -3293,6 +3733,10 @@ components:
         - owner_id
         - name
         - description
+        - goals
+        - requirements
+        - start_date
+        - end_date
         - status
         - version
         - published_plan_id
@@ -3312,6 +3756,30 @@ components:
           type: string
           maxLength: 20000
           pattern: ^[^\u0000\uD800-\uDFFF]*$
+        goals:
+          default: ""
+          type: string
+          maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        requirements:
+          default: ""
+          type: string
+          maxLength: 20000
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        start_date:
+          default: null
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
+        end_date:
+          default: null
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
       required:
         - name
       additionalProperties: false
@@ -3337,6 +3805,26 @@ components:
               description:
                 type: string
                 pattern: ^[^\u0000\uD800-\uDFFF]*$
+              goals:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              requirements:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              start_date:
+                default: null
+                anyOf:
+                  - type: string
+                    format: date
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                  - type: "null"
+              end_date:
+                default: null
+                anyOf:
+                  - type: string
+                    format: date
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                  - type: "null"
               status:
                 type: string
                 enum:
@@ -3368,6 +3856,10 @@ components:
               - owner_id
               - name
               - description
+              - goals
+              - requirements
+              - start_date
+              - end_date
               - status
               - version
               - published_plan_id
@@ -3404,6 +3896,26 @@ components:
         description:
           type: string
           pattern: ^[^\u0000\uD800-\uDFFF]*$
+        goals:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        requirements:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        start_date:
+          default: null
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
+        end_date:
+          default: null
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
         status:
           type: string
           enum:
@@ -3435,6 +3947,10 @@ components:
         - owner_id
         - name
         - description
+        - goals
+        - requirements
+        - start_date
+        - end_date
         - status
         - version
         - published_plan_id
@@ -3458,6 +3974,26 @@ components:
         description:
           type: string
           pattern: ^[^\u0000\uD800-\uDFFF]*$
+        goals:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        requirements:
+          type: string
+          pattern: ^[^\u0000\uD800-\uDFFF]*$
+        start_date:
+          default: null
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
+        end_date:
+          default: null
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
         status:
           type: string
           enum:
@@ -3489,6 +4025,10 @@ components:
         - owner_id
         - name
         - description
+        - goals
+        - requirements
+        - start_date
+        - end_date
         - status
         - version
         - published_plan_id
@@ -3542,6 +4082,26 @@ components:
             description:
               type: string
               pattern: ^[^\u0000\uD800-\uDFFF]*$
+            goals:
+              type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            requirements:
+              type: string
+              pattern: ^[^\u0000\uD800-\uDFFF]*$
+            start_date:
+              default: null
+              anyOf:
+                - type: string
+                  format: date
+                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                - type: "null"
+            end_date:
+              default: null
+              anyOf:
+                - type: string
+                  format: date
+                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                - type: "null"
             status:
               type: string
               enum:
@@ -3573,6 +4133,10 @@ components:
             - owner_id
             - name
             - description
+            - goals
+            - requirements
+            - start_date
+            - end_date
             - status
             - version
             - published_plan_id
@@ -4322,6 +4886,98 @@ components:
         - items
         - limit
         - offset
+      additionalProperties: false
+    attachProjectCompanyResponse:
+      type: object
+      properties:
+        attached:
+          type: boolean
+          const: true
+      required:
+        - attached
+      additionalProperties: false
+    listCompanyEmployeesResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              email:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+              display_name:
+                type: string
+                pattern: ^[^\u0000\uD800-\uDFFF]*$
+            required:
+              - user_id
+              - email
+              - display_name
+            additionalProperties: false
+        limit:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        offset:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+      required:
+        - items
+        - limit
+        - offset
+      additionalProperties: false
+    putProjectMemberResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        role:
+          anyOf:
+            - type: string
+              enum:
+                - editor
+                - viewer
+            - type: "null"
+      required:
+        - user_id
+        - role
+      additionalProperties: false
+    putProjectMemberRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+            - editor
+            - viewer
+      required:
+        - role
+      additionalProperties: false
+    removeProjectMemberResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        role:
+          anyOf:
+            - type: string
+              enum:
+                - editor
+                - viewer
+            - type: "null"
+      required:
+        - user_id
+        - role
       additionalProperties: false
     dependenciesResponse:
       type: object

@@ -4,7 +4,7 @@ export type ProjectStatus='draft'|'active'|'on_hold'|'completed'|'archived';
 export type TaskStatus='todo'|'in_progress'|'blocked'|'done'|'cancelled';
 export type PlanStatus='draft'|'in_review'|'approved'|'published'|'superseded'|'rejected';
 export type JobStatus='queued'|'running'|'succeeded'|'failed';
-export interface Project {id:string;name:string;description:string;status:ProjectStatus;version:number;published_plan_id:string|null;created_at:string;updated_at:string}
+export interface Project {id:string;owner_id:string;name:string;description:string;status:ProjectStatus;version:number;published_plan_id:string|null;goals?:string;requirements?:string;start_date?:string|null;end_date?:string|null;created_at:string;updated_at:string}
 export interface Task {id:string;project_id:string;title:string;description:string;status:TaskStatus;priority:'low'|'medium'|'high'|'urgent';version:number;due_date:string|null;assignee_id:string|null;phase_id:string;source_key:string;source_plan_id:string}
 export interface Phase {key:string;name:string;description:string}
 export interface PlanTask {key:string;phase_key:string;title:string;description:string;priority:'low'|'medium'|'high'|'urgent';depends_on:string[];due_date:string|null;assignee_id:string|null}
@@ -16,6 +16,7 @@ export interface ProjectMember {
   user_id:string; email:string; display_name:string;
   kind:'human'|'service'; role:'owner'|'editor'|'viewer'; disabled:boolean;
 }
+export interface Employee { user_id:string; email:string; display_name:string }
 export interface TaskDependency { project_id:string; task_id:string; depends_on_id:string }
 export class ApiError extends Error {
   constructor(public status:number,public code:string,message:string,public requestId:string,public retryAt:number|null=null){super(message);this.name='ApiError'}
@@ -110,10 +111,14 @@ const one=(id:string)=>'/api/v1/operations/'+encodeURIComponent(id);
 export const api={
  projects:(options:ReadOptions={})=>request<Page<Project>>('/api/v1/projects?limit=100&offset=0','GET',undefined,undefined,options),
  project:(id:string,options:ReadOptions={})=>request<Project>(p(id),'GET',undefined,undefined,options),
- createProject:(name:string,description:string,key?:string)=>request<Project>('/api/v1/projects','POST',{name,description},key),
+ createProject:(name:string,description:string,key?:string,brief?:{goals:string;requirements:string;start_date:string|null;end_date:string|null})=>request<Project>('/api/v1/projects','POST',{name,description,...brief},key),
  dashboard:(id:string,options:ReadOptions={})=>request<{total:number;progress_percent:number;by_status:Record<string,number>}>(p(id)+'/dashboard','GET',undefined,undefined,options),
  tasks:(id:string,options:ReadOptions={},offset=0)=>request<Page<Task>>(p(id)+'/tasks?limit=100&offset='+offset,'GET',undefined,undefined,options),
  members:(id:string,options:ReadOptions={},offset=0)=>request<Page<ProjectMember>>(p(id)+'/members?limit=100&offset='+offset,'GET',undefined,undefined,options),
+ attachCompany:(id:string)=>request<{attached:true}>(p(id)+'/company','POST'),
+ employees:(id:string,options:ReadOptions={},offset=0)=>request<Page<Employee>>(p(id)+'/employees?limit=100&offset='+offset,'GET',undefined,undefined,options),
+ setMember:(id:string,userId:string,role:'editor'|'viewer')=>request<{user_id:string;role:string}>(p(id)+'/members/'+encodeURIComponent(userId),'POST',{role}),
+ removeMember:(id:string,userId:string)=>request<{user_id:string;role:null}>(p(id)+'/members/'+encodeURIComponent(userId)+'/remove','POST'),
  dependencies:(id:string,taskId:string,options:ReadOptions={})=>request<{items:TaskDependency[]}>(p(id)+'/tasks/'+encodeURIComponent(taskId)+'/dependencies','GET',undefined,undefined,options),
  status:(id:string,task:Pick<Task,'id'|'version'>,status:TaskStatus,key?:string)=>request<Task>(p(id)+'/tasks/'+task.id+'/status','PATCH',{version:task.version,status},key),
  plans:(id:string,options:ReadOptions={})=>request<Page<Plan>>(p(id)+'/plans?limit=100&offset=0','GET',undefined,undefined,options),

@@ -12,10 +12,11 @@ import Approval from './pages/Approval';
 import Board from './pages/Board';
 import Settings from './pages/Settings';
 import Activity from './pages/Activity';
+import ProjectTeam from './pages/ProjectTeam';
 import Assistant from './pages/Assistant';
 export function App(){return <SessionGate><BrowserRouter><AppProvider><Routes><Route element={<Layout/>}>
   <Route path="/" element={<Dashboard/>}/><Route path="/projects/new" element={<NewProject/>}/>
-  <Route path="/projects/:projectId/board" element={<Board/>}/><Route path="/projects/:projectId/workspace" element={isDemoMode?<Workspace/>:<LivePlanWorkspace/>}/>
+  <Route path="/projects/:projectId/board" element={<Board/>}/><Route path="/projects/:projectId/team" element={<ProjectTeam/>}/><Route path="/projects/:projectId/workspace" element={isDemoMode?<Workspace/>:<LivePlanWorkspace/>}/>
   <Route path="/projects/:projectId/review" element={isDemoMode?<Review/>:<LivePlanWorkspace/>}/><Route path="/projects/:projectId/approval" element={isDemoMode?<Approval/>:<LivePlanWorkspace/>}/>
   <Route path="/projects/:projectId/assistant" element={<Assistant/>}/><Route path="/activity" element={<Activity/>}/>
   <Route path="/settings" element={<Settings/>}/><Route path="/integrations" element={<Navigate to="/settings" replace/>}/>

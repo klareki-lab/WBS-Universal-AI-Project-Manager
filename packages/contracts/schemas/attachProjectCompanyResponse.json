@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "attached": {
+      "type": "boolean",
+      "const": true
+    }
+  },
+  "required": [
+    "attached"
+  ],
+  "additionalProperties": false
+}

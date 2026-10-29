@@ -4,7 +4,7 @@ import { isDemoMode } from '../api';
 import { auth } from '../api/liveApi';
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Activity, ArrowRight, Blocks, Bot, CheckCheck, ChevronDown, FolderKanban, LayoutDashboard, Menu, MessageCircleMore, Plus, Settings2, Sparkles, X, type LucideIcon } from 'lucide-react';
+import { Activity, ArrowRight, Blocks, Bot, CheckCheck, ChevronDown, FolderKanban, LayoutDashboard, Menu, MessageCircleMore, Plus, Settings2, Sparkles, UsersRound, X, type LucideIcon } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { de } from '../i18n/de';
 import { DemoNotice, ErrorState, Loading } from './UI';
@@ -23,6 +23,7 @@ export function Layout() {
   const global: readonly NavigationItem[]=[{label:de.nav.dashboard,path:'/',Icon:LayoutDashboard},{label:de.nav.newProject,path:'/projects/new',Icon:Plus}];
   const local: readonly NavigationItem[]=projectId?[
     {label:de.v2.navigation.workspace,path:`/projects/${projectId}/board`,Icon:FolderKanban},
+    {label:'Projektteam',path:`/projects/${projectId}/team`,Icon:UsersRound},
     {label:de.nav.workspace,path:`/projects/${projectId}/workspace`,Icon:MessageCircleMore},
     {label:de.nav.review,path:`/projects/${projectId}/review`,Icon:CheckCheck},
     {label:de.v2.navigation.assistant,path:`/projects/${projectId}/assistant`,Icon:Bot},

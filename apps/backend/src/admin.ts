@@ -46,6 +46,38 @@ try {
     console.log(
       JSON.stringify({ ...result, token: secret, expires_in_days: 90 }),
     );
+  } else if (command === "create-company") {
+    const name = z
+      .string()
+      .trim()
+      .min(1)
+      .max(200)
+      .parse(process.env.COMPANY_NAME);
+    const result = await pool.query(
+      "INSERT INTO companies(name) VALUES($1) RETURNING id,name",
+      [name],
+    );
+    console.log(JSON.stringify(result.rows[0]));
+  } else if (command === "add-company-employee") {
+    const company = z.uuid().parse(process.env.COMPANY_ID),
+      user = z.uuid().parse(process.env.USER_ID);
+    await transaction(pool, async (db) => {
+      ensure(
+        (
+          await db.query(
+            "SELECT id FROM users WHERE id=$1 AND kind='human' AND NOT disabled FOR SHARE",
+            [user],
+          )
+        ).rowCount,
+        400,
+        "invalid_employee",
+      );
+      await db.query(
+        "INSERT INTO company_employees(company_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING",
+        [company, user],
+      );
+    });
+    console.log("Employee linked to company");
   } else if (command === "disable-user") {
     const id = z.uuid().parse(process.env.USER_ID);
     await transaction(pool, async (db) => {
@@ -55,7 +87,7 @@ try {
     console.log("Identity disabled");
   } else
     throw new Error(
-      "Usage: npm run admin -- create-user|create-service|disable-user",
+      "Usage: npm run admin -- create-user|create-service|create-company|add-company-employee|disable-user",
     );
 } finally {
   await pool.end();

@@ -33,10 +33,19 @@ const text = string().trim().min(1).max(200);
 const longText = string().max(20000);
 const date = z.iso.date().nullable().default(null);
 const version = z.number().int().positive();
-export const projectCreate = z.strictObject({
-  name: text,
-  description: longText.default(""),
-});
+export const projectCreate = z
+  .strictObject({
+    name: text,
+    description: longText.default(""),
+    goals: longText.default(""),
+    requirements: longText.default(""),
+    start_date: date,
+    end_date: date,
+  })
+  .refine(
+    (p) => !p.start_date || !p.end_date || p.start_date <= p.end_date,
+    "start_date must not follow end_date",
+  );
 export const projectUpdate = z.strictObject({
   version,
   name: text.optional(),
@@ -137,6 +146,16 @@ export const listQuery = z.strictObject({
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).max(100000).default(0),
 });
+export const teamRole = z.strictObject({ role: z.enum(["editor", "viewer"]) });
+export const employeeResponse = z.object({
+  user_id: uuid,
+  email: string(),
+  display_name: string(),
+});
+export const teamResult = z.object({
+  user_id: uuid,
+  role: z.enum(["editor", "viewer"]).nullable(),
+});
 export const pageQuery = z.strictObject({
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).max(100000).default(0),
@@ -181,6 +200,10 @@ export const projectResponse = z.object({
   owner_id: uuid,
   name: string(),
   description: string(),
+  goals: string(),
+  requirements: string(),
+  start_date: date,
+  end_date: date,
   status: projectStatus,
   version,
   published_plan_id: uuid.nullable(),

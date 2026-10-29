@@ -249,9 +249,23 @@ export async function buildApp(config: Config) {
     (c: d.Context, p: any, b: any, q: any) => Promise<unknown>
   > = {
     createProject: async (c, _p, b) => {
+      const companies = await c.db.query(
+        "SELECT company_id FROM company_employees WHERE user_id=$1 ORDER BY company_id FOR SHARE",
+        [c.actor.id],
+      );
+      ensure(companies.rowCount! <= 1, 409, "company_selection_required");
       const r = await c.db.query(
-        "INSERT INTO projects(owner_id,name,description) VALUES($1,$2,$3) RETURNING *",
-        [c.actor.id, b.name, b.description],
+        "INSERT INTO projects(owner_id,name,description,goals,requirements,start_date,end_date,company_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
+        [
+          c.actor.id,
+          b.name,
+          b.description,
+          b.goals,
+          b.requirements,
+          b.start_date,
+          b.end_date,
+          companies.rows[0]?.company_id ?? null,
+        ],
       );
       const p = r.rows[0];
       await c.db.query(
@@ -448,6 +462,145 @@ export async function buildApp(config: Config) {
         ).rows,
         q,
       ),
+    attachProjectCompany: async (c, p) => {
+      const project = await d.lockedProject(c, p.projectId);
+      ensure(
+        c.actor.kind === "human" && project.owner_id === c.actor.id,
+        403,
+        "owner_required",
+      );
+      ensure(!project.company_id, 409, "company_already_configured");
+      const companies = await c.db.query(
+        "SELECT company_id FROM company_employees WHERE user_id=$1 ORDER BY company_id FOR SHARE",
+        [c.actor.id],
+      );
+      ensure(companies.rowCount === 1, 409, "company_selection_required");
+      await c.db.query(
+        "UPDATE projects SET company_id=$2,updated_at=now() WHERE id=$1",
+        [p.projectId, companies.rows[0].company_id],
+      );
+      await d.event(c, p.projectId, "company.attached", p.projectId);
+      return { attached: true };
+    },
+    listCompanyEmployees: async (c, p, _b, q) => {
+      const project = await access(c.db, c.actor, p.projectId);
+      ensure(
+        c.actor.kind === "human" && project.owner_id === c.actor.id,
+        403,
+        "owner_required",
+      );
+      ensure(project.company_id, 409, "company_not_configured");
+      ensure(
+        (
+          await c.db.query(
+            "SELECT 1 FROM company_employees WHERE company_id=$1 AND user_id=$2 FOR SHARE",
+            [project.company_id, c.actor.id],
+          )
+        ).rowCount,
+        403,
+        "company_access_required",
+      );
+      return page(
+        (
+          await c.db.query(
+            "SELECT u.id AS user_id,u.email,u.display_name FROM company_employees e JOIN users u ON u.id=e.user_id WHERE e.company_id=$1 AND u.kind='human' AND NOT u.disabled ORDER BY u.display_name,u.id LIMIT $2 OFFSET $3",
+            [project.company_id, q.limit, q.offset],
+          )
+        ).rows,
+        q,
+      );
+    },
+    putProjectMember: async (c, p, b) => {
+      const project = await d.lockedProject(c, p.projectId);
+      ensure(
+        c.actor.kind === "human" && project.owner_id === c.actor.id,
+        403,
+        "owner_required",
+      );
+      ensure(project.company_id, 409, "company_not_configured");
+      ensure(
+        (
+          await c.db.query(
+            "SELECT 1 FROM company_employees WHERE company_id=$1 AND user_id=$2 FOR SHARE",
+            [project.company_id, c.actor.id],
+          )
+        ).rowCount,
+        403,
+        "company_access_required",
+      );
+      ensure(p.userId !== project.owner_id, 409, "owner_role_fixed");
+      const employee = await c.db.query(
+        "SELECT u.id FROM company_employees e JOIN users u ON u.id=e.user_id WHERE e.company_id=$1 AND e.user_id=$2 AND u.kind='human' AND NOT u.disabled FOR SHARE OF e,u",
+        [project.company_id, p.userId],
+      );
+      ensure(employee.rowCount, 400, "invalid_employee");
+      const old = await c.db.query(
+        "SELECT role FROM project_members WHERE project_id=$1 AND user_id=$2 FOR UPDATE",
+        [p.projectId, p.userId],
+      );
+      ensure(
+        !old.rowCount || old.rows[0].role !== "owner",
+        409,
+        "owner_role_fixed",
+      );
+      await c.db.query(
+        "INSERT INTO project_members(project_id,user_id,role) VALUES($1,$2,$3) ON CONFLICT(project_id,user_id) DO UPDATE SET role=EXCLUDED.role",
+        [p.projectId, p.userId, b.role],
+      );
+      if (!old.rowCount || old.rows[0].role !== b.role)
+        await d.event(
+          c,
+          p.projectId,
+          old.rowCount ? "member.role_changed" : "member.added",
+          p.userId,
+          { role: b.role },
+        );
+      return { user_id: p.userId, role: b.role };
+    },
+    removeProjectMember: async (c, p) => {
+      const project = await d.lockedProject(c, p.projectId);
+      ensure(
+        c.actor.kind === "human" && project.owner_id === c.actor.id,
+        403,
+        "owner_required",
+      );
+      ensure(project.company_id, 409, "company_not_configured");
+      ensure(
+        (
+          await c.db.query(
+            "SELECT 1 FROM company_employees WHERE company_id=$1 AND user_id=$2 FOR SHARE",
+            [project.company_id, c.actor.id],
+          )
+        ).rowCount,
+        403,
+        "company_access_required",
+      );
+      ensure(p.userId !== project.owner_id, 409, "owner_role_fixed");
+      const old = await c.db.query(
+        "SELECT role FROM project_members WHERE project_id=$1 AND user_id=$2 FOR UPDATE",
+        [p.projectId, p.userId],
+      );
+      ensure(old.rowCount, 404, "member_not_found");
+      ensure(old.rows[0].role !== "owner", 409, "owner_role_fixed");
+      ensure(
+        !(
+          await c.db.query(
+            "SELECT 1 FROM tasks WHERE project_id=$1 AND assignee_id=$2 LIMIT 1",
+            [p.projectId, p.userId],
+          )
+        ).rowCount,
+        409,
+        "member_assigned",
+      );
+      await c.db.query(
+        "DELETE FROM project_members WHERE project_id=$1 AND user_id=$2",
+        [p.projectId, p.userId],
+      );
+      await d.event(c, p.projectId, "member.removed", p.userId, {
+        role: old.rows[0].role,
+      });
+      return { user_id: p.userId, role: null };
+    },
     dependencies: async (c, p) => {
       await handlers.getTask(c, p, null, null);
       return {
@@ -528,19 +681,33 @@ export async function buildApp(config: Config) {
           "invalid_conversation",
         );
       const operationId = randomUUID();
+      const input = {
+        ...b,
+        base_project_version: project.version,
+        project_context: {
+          name: project.name,
+          description: project.description,
+          goals: project.goals,
+          requirements: project.requirements,
+          start_date: project.start_date,
+          end_date: project.end_date,
+        },
+        language_instruction:
+          "Erstelle den Plan standardmäßig auf Deutsch. Wenn das Projekt ausdrücklich eine andere Ausgabesprache verlangt, halte diese Vorgabe ein. Bewahre mehrsprachige Anforderungen unverändert.",
+      };
       const r = await c.db.query(
         "INSERT INTO operation_jobs(project_id,created_by,kind,status,input,conversation_session_id,request_id,context_hash,id) VALUES($1,$2,'planning','queued',$3,$4,$5,$6,$7) RETURNING *",
         [
           p.projectId,
           c.actor.id,
-          { ...b, base_project_version: project.version },
+          input,
           b.conversation_session_id ?? null,
           c.requestId,
           d.operationContextHash({
             id: operationId,
             project_id: p.projectId,
             created_by: c.actor.id,
-            input: { ...b, base_project_version: project.version },
+            input,
             conversation_session_id: b.conversation_session_id ?? null,
             request_id: c.requestId,
           }),
