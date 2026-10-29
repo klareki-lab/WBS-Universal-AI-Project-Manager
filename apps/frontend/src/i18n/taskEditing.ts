@@ -1,0 +1,21 @@
+/** German system UI; user-authored content is sent without translation/normalization. */
+export const taskEditing = {
+  edit: 'Inhalte bearbeiten',
+  editing: 'BACKEND \u00b7 \u00c4NDERUNGSENTWURF',
+  title: 'Aufgabe bearbeiten',
+  policy: 'Status\u00e4nderungen werden direkt gespeichert. Mit \u201eInhalte bearbeiten\u201c kannst du Titel, Beschreibung, Priorit\u00e4t, Termin und Zust\u00e4ndigkeit \u00e4ndern. Diese \u00c4nderungen werden als neue Planversion gespeichert und danach gepr\u00fcft, freigegeben und ver\u00f6ffentlicht.',
+  draftPolicy: 'Du bearbeitest einen \u00c4nderungsvorschlag f\u00fcr genau diese Aufgabe. Speichern erstellt einen echten Backend-Entwurf. Die ver\u00f6ffentlichte Aufgabe bleibt bis zur Freigabe und Ver\u00f6ffentlichung unver\u00e4ndert. Kein AI-Aufruf.',
+  save: '\u00c4nderungen als Entwurf speichern',
+  saved: (version: number) => `Entwurf v${version} im Backend gespeichert. Noch nicht freigegeben oder ver\u00f6ffentlicht.`,
+  review: 'Diesen Entwurf pr\u00fcfen',
+  cancelEdit: 'Bearbeitung abbrechen',
+  statusFirst: 'Bitte die gew\u00e4hlte Status\u00e4nderung zuerst speichern oder zur\u00fccksetzen, bevor du Inhalte bearbeitest.',
+  separateStatus: 'Der Status wird separat gespeichert und ist kein Teil dieses \u00c4nderungsentwurfs.',
+  assigneeHint: 'Benutzer-ID (UUID) eines vorhandenen Projektmitglieds; leer = nicht zugewiesen. Ein Mitgliederverzeichnis ist derzeit nicht verf\u00fcgbar. Der Backend-Server pr\u00fcft die Zuordnung.',
+  dependencies: 'Abh\u00e4ngigkeiten bleiben bei dieser Bearbeitung unver\u00e4ndert. Der Backend-Befehl f\u00fcr Aufgabenfelder unterst\u00fctzt keine \u00c4nderung dieser Verkn\u00fcpfungen.',
+  saving: 'Entwurf wird gespeichert \u2026',
+  versionMissing: 'Aufgabenversion fehlt. Bitte Aufgabe erneut laden.',
+  invalidChanges: 'Keine unterst\u00fctzte Inhalts\u00e4nderung ausgew\u00e4hlt. Es wurde nichts gesendet.',
+  close: 'Details schlie\u00dfen',
+  notFound: 'Die angeforderte Planversion ist nicht geladen. Bitte erneut laden oder eine Version ausdr\u00fccklich ausw\u00e4hlen. Es wird keine andere Version automatisch freigegeben.',
+};
