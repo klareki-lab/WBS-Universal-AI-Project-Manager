@@ -49,3 +49,9 @@ export const activityNames: Record<string,string> = {
  'operation.running': 'Vorgang in Bearbeitung', 'operation.succeeded': 'Vorgang erfolgreich',
  'operation.failed': 'Vorgang fehlgeschlagen'
 };
+
+/** Preserve the integration owner's d22b0c3 safe planning-failure guidance. */
+export const planningFailureMessage = (code: string | null): string =>
+  code === 'AI_BUDGET_EXHAUSTED' ? 'Das freigegebene AI-Budget ist ausgesch\u00f6pft. Bitte die verantwortliche Person um eine Budgetentscheidung bitten.' :
+  code === 'AI_CONCURRENCY_LIMIT' ? 'Der AI-Dienst bearbeitet bereits mehrere Anfragen. Bitte sp\u00e4ter eine neue Planung anfordern.' :
+  'Die AI-Planung ist fehlgeschlagen. Dienst und Konfiguration pr\u00fcfen, dann bei Bedarf eine neue Planung anfordern.';

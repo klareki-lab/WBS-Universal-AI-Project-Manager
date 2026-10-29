@@ -8,6 +8,10 @@ The frontend subtree was reconciled byte-for-byte into `feat/frontend` in
 MCP, automation, infrastructure, or contracts into the frontend branch.
 G4 code starts at `fb115d7345571b504abf22cbcd64bc491be3d239`.
 PR #2 stays Draft and targets `main`; PR #4 and its branch are not modified.
+During G4, PR #4 advanced to `d22b0c35cae4a5e68fc76e51fe50e144735911f7`.
+Its frontend planning-failure guidance and regression test are retained here:
+budget/concurrency failures explain recovery and replace the pending notice.
+No backend/AI-budget-mode changes from that parallel commit are imported.
 
 Only frontend source and dedicated frontend CI are changed. OpenAPI 1.1.0,
 human approval/revocation, exact plan hashes, the rate limiter and session
@@ -181,6 +185,14 @@ git diff c526a35d12447d8cdd22b35f80dff50c0b06db86 <FINAL_FRONTEND_SHA> \
 git apply --check g4-frontend.patch
 git apply g4-frontend.patch
 ```
+
+PR #4 has concurrent changes in `src/pages/LivePlanWorkspace.tsx` and
+`src/test/live-planning-status.test.tsx`. Do not overwrite those paths using a
+whole-directory copy. The G4 final versions combine the new read/polling flow
+with the integration owner's failure guidance (centralized in `i18n/g4.ts`).
+Resolve context conflicts against d22b0c3 by preserving both behaviors, then
+run the strengthened planning-status regression and the full test suite.
+Do not revert any backend, workflow budget, or usage-ledger changes.
 
 The integration owner may separately copy `.github/workflows/frontend-g4.yml`
 if desired. Its test backend remains pinned to accepted G3. No production
